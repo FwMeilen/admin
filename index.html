@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · MWD · Stützpunktfeuerwehr Meilen</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --rot:#c8102e; --rot-dunkel:#8f0b20; --tinte:#16191d; --grau:#5b636b;
+    --linie:#e2e5e8; --hell:#f5f6f7; --ok:#1c7c3c; --zeit:#e08b1e; --flaeche:#ffffff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+       color:var(--tinte);background:var(--hell);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:900px;margin:0 auto;padding:0 16px 48px}
+
+  header{background:var(--tinte);color:#fff}
+  .head-in{max-width:900px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;gap:12px}
+  .marke{width:10px;height:28px;background:var(--rot);border-radius:2px;flex:0 0 auto}
+  .head-t{font-weight:800;font-size:15px}
+  .head-s{font-size:11px;color:#aeb4ba;text-transform:uppercase;letter-spacing:1px}
+
+  .karte{background:var(--flaeche);border:1px solid var(--linie);border-radius:14px;
+         padding:22px;margin-top:20px;box-shadow:0 1px 2px rgba(16,25,33,.04)}
+  h1{font-size:22px;margin:0 0 4px}
+  h2{font-size:16px;margin:0 0 12px}
+  .lead{color:var(--grau);margin:0 0 18px}
+
+  label{display:block;font-weight:600;font-size:13px;margin:0 0 6px}
+  input[type=password],input[type=text],input[type=number]{width:100%;font-size:16px;padding:12px 14px;
+    border:2px solid var(--linie);border-radius:10px;outline:none;font-family:inherit}
+  input:focus{border-color:var(--rot)}
+  textarea{width:100%;font-size:15px;padding:10px 12px;border:2px solid var(--linie);
+    border-radius:10px;outline:none;font-family:inherit;resize:vertical}
+  textarea:focus{border-color:var(--rot)}
+  select{width:100%;font-size:15px;padding:10px 12px;border:2px solid var(--linie);border-radius:10px;outline:none;font-family:inherit;background:#fff}
+
+  .btn{appearance:none;border:0;cursor:pointer;font-weight:700;font-size:15px;padding:12px 18px;
+       border-radius:10px;background:var(--rot);color:#fff}
+  .btn:hover{background:var(--rot-dunkel)}
+  .btn:disabled{background:#c7ccd1;cursor:not-allowed}
+  .btn.sek{background:var(--flaeche);color:var(--tinte);border:1px solid var(--linie)}
+  .btn.sek:hover{background:var(--hell)}
+  .btn.gruen{background:var(--ok)}
+  .btn.gruen:hover{background:#155c2c}
+  .btn.klein{font-size:13px;padding:8px 12px}
+
+  .fehler{background:#fff1f2;border:1px solid #f5c2c7;color:#8f0b20;border-radius:10px;
+          padding:10px 14px;margin-top:12px;font-size:14px;display:none}
+  .warnung{background:#fff8ec;border:1px solid #f0d9a6;color:#8a5a00;border-radius:10px;
+          padding:10px 14px;margin-top:12px;font-size:13px}
+  .ok-msg{color:var(--ok);font-size:13px;font-weight:600}
+  .err-msg{color:var(--rot);font-size:13px;font-weight:600}
+  .hinw{color:var(--grau);font-size:13px}
+
+  /* Tool-Auswahl */
+  .toolwahl{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .toolwahl select{max-width:280px}
+
+  /* Tabs */
+  .tabs{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
+  .tab{appearance:none;border:1px solid var(--linie);background:var(--flaeche);color:var(--tinte);
+       font-weight:700;font-size:14px;padding:10px 16px;border-radius:999px;cursor:pointer}
+  .tab.aktiv{background:var(--tinte);color:#fff;border-color:var(--tinte)}
+
+  /* KPI / Statistik */
+  .kpis{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .block{background:var(--flaeche);border:1px solid var(--linie);border-radius:14px;padding:18px 20px;margin-top:16px;box-shadow:0 1px 2px rgba(16,25,33,.04)}
+  .blocktitel{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:800;margin:0 0 14px}
+  .blocktitel::before{content:"";width:6px;height:20px;background:var(--rot);border-radius:2px;flex:0 0 auto}
+  .kpi{flex:1;min-width:120px;border:1px solid var(--linie);border-radius:12px;padding:12px 14px}
+  .kpi .z{font-size:26px;font-weight:800}
+  .kpi .l{font-size:12px;color:var(--grau)}
+  .statgrid{display:flex;gap:24px;align-items:center;flex-wrap:wrap;margin-top:8px}
+  .legende div{display:flex;align-items:center;gap:8px;font-size:14px;margin:4px 0}
+  .dot{width:12px;height:12px;border-radius:3px;display:inline-block}
+  .toprow{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--linie);font-size:14px}
+  .toprow:last-child{border-bottom:0}
+  .topnum{flex:0 0 64px;color:var(--grau);font-variant-numeric:tabular-nums}
+  .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:6px}
+  table.l5{border-collapse:collapse;width:100%;font-size:14px;min-width:480px}
+  table.l5 th,table.l5 td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--linie);white-space:nowrap}
+  table.l5 th{font-size:12px;color:var(--grau);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  .badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700;color:#fff}
+  .topnum b{color:var(--rot)}
+
+  /* SoSi Fragen */
+  .qcard{border:1px solid var(--linie);border-radius:12px;padding:14px;margin-bottom:12px}
+  .qhead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+  .qtitel{font-weight:700}
+  .qid{font-size:12px;color:var(--grau);font-weight:700;letter-spacing:.3px}
+  .qa{font-size:14px;margin:3px 0;color:#333}
+  .qa.ok{color:var(--ok);font-weight:600}
+  .qedit label{margin-top:8px}
+  .qedit input{margin-bottom:6px}
+
+  /* PDF-Suche */
+  .pdfrow{display:flex;justify-content:space-between;align-items:center;gap:10px;
+          border:1px solid var(--linie);border-radius:10px;padding:10px 14px;margin-bottom:8px}
+  .pdfrow .meta{font-size:14px}
+  .pdfrow .meta small{color:var(--grau)}
+
+  /* Fahrtraining: editierbare Listen (Fragen / Einsatzmeldungen / Lookup) */
+  .entry-card{border:1px solid var(--linie);border-radius:12px;padding:14px;margin-bottom:12px;background:var(--flaeche);position:relative}
+  .entry-card.new{border-color:var(--ok);border-width:2px}
+  .entry-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .entry-actions{display:flex;gap:10px;margin-top:14px;justify-content:flex-end}
+  .entry-num{font-size:11px;color:var(--grau);font-weight:700;position:absolute;top:10px;right:14px}
+  .status-msg{font-size:13px;font-weight:600;margin-top:8px;display:none}
+  .entry-header{display:flex;align-items:center;gap:10px;cursor:pointer}
+  .entry-arrow{width:18px;height:18px;flex-shrink:0;transition:transform .15s;display:flex;align-items:center;justify-content:center;color:var(--grau)}
+  .entry-card.open .entry-arrow{transform:rotate(90deg)}
+  .entry-summary{font-size:14px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .entry-typ-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:3px 8px;border-radius:999px;background:var(--hell);color:var(--grau);border:1px solid var(--linie);flex-shrink:0}
+  .entry-body{display:none;margin-top:14px}
+  .entry-card.open .entry-body{display:block}
+  textarea.ans{min-height:64px}
+  .top-actions{display:flex;justify-content:space-between;align-items:center;margin:16px 0;gap:10px;flex-wrap:wrap}
+  .loading{text-align:center;padding:2rem;color:var(--grau);font-size:13px}
+  .empty{text-align:center;padding:2rem;color:var(--grau);font-size:13px}
+  iframe.dash{width:100%;height:82vh;border:1px solid var(--linie);border-radius:12px;display:block}
+
+  .foot{margin-top:26px;color:#9aa1a8;font-size:11px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <div class="head-in">
+    <span class="marke"></span>
+    <div>
+      <div class="head-t">Admin · MWD</div>
+      <div class="head-s">Stützpunktfeuerwehr Meilen</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- LOGIN -->
+  <section id="scLogin" class="karte">
+    <h1>Admin-Anmeldung</h1>
+    <p class="lead">Ein Login für Fahrtraining und SoSi-Prüfung.</p>
+    <label for="pass">Passwort</label>
+    <input id="pass" type="password" autocomplete="off">
+    <div style="margin-top:14px"><button class="btn" id="btnLogin">Anmelden</button></div>
+    <div class="fehler" id="loginFehler"></div>
+  </section>
+
+  <!-- PANEL -->
+  <section id="scPanel" style="display:none">
+
+    <div class="karte toolwahl">
+      <div style="flex:1;min-width:200px">
+        <label for="toolSelect">Tool</label>
+        <select id="toolSelect">
+          <option value="ft">Fahrtraining</option>
+          <option value="so">SoSi-Prüfung</option>
+        </select>
+      </div>
+    </div>
+    <div class="warnung" id="authWarnung" style="display:none"></div>
+
+    <!-- ═══════════ FAHRTRAINING ═══════════ -->
+    <div id="toolFt">
+      <div class="tabs">
+        <button class="tab aktiv" data-fttab="dashboard">Dashboard</button>
+        <button class="tab" data-fttab="fragen">Fahrzeugfragen</button>
+        <button class="tab" data-fttab="meldungen">Einsatzmeldungen</button>
+        <button class="tab" data-fttab="lookup">Fahrer-Lookup</button>
+      </div>
+
+      <div id="ftTabDashboard">
+        <iframe class="dash" src="https://fahrtraining.feuerwehrmeilen.ch/dashboard.html"></iframe>
+      </div>
+
+      <div id="ftTabFragen" class="karte" style="display:none">
+        <h2>Fahrzeugfragen</h2>
+        <div class="entry-row2">
+          <div><label for="ftFahrzeug">Fahrzeug / Liste</label><select id="ftFahrzeug"></select></div>
+          <div><label for="ftTypFilter">Typ</label>
+            <select id="ftTypFilter">
+              <option value="">Alle</option>
+              <option value="frage">Frage</option>
+              <option value="tätigkeit">Tätigkeit</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="ftTabFragenListe" style="display:none">
+        <div class="top-actions">
+          <span id="ftFragenCount" class="hinw"></span>
+          <button class="btn gruen klein" id="btnFtNeueFrage">+ Neue Frage</button>
+        </div>
+        <div id="ftFragenListe"></div>
+      </div>
+
+      <div id="ftTabMeldungen" class="karte" style="display:none">
+        <h2>Einsatzmeldungen</h2>
+        <label for="ftMeldungSort">Sortieren nach</label>
+        <select id="ftMeldungSort">
+          <option value="kategorie">Kategorie</option>
+          <option value="alarmierung">Alarmierung</option>
+        </select>
+      </div>
+      <div id="ftTabMeldungenListe" style="display:none">
+        <div class="top-actions">
+          <span id="ftMeldungenCount" class="hinw"></span>
+          <button class="btn gruen klein" id="btnFtNeueMeldung">+ Neue Einsatzmeldung</button>
+        </div>
+        <div id="ftMeldungenListe"></div>
+      </div>
+
+      <div id="ftTabLookup" class="karte" style="display:none">
+        <h2>Fahrer-Lookup</h2>
+        <label for="ftLookupSuche">Kürzel oder Name</label>
+        <div style="display:flex;gap:10px">
+          <input id="ftLookupSuche" type="text" style="flex:1;min-width:0">
+          <button class="btn klein" id="btnFtLookupSuche" style="flex:0 0 auto;white-space:nowrap">Suchen</button>
+        </div>
+      </div>
+      <div id="ftLookupErgebnisse"></div>
+    </div>
+
+    <!-- ═══════════ SOSI ═══════════ -->
+    <div id="toolSo" style="display:none">
+      <div class="tabs">
+        <button class="tab aktiv" data-sotab="stat">Statistik</button>
+        <button class="tab" data-sotab="fragen">Fragen</button>
+        <button class="tab" data-sotab="pdf">PDF-Suche</button>
+        <button class="tab" data-sotab="mail">Einstellungen</button>
+      </div>
+
+      <div id="soTabStat">
+        <div id="soStatInhalt" class="hinw">Lade …</div>
+      </div>
+
+      <div id="soTabFragen" class="karte" style="display:none">
+        <h2>Fragen bearbeiten</h2>
+        <div style="margin-bottom:14px"><button class="btn klein" id="btnSoAddFrage">+ Frage hinzufügen</button></div>
+        <div id="soAddFrageBox"></div>
+        <div id="soFragenInhalt" class="hinw">Lade …</div>
+      </div>
+
+      <div id="soTabPdf" class="karte" style="display:none">
+        <h2>Suche SoSi-Bestätigung</h2>
+        <label for="soSuche">Kürzel oder Name</label>
+        <div style="display:flex;gap:10px">
+          <input id="soSuche" type="text" placeholder="z. B. LOL oder Loepfe" style="flex:1;min-width:0">
+          <button class="btn" id="btnSoSuche" style="flex:0 0 auto;white-space:nowrap">Suchen</button>
+        </div>
+        <div id="soPdfInhalt" style="margin-top:14px"></div>
+      </div>
+
+      <div id="soTabMail" class="karte" style="display:none">
+        <h2>Einstellungen</h2>
+
+        <label for="soGueltigJahre" style="margin-top:6px">Gültigkeitsdauer der Freigabe (Jahre)</label>
+        <input id="soGueltigJahre" type="number" min="1" max="10" step="1" style="max-width:120px">
+        <div class="hinw" style="margin-top:6px">Gilt für <b>neu</b> bestandene Prüfungen. Bereits bestandene Prüfungen behalten ihre bisherige Gültigkeit.</div>
+
+        <details style="margin-top:18px">
+          <summary style="cursor:pointer;font-weight:700;font-size:1.05rem;padding:4px 0">Bestätigungsmail</summary>
+          <div style="margin-top:12px">
+            <p class="hinw" style="margin-top:0">Gilt für die automatische E-Mail bei <b>bestandener</b> Prüfung. Die persönliche Mail des Kandidaten (aus dem Kürzel-Sheet) wird immer automatisch zusätzlich versendet. Das PDF hängt immer an.</p>
+            <label for="soMailEmpf" style="margin-top:14px">Empfänger (fix) — mehrere mit Komma trennen</label>
+            <input id="soMailEmpf" type="text" placeholder="z. B. feuerwehr@sennhof.net, kdt@example.ch">
+            <label for="soMailBetreff" style="margin-top:14px">Betreff</label>
+            <input id="soMailBetreff" type="text">
+            <label for="soMailText" style="margin-top:14px">Mailtext</label>
+            <textarea id="soMailText" rows="12"></textarea>
+            <div class="hinw" style="margin-top:8px">
+              Platzhalter: <code>{vorname}</code> <code>{name}</code> <code>{kuerzel}</code> <code>{datum}</code> <code>{gueltigBis}</code> <code>{punkte}</code> <code>{dauer}</code> <code>{version}</code>. Zeilenumbrüche werden automatisch übernommen; HTML ist nicht nötig. Leerst du ein Feld, greift wieder der Standard.
+            </div>
+            <div class="block" style="margin-top:18px">
+              <div class="blocktitel">Vorschau (Beispieldaten)</div>
+              <div class="hinw" style="margin-bottom:8px">An: <span id="soPvEmpf"></span></div>
+              <div style="font-weight:700;margin-bottom:10px">Betreff: <span id="soPvBetreff" style="font-weight:600"></span></div>
+              <div id="soPvBody" style="background:var(--hell);border:1px solid var(--linie);border-radius:10px;padding:14px 16px;font-size:14px;line-height:1.5"></div>
+            </div>
+          </div>
+        </details>
+
+        <div style="margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button class="btn" id="btnSoMailSpeichern">Speichern</button>
+          <button class="btn sek klein" id="btnSoMailReset">Mailtext auf Standard</button>
+          <span id="soMailStatus" class="hinw"></span>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <div class="foot">CLv1.00 · © Stützpunktfeuerwehr Meilen / LOL</div>
+</div>
+
+<script>
+/* ══════════════════ GEMEINSAM ══════════════════ */
+const FT_EXEC_URL="https://script.google.com/macros/s/AKfycbwvTL3yecdyTvSV5ZPgGslm5K-3UFjW9zc4A2qn_zUk50CcSIpXEaBE1hMiaU3GnNEQ/exec";
+const SO_EXEC_URL="https://script.google.com/macros/s/AKfycbz0mGY8B8I__4UV8HoMT6Jih-Aw_m_YIWvSyzpR8PP1avfnDZRtDTNU8ufKtPSrTg8sNg/exec";
+const MITGLIEDER_SHEET_ID="1bK6IuVpAdLyYc9_NPbJxFMkvCZ0fNvadJABBUM-Rc0M";
+const AUSWERTUNG_SHEET_ID="1Y_kp8pqKNimB00UDSqWyWIfwXKZ7wRmBcJkWqBLvC3w";
+
+let PASS="";
+let FT_OK=false, SO_OK=false;
+const $=id=>document.getElementById(id);
+
+function escHtml(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+$("btnLogin").addEventListener("click", login);
+$("pass").addEventListener("keydown", e=>{ if(e.key==="Enter") login(); });
+
+async function login(){
+  const p=$("pass").value;
+  const fehlerEl=$("loginFehler");
+  fehlerEl.style.display="none";
+  if(!p) return;
+  $("btnLogin").disabled=true; $("btnLogin").textContent="Prüfe …";
+  try{
+    const [ftRes, soRes] = await Promise.all([
+      ftCallAdmin({type:"admin_auth",password:p}).then(r=>r&&r.ok).catch(()=>false),
+      soApi({action:"adminLogin",pass:p}).then(r=>r&&r.ok).catch(()=>false)
+    ]);
+    FT_OK=ftRes; SO_OK=soRes;
+    if(!FT_OK && !SO_OK){
+      fehlerEl.textContent="Falsches Passwort.";
+      fehlerEl.style.display="block";
+      return;
+    }
+    PASS=p;
+    $("scLogin").style.display="none";
+    $("scPanel").style.display="block";
+    updateAuthWarnung();
+    initFt();
+  }catch(e){
+    fehlerEl.textContent="Verbindung fehlgeschlagen.";
+    fehlerEl.style.display="block";
+  }finally{
+    $("btnLogin").disabled=false; $("btnLogin").textContent="Anmelden";
+  }
+}
+
+function updateAuthWarnung(){
+  const w=$("authWarnung");
+  const probleme=[];
+  if(!FT_OK) probleme.push("Fahrtraining: Passwort im Backend nicht synchronisiert");
+  if(!SO_OK) probleme.push("SoSi: Passwort im Backend nicht synchronisiert");
+  if(probleme.length>0){
+    w.innerHTML="⚠ "+probleme.join(" · ");
+    w.style.display="block";
+  } else {
+    w.style.display="none";
+  }
+}
+
+$("toolSelect").addEventListener("change", switchTool);
+function switchTool(){
+  const tool=$("toolSelect").value;
+  $("toolFt").style.display = tool==="ft" ? "block" : "none";
+  $("toolSo").style.display = tool==="so" ? "block" : "none";
+  if(tool==="ft" && !FT_OK){ alert("Fahrtraining-Backend ist nicht angemeldet (Passwort nicht synchron)."); }
+  if(tool==="so" && !SO_OK){ alert("SoSi-Backend ist nicht angemeldet (Passwort nicht synchron)."); }
+  if(tool==="so" && SO_OK && !SO_INIT) initSo();
+}
+
+/* ══════════════════ FAHRTRAINING ══════════════════ */
+const FT_FAHRZEUGE_B=["PTF 1/6","VA","PTF 4/7","PTF 2/3","OW"];
+const FT_FAHRZEUGE_C=["TLF","ADL","PIF","ULF","OC","SVF","MTF"];
+const FT_FAHRZEUGE=[...FT_FAHRZEUGE_B,...FT_FAHRZEUGE_C,"Allgemeine Fragen"];
+let FT_LETZTE_FRAGEN=[], FT_LETZTE_MELDUNGEN=[], FT_MITGLIEDER={}, FT_LOOKUP_ERGEBNISSE=[];
+
+function ftToggleEntry(id){ const el=$(id); if(el) el.classList.toggle("open"); }
+
+async function ftGvizFetch(sheetId,sheetName){
+  const url=`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`+(sheetName?`&sheet=${encodeURIComponent(sheetName)}`:"");
+  const res=await fetch(url);
+  const text=await res.text();
+  const json=JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+  return (json.table.rows||[]);
+}
+function ftGvizVal(row,i){
+  const c=(row.c||[])[i];
+  if(c==null) return "";
+  return c.f!=null?String(c.f).trim():(c.v!=null?String(c.v).trim():"");
+}
+
+async function ftLadeMitglieder(){
+  try{
+    const rows=await ftGvizFetch(MITGLIEDER_SHEET_ID);
+    const result={};
+    rows.slice(1).forEach(row=>{
+      const kuerzel=ftGvizVal(row,0).toUpperCase();
+      if(kuerzel) result[kuerzel]={vorname:ftGvizVal(row,1),name:ftGvizVal(row,2),vollerName:`${ftGvizVal(row,1)} ${ftGvizVal(row,2)}`.trim()};
+    });
+    FT_MITGLIEDER=result;
+  }catch(e){console.warn("Mitglieder konnten nicht geladen werden:",e);}
+}
+
+async function ftCallAdmin(payload){
+  const res=await fetch(FT_EXEC_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)});
+  const text=await res.text();
+  return JSON.parse(text);
+}
+
+function initFt(){
+  ftPopulateFahrzeugSelect();
+  if(FT_OK){ ftLadeFragenAdmin(); ftLadeMitglieder(); }
+  document.querySelectorAll("[data-fttab]").forEach(t=>{
+    t.addEventListener("click", ()=>{
+      document.querySelectorAll("[data-fttab]").forEach(x=>x.classList.remove("aktiv"));
+      t.classList.add("aktiv");
+      const tab=t.dataset.fttab;
+      $("ftTabDashboard").style.display = tab==="dashboard"?"block":"none";
+      $("ftTabFragen").style.display = tab==="fragen"?"block":"none";
+      $("ftTabFragenListe").style.display = tab==="fragen"?"block":"none";
+      $("ftTabMeldungen").style.display = tab==="meldungen"?"block":"none";
+      $("ftTabMeldungenListe").style.display = tab==="meldungen"?"block":"none";
+      $("ftTabLookup").style.display = tab==="lookup"?"block":"none";
+      if(tab==="meldungen") ftLadeMeldungenAdmin();
+    });
+  });
+  $("ftFahrzeug").addEventListener("change", ftLadeFragenAdmin);
+  $("ftTypFilter").addEventListener("change", ()=>ftRenderFragenListe(FT_LETZTE_FRAGEN));
+  $("ftMeldungSort").addEventListener("change", ()=>ftRenderMeldungenListe(FT_LETZTE_MELDUNGEN));
+  $("btnFtNeueFrage").addEventListener("click", ftNeueFrage);
+  $("btnFtNeueMeldung").addEventListener("click", ftNeueMeldung);
+  $("btnFtLookupSuche").addEventListener("click", ftSucheLookup);
+  $("ftLookupSuche").addEventListener("keydown", e=>{ if(e.key==="Enter") ftSucheLookup(); });
+}
+
+function ftPopulateFahrzeugSelect(){
+  $("ftFahrzeug").innerHTML=FT_FAHRZEUGE.map(f=>`<option value="${f}">${f}</option>`).join("");
+}
+
+async function ftLadeFragenAdmin(){
+  const sheet=$("ftFahrzeug").value;
+  const el=$("ftFragenListe");
+  el.innerHTML='<div class="loading">Wird geladen…</div>';
+  try{
+    const res=await ftCallAdmin({type:"admin_list_fragen",password:PASS,sheet});
+    if(res.error){el.innerHTML='<div class="empty">Zugriff verweigert.</div>';return;}
+    FT_LETZTE_FRAGEN=res.rows||[];
+    ftRenderFragenListe(FT_LETZTE_FRAGEN);
+  }catch(e){ el.innerHTML=`<div class="empty">Fehler beim Laden: ${e.message}</div>`; }
+}
+function ftRenderFragenListe(rows){
+  const el=$("ftFragenListe");
+  const filter=$("ftTypFilter").value;
+  let gefiltert=rows;
+  if(filter){
+    gefiltert=rows.filter(r=>{
+      const t=(r.typ||"frage").toLowerCase();
+      const istT=t==="tätigkeit"||t==="taetigkeit";
+      return filter==="tätigkeit"?istT:!istT;
+    });
+  }
+  $("ftFragenCount").textContent=`${gefiltert.length} Eintrag${gefiltert.length!==1?"e":""}`;
+  if(gefiltert.length===0){el.innerHTML='<div class="empty">Noch keine Einträge.</div>';return;}
+  el.innerHTML=gefiltert.map(r=>ftFragenCardHtml(r)).join("");
+}
+function ftFragenCardHtml(r){
+  const id=`ft-f-${r.row}`;
+  const typ=(r.typ||"frage").toLowerCase();
+  const istT=typ==="tätigkeit"||typ==="taetigkeit";
+  return `<div class="entry-card" id="${id}">
+    <div class="entry-num">Zeile ${r.row}</div>
+    <div class="entry-header" onclick="ftToggleEntry('${id}')">
+      <span class="entry-arrow">▶</span>
+      <span class="entry-typ-tag">${istT?"Tätigkeit":"Frage"}</span>
+      <span class="entry-summary">${escHtml(r.frage)}</span>
+    </div>
+    <div class="entry-body">
+      <label>Typ</label>
+      <select id="${id}-typ">
+        <option value="Frage" ${!istT?"selected":""}>Frage</option>
+        <option value="Tätigkeit" ${istT?"selected":""}>Tätigkeit</option>
+      </select>
+      <label>Frage / Tätigkeit</label>
+      <textarea id="${id}-frage">${escHtml(r.frage)}</textarea>
+      <div class="entry-row2">
+        <div><label>Antwort / Kontrollpunkt 1</label><textarea class="ans" id="${id}-a1">${escHtml(r.a1)}</textarea></div>
+        <div><label>Antwort / Kontrollpunkt 2</label><textarea class="ans" id="${id}-a2">${escHtml(r.a2)}</textarea></div>
+      </div>
+      <div class="entry-row2">
+        <div><label>Antwort / Kontrollpunkt 3</label><textarea class="ans" id="${id}-a3">${escHtml(r.a3)}</textarea></div>
+        <div><label>Antwort / Kontrollpunkt 4</label><textarea class="ans" id="${id}-a4">${escHtml(r.a4)}</textarea></div>
+      </div>
+      <label>Richtig (A–D, nur bei Frage)</label>
+      <input type="text" id="${id}-richtig" value="${escHtml(r.richtig)}" maxlength="1" style="max-width:80px;text-transform:uppercase">
+      <label>Erklärung</label>
+      <textarea id="${id}-erklaerung">${escHtml(r.erklaerung)}</textarea>
+      <div class="entry-actions">
+        <button class="btn klein" style="background:var(--rot)" onclick="ftLoescheFrage(${r.row},'${id}')">Löschen</button>
+        <button class="btn gruen klein" onclick="ftSpeichereFrage(${r.row},'${id}')">Speichern</button>
+      </div>
+      <div class="status-msg" id="${id}-status"></div>
+    </div>
+  </div>`;
+}
+function ftNeueFrage(){
+  const el=$("ftFragenListe");
+  const tempId="ft-f-new-"+Date.now();
+  el.insertAdjacentHTML("afterbegin", `<div class="entry-card new open" id="${tempId}">
+    <div class="entry-header" onclick="ftToggleEntry('${tempId}')">
+      <span class="entry-arrow">▶</span><span class="entry-summary">Neue Frage / Tätigkeit</span>
+    </div>
+    <div class="entry-body">
+      <label>Typ</label>
+      <select id="${tempId}-typ"><option value="Frage" selected>Frage</option><option value="Tätigkeit">Tätigkeit</option></select>
+      <label>Frage / Tätigkeit</label><textarea id="${tempId}-frage"></textarea>
+      <div class="entry-row2">
+        <div><label>Antwort / Kontrollpunkt 1</label><textarea class="ans" id="${tempId}-a1"></textarea></div>
+        <div><label>Antwort / Kontrollpunkt 2</label><textarea class="ans" id="${tempId}-a2"></textarea></div>
+      </div>
+      <div class="entry-row2">
+        <div><label>Antwort / Kontrollpunkt 3</label><textarea class="ans" id="${tempId}-a3"></textarea></div>
+        <div><label>Antwort / Kontrollpunkt 4</label><textarea class="ans" id="${tempId}-a4"></textarea></div>
+      </div>
+      <label>Richtig (A–D, nur bei Frage)</label>
+      <input type="text" id="${tempId}-richtig" maxlength="1" style="max-width:80px;text-transform:uppercase">
+      <label>Erklärung</label><textarea id="${tempId}-erklaerung"></textarea>
+      <div class="entry-actions"><button class="btn gruen klein" onclick="ftSpeichereFrage(null,'${tempId}')">Anlegen</button></div>
+      <div class="status-msg" id="${tempId}-status"></div>
+    </div>
+  </div>`);
+}
+async function ftSpeichereFrage(row,id){
+  const sheet=$("ftFahrzeug").value;
+  const v=fid=>{const el=$(fid); return el?el.value.trim():"";};
+  const payload={type:"admin_save_frage",password:PASS,sheet,row:row||null,
+    typ:v(id+"-typ"),frage:v(id+"-frage"),a1:v(id+"-a1"),a2:v(id+"-a2"),a3:v(id+"-a3"),a4:v(id+"-a4"),
+    richtig:v(id+"-richtig").toUpperCase(),erklaerung:v(id+"-erklaerung")};
+  const st=$(id+"-status");
+  st.style.display="block"; st.className="status-msg"; st.textContent="Wird gespeichert…";
+  try{
+    const res=await ftCallAdmin(payload);
+    if(res.ok){ st.className="status-msg ok-msg"; st.textContent="Gespeichert."; setTimeout(()=>ftLadeFragenAdmin(),600); }
+    else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+async function ftLoescheFrage(row,id){
+  if(!confirm("Diesen Eintrag wirklich löschen?")) return;
+  const sheet=$("ftFahrzeug").value;
+  const st=$(id+"-status");
+  st.style.display="block"; st.className="status-msg"; st.textContent="Wird gelöscht…";
+  try{
+    const res=await ftCallAdmin({type:"admin_delete_frage",password:PASS,sheet,row});
+    if(res.ok){ ftLadeFragenAdmin(); }
+    else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Löschen."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+async function ftLadeMeldungenAdmin(){
+  const el=$("ftMeldungenListe");
+  el.innerHTML='<div class="loading">Wird geladen…</div>';
+  try{
+    const res=await ftCallAdmin({type:"admin_list_einsatzmeldungen",password:PASS});
+    if(res.error){el.innerHTML='<div class="empty">Zugriff verweigert.</div>';return;}
+    FT_LETZTE_MELDUNGEN=res.rows||[];
+    ftRenderMeldungenListe(FT_LETZTE_MELDUNGEN);
+  }catch(e){ el.innerHTML=`<div class="empty">Fehler beim Laden: ${e.message}</div>`; }
+}
+function ftRenderMeldungenListe(rows){
+  const el=$("ftMeldungenListe");
+  const sortBy=$("ftMeldungSort").value;
+  const sortiert=[...rows].sort((a,b)=>String(a[sortBy]||"").localeCompare(String(b[sortBy]||""),"de"));
+  $("ftMeldungenCount").textContent=`${sortiert.length} Eintrag${sortiert.length!==1?"e":""}`;
+  if(sortiert.length===0){el.innerHTML='<div class="empty">Noch keine Einträge.</div>';return;}
+  el.innerHTML=sortiert.map(r=>ftMeldungCardHtml(r)).join("");
+}
+function ftMeldungCardHtml(r){
+  const id=`ft-m-${r.row}`;
+  return `<div class="entry-card" id="${id}">
+    <div class="entry-num">Zeile ${r.row}</div>
+    <div class="entry-header" onclick="ftToggleEntry('${id}')">
+      <span class="entry-arrow">▶</span><span class="entry-typ-tag">${escHtml(r.kategorie)}</span>
+      <span class="entry-summary">${escHtml(r.meldung)}</span>
+    </div>
+    <div class="entry-body">
+      <div class="entry-row2">
+        <div><label>Kategorie</label><input type="text" id="${id}-kategorie" value="${escHtml(r.kategorie)}"></div>
+        <div><label>Alarmierung</label><input type="text" id="${id}-alarmierung" value="${escHtml(r.alarmierung)}"></div>
+      </div>
+      <label>Meldung</label><textarea id="${id}-meldung">${escHtml(r.meldung)}</textarea>
+      <label>Einsatzmittel (kommagetrennt)</label><input type="text" id="${id}-mittel" value="${escHtml(r.mittel)}">
+      <div class="entry-actions">
+        <button class="btn klein" style="background:var(--rot)" onclick="ftLoescheMeldung(${r.row},'${id}')">Löschen</button>
+        <button class="btn gruen klein" onclick="ftSpeichereMeldung(${r.row},'${id}')">Speichern</button>
+      </div>
+      <div class="status-msg" id="${id}-status"></div>
+    </div>
+  </div>`;
+}
+function ftNeueMeldung(){
+  const el=$("ftMeldungenListe");
+  const tempId="ft-m-new-"+Date.now();
+  el.insertAdjacentHTML("afterbegin", `<div class="entry-card new open" id="${tempId}">
+    <div class="entry-header" onclick="ftToggleEntry('${tempId}')">
+      <span class="entry-arrow">▶</span><span class="entry-summary">Neue Einsatzmeldung</span>
+    </div>
+    <div class="entry-body">
+      <div class="entry-row2">
+        <div><label>Kategorie</label><input type="text" id="${tempId}-kategorie"></div>
+        <div><label>Alarmierung</label><input type="text" id="${tempId}-alarmierung"></div>
+      </div>
+      <label>Meldung</label><textarea id="${tempId}-meldung"></textarea>
+      <label>Einsatzmittel (kommagetrennt)</label><input type="text" id="${tempId}-mittel">
+      <div class="entry-actions"><button class="btn gruen klein" onclick="ftSpeichereMeldung(null,'${tempId}')">Anlegen</button></div>
+      <div class="status-msg" id="${tempId}-status"></div>
+    </div>
+  </div>`);
+}
+async function ftSpeichereMeldung(row,id){
+  const v=fid=>{const el=$(fid); return el?el.value.trim():"";};
+  const payload={type:"admin_save_einsatzmeldung",password:PASS,row:row||null,
+    kategorie:v(id+"-kategorie"),alarmierung:v(id+"-alarmierung"),meldung:v(id+"-meldung"),mittel:v(id+"-mittel")};
+  const st=$(id+"-status");
+  st.style.display="block"; st.className="status-msg"; st.textContent="Wird gespeichert…";
+  try{
+    const res=await ftCallAdmin(payload);
+    if(res.ok){ st.className="status-msg ok-msg"; st.textContent="Gespeichert."; setTimeout(()=>ftLadeMeldungenAdmin(),600); }
+    else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+async function ftLoescheMeldung(row,id){
+  if(!confirm("Diese Einsatzmeldung wirklich löschen?")) return;
+  const st=$(id+"-status");
+  st.style.display="block"; st.className="status-msg"; st.textContent="Wird gelöscht…";
+  try{
+    const res=await ftCallAdmin({type:"admin_delete_einsatzmeldung",password:PASS,row});
+    if(res.ok){ ftLadeMeldungenAdmin(); }
+    else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Löschen."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+async function ftSucheLookup(){
+  const input=$("ftLookupSuche").value.trim();
+  const el=$("ftLookupErgebnisse");
+  if(!input){el.innerHTML="";return;}
+  el.innerHTML='<div class="loading">Wird gesucht…</div>';
+  try{
+    if(Object.keys(FT_MITGLIEDER).length===0) await ftLadeMitglieder();
+    const inputUpper=input.toUpperCase();
+    let kuerzelSet=new Set();
+    if(FT_MITGLIEDER[inputUpper]) kuerzelSet.add(inputUpper);
+    Object.entries(FT_MITGLIEDER).forEach(([k,m])=>{ if(m.vollerName.toLowerCase().includes(input.toLowerCase())) kuerzelSet.add(k); });
+    if(kuerzelSet.size===0){ el.innerHTML='<div class="empty">Keine Person gefunden.</div>'; return; }
+    const rows=await ftGvizFetch(AUSWERTUNG_SHEET_ID,"Fahrten");
+    const treffer=rows.slice(1).map(row=>({
+      datum:ftGvizVal(row,0),fahrer:ftGvizVal(row,1),beifahrer:ftGvizVal(row,2),fahrzeug:ftGvizVal(row,3),
+      fahrt:ftGvizVal(row,4),aufbau:ftGvizVal(row,5),gebiet:ftGvizVal(row,6),abfahrt:ftGvizVal(row,7),rueckkehr:ftGvizVal(row,8),
+      anzahlEinsaetze:ftGvizVal(row,9),einsatzadressen:ftGvizVal(row,10),
+      quizRichtig:ftGvizVal(row,11),quizTotal:ftGvizVal(row,12),pct:ftGvizVal(row,13),hilfe:ftGvizVal(row,14)
+    })).filter(r=>kuerzelSet.has(r.fahrer.toUpperCase())||kuerzelSet.has(r.beifahrer.toUpperCase()));
+    treffer.sort((a,b)=>b.datum.localeCompare(a.datum));
+    FT_LOOKUP_ERGEBNISSE=treffer;
+    ftRenderLookupErgebnisse(treffer);
+  }catch(e){ el.innerHTML=`<div class="empty">Fehler bei der Suche: ${e.message}</div>`; }
+}
+function ftRenderLookupErgebnisse(treffer){
+  const el=$("ftLookupErgebnisse");
+  if(treffer.length===0){el.innerHTML='<div class="empty">Keine Fahrten gefunden.</div>';return;}
+  el.innerHTML=`<div class="hinw" style="margin-bottom:0.75rem">${treffer.length} Fahrt${treffer.length!==1?"en":""} gefunden</div>`+
+    treffer.map((r,i)=>{
+      const quizStr=r.quizTotal&&r.quizTotal!=="–"?`${r.quizRichtig}/${r.quizTotal} (${r.pct})`:"–";
+      return `<div class="entry-card">
+        <div style="font-weight:700;font-size:14px;margin-bottom:6px;">${escHtml(r.datum)} · ${escHtml(r.fahrzeug)}</div>
+        <div style="font-size:13px;color:var(--grau);line-height:1.7;">
+          Fahrer: ${escHtml(ftVollerNameAdmin(r.fahrer))}<br>
+          Beifahrer: ${escHtml(ftVollerNameAdmin(r.beifahrer))}<br>
+          Fahrzeit: ${escHtml(r.abfahrt)} – ${escHtml(r.rueckkehr)}<br>
+          Fragen: ${quizStr}
+        </div>
+        <div class="entry-actions" style="justify-content:flex-start;">
+          <button class="btn gruen klein" onclick="ftReprintPDF(${i})">PDF drucken</button>
+        </div>
+        <div class="status-msg" id="ft-lookup-status-${i}"></div>
+      </div>`;
+    }).join("");
+}
+function ftVollerNameAdmin(kuerzel){
+  const k=String(kuerzel||"").toUpperCase().trim();
+  return (FT_MITGLIEDER[k]&&FT_MITGLIEDER[k].vollerName)||kuerzel;
+}
+async function ftReprintPDF(idx){
+  const r=FT_LOOKUP_ERGEBNISSE[idx];
+  if(!r) return;
+  const st=$(`ft-lookup-status-${idx}`);
+  st.style.display="block"; st.className="status-msg"; st.textContent="PDF wird erstellt…";
+  try{
+    let fragenDetail=[], taetigkeitenDetail=[];
+    try{
+      const fragenRows=await ftGvizFetch(AUSWERTUNG_SHEET_ID,"Fragen");
+      fragenDetail=fragenRows.slice(1).map(row=>({datum:ftGvizVal(row,0),fahrer:ftGvizVal(row,1),fahrzeug:ftGvizVal(row,2),
+        frage:ftGvizVal(row,3),gegeben:ftGvizVal(row,4),korrekt:ftGvizVal(row,5),richtig:ftGvizVal(row,6)}))
+        .filter(q=>q.datum===r.datum&&q.fahrer===r.fahrer&&q.fahrzeug===r.fahrzeug);
+    }catch(e){}
+    try{
+      const taetRows=await ftGvizFetch(AUSWERTUNG_SHEET_ID,"Tätigkeiten");
+      taetigkeitenDetail=taetRows.slice(1).map(row=>({datum:ftGvizVal(row,0),fahrer:ftGvizVal(row,1),fahrzeug:ftGvizVal(row,2),
+        taetigkeit:ftGvizVal(row,3),stufe:ftGvizVal(row,4),hilfe:ftGvizVal(row,5)}))
+        .filter(t=>t.datum===r.datum&&t.fahrer===r.fahrer&&t.fahrzeug===r.fahrzeug);
+    }catch(e){}
+    ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail);
+    st.style.display="none";
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
+  if(!window.jspdf){alert("PDF-Bibliothek konnte nicht geladen werden.");return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  const stufeLabel={"1":"Sehr gut","2":"Bitte weiter üben","3":"Nehmen wir auf"};
+  let y=20;
+  doc.setFont("helvetica","bold"); doc.setFontSize(14);
+  doc.text("Stützpunktfeuerwehr Meilen",20,y); y+=7;
+  doc.setFontSize(11); doc.text("Fahrtraining – Bestätigung (Kopie)",20,y); y+=4;
+  doc.setDrawColor(200,16,46); doc.setLineWidth(0.8); doc.line(20,y,190,y); y+=8;
+  doc.setFont("helvetica","normal"); doc.setFontSize(10);
+  const zeile=(label,wert)=>{ doc.setFont("helvetica","bold"); doc.text(label,20,y); doc.setFont("helvetica","normal"); doc.text(String(wert),65,y); y+=6; };
+  zeile("Datum:",r.datum);
+  zeile("Fahrzeug:",r.fahrzeug+(r.gebiet?" · "+r.gebiet:""));
+  zeile("Fahrer:",ftVollerNameAdmin(r.fahrer));
+  zeile("Beifahrer:",ftVollerNameAdmin(r.beifahrer));
+  zeile("Fahrzeit:",`${r.abfahrt} – ${r.rueckkehr}`);
+  y+=4; doc.setDrawColor(224,224,224); doc.setLineWidth(0.3); doc.line(20,y,190,y); y+=8;
+  doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.text("Resultate",20,y); y+=7; doc.setFontSize(10);
+  if(r.quizTotal&&r.quizTotal!=="–") zeile("Fragen richtig:",`${r.quizRichtig} von ${r.quizTotal} (${r.pct})`);
+  if(r.anzahlEinsaetze&&r.anzahlEinsaetze!=="0") zeile("Einsätze gefahren:",r.anzahlEinsaetze);
+  if(fragenDetail.length>0){
+    doc.setFont("helvetica","bold"); doc.text("Fragen im Detail:",20,y); y+=6; doc.setFont("helvetica","normal");
+    fragenDetail.forEach((q,i)=>{
+      const ok=q.richtig==="JA"?"✓":"✗";
+      const lines=doc.splitTextToSize(`${ok} ${i+1}. ${q.frage}`,165);
+      doc.text(lines,25,y); y+=lines.length*5;
+    });
+    y+=2;
+  }
+  if(taetigkeitenDetail.length>0){
+    doc.setFont("helvetica","bold"); doc.text("Tätigkeiten:",20,y); y+=6; doc.setFont("helvetica","normal");
+    taetigkeitenDetail.forEach((t,i)=>{
+      const lines=doc.splitTextToSize(`${i+1}. ${t.taetigkeit} – ${stufeLabel[t.stufe]||t.stufe}`,165);
+      doc.text(lines,25,y); y+=lines.length*5;
+    });
+  }
+  if(r.hilfe&&r.hilfe.trim()){
+    y+=4; doc.setFont("helvetica","bold"); doc.text("Hilfe/Bemerkungen:",20,y); y+=6; doc.setFont("helvetica","normal");
+    const lines=doc.splitTextToSize(r.hilfe,165); doc.text(lines,25,y); y+=lines.length*5;
+  }
+  y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
+  doc.setFontSize(8); doc.setTextColor(120,120,120);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.00`,20,y);
+  doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
+}
+
+/* ══════════════════ SOSI ══════════════════ */
+let SO_INIT=false;
+let SO_FRAGEN=[];
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.03";
+
+async function soApi(payload){
+  try{
+    const res=await fetch(SO_EXEC_URL,{method:"POST",body:JSON.stringify(payload)});
+    const txt=await res.text();
+    try{ return JSON.parse(txt); }catch(e){ return {ok:false,error:"KEIN_JSON",detail:txt.slice(0,200)}; }
+  }catch(e){ return {ok:false,error:"NETZWERK",detail:String(e&&e.message||e)}; }
+}
+function soFehlerHtml(prefix,r){
+  const d=r?((r.error||"")+(r.detail?" — "+r.detail:"")):"";
+  return `<div class="fehler" style="display:block">${escHtml(prefix)}${d?" ("+escHtml(d)+")":""}</div>`;
+}
+
+function initSo(){
+  SO_INIT=true;
+  document.querySelectorAll("[data-sotab]").forEach(t=>{
+    t.addEventListener("click", ()=>{
+      document.querySelectorAll("[data-sotab]").forEach(x=>x.classList.remove("aktiv"));
+      t.classList.add("aktiv");
+      const tab=t.dataset.sotab;
+      $("soTabStat").style.display=tab==="stat"?"block":"none";
+      $("soTabFragen").style.display=tab==="fragen"?"block":"none";
+      $("soTabPdf").style.display=tab==="pdf"?"block":"none";
+      $("soTabMail").style.display=tab==="mail"?"block":"none";
+      if(tab==="stat") soLadeStatistik();
+      if(tab==="fragen") soLadeFragen();
+      if(tab==="mail") soLadeMail();
+    });
+  });
+  $("btnSoAddFrage").addEventListener("click", soNeueFrageForm);
+  $("btnSoSuche").addEventListener("click", soSuchePdf);
+  $("soSuche").addEventListener("keydown", e=>{ if(e.key==="Enter") soSuchePdf(); });
+  ["soMailEmpf","soMailBetreff","soMailText"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", soMailVorschau); });
+  $("btnSoMailSpeichern").addEventListener("click", soSpeichereMail);
+  $("btnSoMailReset").addEventListener("click", soMailReset);
+  soLadeStatistik();
+}
+
+async function soLadeStatistik(){
+  $("soStatInhalt").innerHTML='<div class="hinw">Lade …</div>';
+  try{
+    const r=await soApi({action:"adminStats",pass:PASS});
+    if(!r.ok){ $("soStatInhalt").innerHTML=soFehlerHtml("Fehler beim Laden.",r); return; }
+    const seg=[
+      {label:"Bestanden",value:r.ja,color:"var(--ok)"},
+      {label:"Nicht bestanden (Punkte)",value:r.neinPunkte,color:"var(--rot)"},
+      {label:"Zeitlimit",value:r.neinZeit,color:"var(--zeit)"}
+    ];
+    let html='<div class="block"><div class="blocktitel">Übersicht</div><div class="kpis">'
+      +soKpi(r.total,"Tests gesamt")+soKpi(r.ja,"Bestanden")+soKpi(r.neinPunkte,"Nicht bestanden (Punkte)")+soKpi(r.neinZeit,"Zeitlimit")
+      +'</div><div class="statgrid">'+soPieSVG(seg)+'<div class="legende">'+soLegende(seg)+'</div></div></div>';
+    html+='<div class="block"><div class="blocktitel">Häufigste Fehler</div>';
+    if(!r.top5||!r.top5.length){ html+='<div class="hinw">Noch keine Fehlerdaten.</div>'; }
+    else{ r.top5.forEach((it,i)=>{ html+=`<div class="toprow"><span class="topnum"><b>${it.falsch}✗</b> / ${it.richtig}✓</span><span>${i+1}. ${escHtml(it.frage)}</span></div>`; }); }
+    html+='</div>';
+    html+='<div class="block"><div class="blocktitel">Letzte Prüfungen</div>';
+    if(!r.letzte5||!r.letzte5.length){ html+='<div class="hinw">Noch keine Prüfungen.</div>'; }
+    else{
+      let rows='';
+      r.letzte5.forEach(p=>{
+        const res=soResBadge(p.resultat);
+        rows+=`<tr><td>${escHtml(p.datum)}</td><td>${escHtml(p.zeit)}</td><td>${escHtml(p.kuerzel)}</td><td>${escHtml(p.dauer)}</td><td>${escHtml(p.punkte)}</td><td>${res}</td></tr>`;
+      });
+      html+=`<div class="tblwrap"><table class="l5"><thead><tr><th>Datum</th><th>Zeit</th><th>Kürzel</th><th>Zeit gebraucht</th><th>Punkte</th><th>Resultat</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    }
+    html+='</div>';
+    $("soStatInhalt").innerHTML=html;
+  }catch(e){ $("soStatInhalt").innerHTML=soFehlerHtml("Anzeige-Fehler:",{error:String(e&&e.message||e)}); }
+}
+function soKpi(z,l){ return `<div class="kpi"><div class="z">${z}</div><div class="l">${l}</div></div>`; }
+function soResBadge(b){
+  let txt="—",col="#9aa1a8";
+  if(b==="Ja"){txt="Bestanden";col="var(--ok)";}
+  else if(b==="Nein: Punkte"){txt="Punkte";col="var(--rot)";}
+  else if(b==="Nein: Zeit"){txt="Zeitlimit";col="var(--zeit)";}
+  return `<span class="badge" style="background:${col}">${txt}</span>`;
+}
+function soLegende(seg){ return seg.map(s=>`<div><span class="dot" style="background:${s.color}"></span>${s.label} · <b>${s.value}</b></div>`).join(""); }
+function soPieSVG(data){
+  const total=data.reduce((a,b)=>a+b.value,0);
+  if(total===0) return '<div class="hinw" style="width:180px">Noch keine Daten.</div>';
+  const cx=90,cy=90,r=80; let ang=-Math.PI/2; let p="";
+  data.forEach(d=>{
+    if(d.value<=0) return;
+    if(d.value===total){ p+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${d.color}"/>`; return; }
+    const a2=ang+(d.value/total)*2*Math.PI;
+    const x1=cx+r*Math.cos(ang), y1=cy+r*Math.sin(ang);
+    const x2=cx+r*Math.cos(a2), y2=cy+r*Math.sin(a2);
+    const large=(a2-ang)>Math.PI?1:0;
+    p+=`<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="${d.color}"/>`;
+    ang=a2;
+  });
+  return `<svg viewBox="0 0 180 180" width="180" height="180" style="flex:0 0 auto">${p}</svg>`;
+}
+
+function soNeueFrageForm(){
+  let sel=""; for(let i=1;i<=4;i++) sel+=`<option value="${i}"${i===1?" selected":""}>Antwort ${i}</option>`;
+  $("soAddFrageBox").innerHTML=`<div class="qcard"><div class="qedit">
+    <div class="qid" style="margin-bottom:10px">Neue Frage · ID wird automatisch vergeben</div>
+    <label>Frage</label><textarea id="soNef" rows="2"></textarea>
+    <label>Antwort 1</label><input id="soNea1" type="text">
+    <label>Antwort 2</label><input id="soNea2" type="text">
+    <label>Antwort 3</label><input id="soNea3" type="text">
+    <label>Antwort 4 (optional)</label><input id="soNea4" type="text">
+    <label>Korrekte Antwort</label><select id="soNek">${sel}</select>
+    <div style="margin-top:12px;display:flex;gap:10px">
+      <button class="btn klein" id="soNeSave">Hinzufügen</button>
+      <button class="btn sek klein" id="soNeCancel">Abbrechen</button>
+    </div><div class="fehler" id="soNeFehler"></div></div></div>`;
+  $("soNeSave").addEventListener("click", soSpeichereNeueFrage);
+  $("soNeCancel").addEventListener("click", ()=>{ $("soAddFrageBox").innerHTML=""; });
+}
+async function soSpeichereNeueFrage(){
+  const frage=$("soNef").value.trim();
+  const a1=$("soNea1").value.trim(), a2=$("soNea2").value.trim();
+  const f=$("soNeFehler");
+  if(!frage){ f.textContent="Frage darf nicht leer sein."; f.style.display="block"; return; }
+  if(!a1||!a2){ f.textContent="Mindestens zwei Antworten nötig."; f.style.display="block"; return; }
+  const btn=$("soNeSave"); btn.disabled=true; btn.textContent="Speichere …";
+  const r=await soApi({action:"adminAddFrage",pass:PASS,frage,a1,a2,a3:$("soNea3").value.trim(),a4:$("soNea4").value.trim(),korrekt:$("soNek").value});
+  if(r.ok){ $("soAddFrageBox").innerHTML=""; soLadeFragen(); }
+  else{ f.textContent="Hinzufügen fehlgeschlagen."+(r.detail?" ("+r.detail+")":""); f.style.display="block"; btn.disabled=false; btn.textContent="Hinzufügen"; }
+}
+async function soLadeFragen(){
+  $("soFragenInhalt").innerHTML='<div class="hinw">Lade …</div>';
+  try{
+    const r=await soApi({action:"adminFragen",pass:PASS});
+    if(!r.ok){ $("soFragenInhalt").innerHTML=soFehlerHtml("Fehler beim Laden.",r); return; }
+    SO_FRAGEN=r.fragen;
+    soRenderFragen();
+  }catch(e){ $("soFragenInhalt").innerHTML=soFehlerHtml("Anzeige-Fehler:",{error:String(e&&e.message||e)}); }
+}
+function soRenderFragen(){
+  const box=$("soFragenInhalt");
+  if(!SO_FRAGEN.length){ box.innerHTML='<div class="hinw">Keine Fragen gefunden.</div>'; return; }
+  box.innerHTML=SO_FRAGEN.map((q,idx)=>soQcardHtml(q,idx)).join("");
+  SO_FRAGEN.forEach((q,idx)=>{ const b=$("soEditBtn"+idx); if(b) b.addEventListener("click", ()=>soEditFrage(idx)); });
+}
+function soQcardHtml(q,idx){
+  const opts=[q.a1,q.a2,q.a3,q.a4];
+  const korr=parseInt(q.korrekt,10);
+  let ans="";
+  opts.forEach((o,i)=>{ if(String(o).trim()) ans+=`<div class="qa${(i+1)===korr?" ok":""}">${i+1}. ${escHtml(o)}${(i+1)===korr?" ✓":""}</div>`; });
+  return `<div class="qcard" id="soQcard${idx}">
+    <div class="qhead"><div><div class="qid">ID ${escHtml(q.id)}</div><div class="qtitel">${escHtml(q.frage)}</div></div>
+    <button class="btn sek klein" id="soEditBtn${idx}">✎ Bearbeiten</button></div>${ans}</div>`;
+}
+function soEditFrage(idx){
+  const q=SO_FRAGEN[idx];
+  const korr=parseInt(q.korrekt,10)||1;
+  let sel=""; for(let i=1;i<=4;i++) sel+=`<option value="${i}"${i===korr?" selected":""}>Antwort ${i}</option>`;
+  $("soQcard"+idx).innerHTML=`<div class="qedit">
+    <div class="qid" style="margin-bottom:10px">ID ${escHtml(q.id)} · nicht editierbar</div>
+    <label>Frage</label><textarea id="soEf${idx}" rows="2">${escHtml(q.frage)}</textarea>
+    <label>Antwort 1</label><input id="soEa1_${idx}" type="text" value="${escHtml(q.a1)}">
+    <label>Antwort 2</label><input id="soEa2_${idx}" type="text" value="${escHtml(q.a2)}">
+    <label>Antwort 3</label><input id="soEa3_${idx}" type="text" value="${escHtml(q.a3)}">
+    <label>Antwort 4 (optional)</label><input id="soEa4_${idx}" type="text" value="${escHtml(q.a4)}">
+    <label>Korrekte Antwort</label><select id="soEk${idx}">${sel}</select>
+    <div style="margin-top:12px;display:flex;gap:10px">
+      <button class="btn klein" id="soSaveBtn${idx}">Speichern</button>
+      <button class="btn sek klein" id="soCancelBtn${idx}">Abbrechen</button>
+    </div><div class="fehler" id="soEditFehler${idx}"></div></div>`;
+  $("soSaveBtn"+idx).addEventListener("click", ()=>soSpeichereFrage(idx));
+  $("soCancelBtn"+idx).addEventListener("click", ()=>{ $("soQcard"+idx).outerHTML=soQcardHtml(q,idx); $("soEditBtn"+idx).addEventListener("click", ()=>soEditFrage(idx)); });
+}
+async function soSpeichereFrage(idx){
+  const q=SO_FRAGEN[idx];
+  const payload={action:"adminUpdateFrage",pass:PASS,rowNr:q.rowNr,
+    frage:$("soEf"+idx).value,a1:$("soEa1_"+idx).value,a2:$("soEa2_"+idx).value,a3:$("soEa3_"+idx).value,a4:$("soEa4_"+idx).value,korrekt:$("soEk"+idx).value};
+  const btn=$("soSaveBtn"+idx); btn.disabled=true; btn.textContent="Speichere …";
+  const r=await soApi(payload);
+  if(r.ok){
+    Object.assign(q,{frage:payload.frage,a1:payload.a1,a2:payload.a2,a3:payload.a3,a4:payload.a4,korrekt:String(payload.korrekt)});
+    $("soQcard"+idx).outerHTML=soQcardHtml(q,idx);
+    $("soEditBtn"+idx).addEventListener("click", ()=>soEditFrage(idx));
+  } else {
+    const f=$("soEditFehler"+idx); f.textContent="Speichern fehlgeschlagen."; f.style.display="block";
+    btn.disabled=false; btn.textContent="Speichern";
+  }
+}
+
+async function soSuchePdf(){
+  const q=$("soSuche").value.trim();
+  const box=$("soPdfInhalt");
+  if(!q){ box.innerHTML=""; return; }
+  box.innerHTML='<div class="hinw">Suche …</div>';
+  try{
+    const r=await soApi({action:"adminSuchePdf",pass:PASS,query:q});
+    if(!r.ok){ box.innerHTML=soFehlerHtml("Fehler bei der Suche.",r); return; }
+    if(!r.treffer.length){ box.innerHTML='<div class="hinw">Keine Treffer.</div>'; return; }
+    box.innerHTML=r.treffer.map((t,i)=>
+      `<div class="pdfrow"><div class="meta"><b>${escHtml(t.vorname+" "+t.name)}</b> (${escHtml(t.kuerzel)})<br><small>${escHtml(t.datum)}</small></div>`
+      +(t.fileId?`<button class="btn sek klein" id="soDl${i}">PDF herunterladen</button>`:'<span class="hinw">kein PDF</span>')+"</div>").join("");
+    r.treffer.forEach((t,i)=>{ if(t.fileId){ const b=$("soDl"+i); if(b) b.addEventListener("click", ()=>soLadePdf(t.fileId,b)); } });
+  }catch(e){ box.innerHTML=soFehlerHtml("Anzeige-Fehler:",{error:String(e&&e.message||e)}); }
+}
+async function soLadePdf(fileId,btn){
+  const orig=btn.textContent; btn.disabled=true; btn.textContent="Lade …";
+  try{
+    const r=await soApi({action:"adminPdf",pass:PASS,fileId});
+    if(r.ok&&r.pdfBase64){
+      const bin=atob(r.pdfBase64); const buf=new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++) buf[i]=bin.charCodeAt(i);
+      const url=URL.createObjectURL(new Blob([buf],{type:"application/pdf"}));
+      const a=document.createElement("a"); a.href=url; a.download=r.pdfName||"Bestaetigung.pdf"; a.click();
+      btn.textContent="Heruntergeladen";
+    } else { btn.textContent="Fehler"; btn.disabled=false; }
+  }catch(e){ btn.textContent="Fehler"; btn.disabled=false; }
+  finally{ if(btn.textContent==="Lade …"){ btn.textContent=orig; btn.disabled=false; } }
+}
+
+function soMailBeispiel(){
+  const now=new Date(); const p2=n=>String(n).padStart(2,"0");
+  const dd=p2(now.getDate())+"."+p2(now.getMonth()+1)+"."+now.getFullYear();
+  const bis=p2(now.getDate())+"."+p2(now.getMonth()+1)+"."+(now.getFullYear()+2);
+  return {vorname:"Max",name:"Muster",kuerzel:"MUS",datum:dd,gueltigBis:bis,punkte:"10/10",dauer:"07:32",version:SO_MAIL_VERSION};
+}
+function soMailFuelle(str,d){
+  return String(str).replace(/\{vorname\}/g,d.vorname).replace(/\{name\}/g,d.name).replace(/\{kuerzel\}/g,d.kuerzel)
+    .replace(/\{datum\}/g,d.datum).replace(/\{gueltigBis\}/g,d.gueltigBis).replace(/\{punkte\}/g,d.punkte)
+    .replace(/\{dauer\}/g,d.dauer).replace(/\{version\}/g,d.version);
+}
+function soMailVorschau(){
+  const d=soMailBeispiel();
+  const empfListe=$("soMailEmpf").value.split(/[;,]/).map(s=>s.trim()).filter(Boolean);
+  empfListe.unshift("Kandidat (falls hinterlegt)");
+  $("soPvEmpf").textContent=empfListe.join(", ");
+  const betreff=$("soMailBetreff").value.trim()||(SO_MAIL_DEFAULTS?SO_MAIL_DEFAULTS.betreff:"");
+  const text=($("soMailText").value.trim()!=="")?$("soMailText").value:(SO_MAIL_DEFAULTS?SO_MAIL_DEFAULTS.text:"");
+  $("soPvBetreff").textContent=soMailFuelle(betreff,d);
+  $("soPvBody").innerHTML=escHtml(soMailFuelle(text,d)).replace(/\n/g,"<br>");
+}
+async function soLadeMail(){
+  const st=$("soMailStatus"); st.style.color=""; st.textContent="Lade …";
+  const r=await soApi({action:"adminGetMail",pass:PASS});
+  if(!r.ok){ st.textContent=""; $("soPvBody").innerHTML=soFehlerHtml("Fehler beim Laden.",r); return; }
+  SO_MAIL_DEFAULTS=r.defaults||null; if(r.version) SO_MAIL_VERSION=r.version;
+  $("soMailEmpf").value=r.empfaenger||""; $("soMailBetreff").value=r.betreff||""; $("soMailText").value=r.text||"";
+  $("soGueltigJahre").value=(r.gueltigJahre!=null?r.gueltigJahre:((r.defaults&&r.defaults.gueltigJahre)||2));
+  st.textContent=""; soMailVorschau();
+}
+async function soSpeichereMail(){
+  const st=$("soMailStatus"); const btn=$("btnSoMailSpeichern");
+  btn.disabled=true; st.style.color=""; st.textContent="Speichere …";
+  const r=await soApi({action:"adminSetMail",pass:PASS,empfaenger:$("soMailEmpf").value,betreff:$("soMailBetreff").value,text:$("soMailText").value,gueltigJahre:$("soGueltigJahre").value});
+  btn.disabled=false;
+  if(r.ok){ st.style.color="var(--ok)"; st.textContent="Gespeichert."; soLadeMail(); }
+  else if(r.error==="EMAIL_UNGUELTIG"){ st.style.color="var(--rot)"; st.textContent="Ungültige Adresse(n): "+((r.ungueltig||[]).join(", ")); }
+  else if(r.error==="JAHRE_UNGUELTIG"){ st.style.color="var(--rot)"; st.textContent="Gültigkeitsdauer muss zwischen 1 und 10 Jahren liegen."; }
+  else if(r.error==="AUTH"){ st.style.color="var(--rot)"; st.textContent="Nicht angemeldet."; }
+  else{ st.style.color="var(--rot)"; st.textContent="Fehler beim Speichern."+(r.detail?" ("+r.detail+")":""); }
+}
+function soMailReset(){
+  if(!SO_MAIL_DEFAULTS) return;
+  $("soMailEmpf").value=SO_MAIL_DEFAULTS.empfaenger||"";
+  $("soMailBetreff").value=SO_MAIL_DEFAULTS.betreff||"";
+  $("soMailText").value=SO_MAIL_DEFAULTS.text||"";
+  soMailVorschau();
+  const st=$("soMailStatus"); st.style.color=""; st.textContent='Standard eingesetzt – zum Übernehmen „Speichern" klicken.';
+}
+</script>
+</body>
+</html>
