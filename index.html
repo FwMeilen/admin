@@ -292,7 +292,7 @@
 
   </section>
 
-  <div class="foot">CLv1.01 · © Stützpunktfeuerwehr Meilen / LOL</div>
+  <div class="foot">CLv1.02 · © Stützpunktfeuerwehr Meilen / LOL</div>
 </div>
 
 <script>
@@ -372,27 +372,14 @@ let FT_LETZTE_FRAGEN=[], FT_LETZTE_MELDUNGEN=[], FT_MITGLIEDER={}, FT_LOOKUP_ERG
 
 function ftToggleEntry(id){ const el=$(id); if(el) el.classList.toggle("open"); }
 
-async function ftGvizFetch(sheetId,sheetName){
-  const url=`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`+(sheetName?`&sheet=${encodeURIComponent(sheetName)}`:"");
-  const res=await fetch(url);
-  const text=await res.text();
-  const json=JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
-  return (json.table.rows||[]);
-}
-function ftGvizVal(row,i){
-  const c=(row.c||[])[i];
-  if(c==null) return "";
-  return c.f!=null?String(c.f).trim():(c.v!=null?String(c.v).trim():"");
-}
+let FT_AUSW_FRAGEN=[], FT_AUSW_TAETIGKEITEN=[];
 
 async function ftLadeMitglieder(){
   try{
-    const rows=await ftGvizFetch(MITGLIEDER_SHEET_ID);
+    const res=await fetch(FT_EXEC_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({type:"lade_dashboard_daten"})});
+    const daten=await res.json();
     const result={};
-    rows.slice(1).forEach(row=>{
-      const kuerzel=ftGvizVal(row,0).toUpperCase();
-      if(kuerzel) result[kuerzel]={vorname:ftGvizVal(row,1),name:ftGvizVal(row,2),vollerName:`${ftGvizVal(row,1)} ${ftGvizVal(row,2)}`.trim()};
-    });
+    Object.entries(daten.mitglieder||{}).forEach(([k,v])=>{ result[k]={vollerName:v}; });
     FT_MITGLIEDER=result;
   }catch(e){console.warn("Mitglieder konnten nicht geladen werden:",e);}
 }
@@ -646,12 +633,15 @@ async function ftSucheLookup(){
     if(FT_MITGLIEDER[inputUpper]) kuerzelSet.add(inputUpper);
     Object.entries(FT_MITGLIEDER).forEach(([k,m])=>{ if(m.vollerName.toLowerCase().includes(input.toLowerCase())) kuerzelSet.add(k); });
     if(kuerzelSet.size===0){ el.innerHTML='<div class="empty">Keine Person gefunden.</div>'; return; }
-    const rows=await ftGvizFetch(AUSWERTUNG_SHEET_ID,"Fahrten");
-    const treffer=rows.slice(1).map(row=>({
-      datum:ftGvizVal(row,0),fahrer:ftGvizVal(row,1),beifahrer:ftGvizVal(row,2),fahrzeug:ftGvizVal(row,3),
-      fahrt:ftGvizVal(row,4),aufbau:ftGvizVal(row,5),gebiet:ftGvizVal(row,6),abfahrt:ftGvizVal(row,7),rueckkehr:ftGvizVal(row,8),
-      anzahlEinsaetze:ftGvizVal(row,9),einsatzadressen:ftGvizVal(row,10),
-      quizRichtig:ftGvizVal(row,11),quizTotal:ftGvizVal(row,12),pct:ftGvizVal(row,13),hilfe:ftGvizVal(row,14)
+    const res=await ftCallAdmin({type:"admin_lade_auswertung",password:PASS});
+    if(res.error){ el.innerHTML='<div class="empty">Zugriff verweigert.</div>'; return; }
+    FT_AUSW_FRAGEN=res.fragen||[];
+    FT_AUSW_TAETIGKEITEN=res.taetigkeiten||[];
+    const treffer=(res.fahrten||[]).map(row=>({
+      datum:String(row["Datum"]||""),fahrer:String(row["Fahrer"]||""),beifahrer:String(row["Beifahrer"]||""),fahrzeug:String(row["Fahrzeug"]||""),
+      fahrt:String(row["Fahrt"]||""),aufbau:String(row["Aufbau"]||""),gebiet:String(row["Gebiet"]||""),abfahrt:String(row["Abfahrt"]||""),rueckkehr:String(row["Rückkehr"]||""),
+      anzahlEinsaetze:String(row["Anzahl Einsätze"]||""),einsatzadressen:String(row["Einsatzadressen"]||""),
+      quizRichtig:String(row["Quiz Richtig"]||""),quizTotal:String(row["Quiz Total"]||""),pct:String(row["%"]||""),hilfe:String(row["Hilfe"]||"")
     })).filter(r=>kuerzelSet.has(r.fahrer.toUpperCase())||kuerzelSet.has(r.beifahrer.toUpperCase()));
     treffer.sort((a,b)=>b.datum.localeCompare(a.datum));
     FT_LOOKUP_ERGEBNISSE=treffer;
@@ -689,19 +679,14 @@ async function ftReprintPDF(idx){
   const st=$(`ft-lookup-status-${idx}`);
   st.style.display="block"; st.className="status-msg"; st.textContent="PDF wird erstellt…";
   try{
-    let fragenDetail=[], taetigkeitenDetail=[];
-    try{
-      const fragenRows=await ftGvizFetch(AUSWERTUNG_SHEET_ID,"Fragen");
-      fragenDetail=fragenRows.slice(1).map(row=>({datum:ftGvizVal(row,0),fahrer:ftGvizVal(row,1),fahrzeug:ftGvizVal(row,2),
-        frage:ftGvizVal(row,3),gegeben:ftGvizVal(row,4),korrekt:ftGvizVal(row,5),richtig:ftGvizVal(row,6)}))
-        .filter(q=>q.datum===r.datum&&q.fahrer===r.fahrer&&q.fahrzeug===r.fahrzeug);
-    }catch(e){}
-    try{
-      const taetRows=await ftGvizFetch(AUSWERTUNG_SHEET_ID,"Tätigkeiten");
-      taetigkeitenDetail=taetRows.slice(1).map(row=>({datum:ftGvizVal(row,0),fahrer:ftGvizVal(row,1),fahrzeug:ftGvizVal(row,2),
-        taetigkeit:ftGvizVal(row,3),stufe:ftGvizVal(row,4),hilfe:ftGvizVal(row,5)}))
-        .filter(t=>t.datum===r.datum&&t.fahrer===r.fahrer&&t.fahrzeug===r.fahrzeug);
-    }catch(e){}
+    const fragenDetail=FT_AUSW_FRAGEN.map(row=>({
+      datum:String(row["Datum"]||""),fahrer:String(row["Fahrer"]||""),fahrzeug:String(row["Fahrzeug"]||""),
+      frage:String(row["Frage"]||""),gegeben:String(row["Gegeben"]||""),korrekt:String(row["Korrekt"]||""),richtig:String(row["Richtig"]||"")
+    })).filter(q=>q.datum===r.datum&&q.fahrer===r.fahrer&&q.fahrzeug===r.fahrzeug);
+    const taetigkeitenDetail=FT_AUSW_TAETIGKEITEN.map(row=>({
+      datum:String(row["Datum"]||""),fahrer:String(row["Fahrer"]||""),fahrzeug:String(row["Fahrzeug"]||""),
+      taetigkeit:String(row["Tätigkeit"]||""),stufe:String(row["Stufe"]||""),hilfe:String(row["Hilfe"]||"")
+    })).filter(t=>t.datum===r.datum&&t.fahrer===r.fahrer&&t.fahrzeug===r.fahrzeug);
     ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail);
     st.style.display="none";
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
@@ -749,7 +734,7 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.01`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.02`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
