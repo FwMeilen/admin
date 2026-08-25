@@ -371,13 +371,92 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           <button class="btn btn-klein" id="btnSoMailReset">Mailtext auf Standard</button>
           <span id="soMailStatus" class="hinw"></span>
         </div>
+
+        <div class="card" style="margin-top:1.5rem">
+          <h2>Erinnerungsmails</h2>
+          <p class="hinw" style="margin-bottom:1rem">
+            Vor Ablauf der Freigabe (Prüfungsdatum + Gültigkeitsdauer) wird automatisch erinnert.
+            Die zweite Erinnerung geht nur raus, wenn die Prüfung bis dahin nicht erneuert wurde.
+            Am Ablauftag geht eine Meldung ans Kommando (Person in CC).
+          </p>
+          <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:13px;letter-spacing:0;color:var(--text)">
+            <input type="checkbox" id="soErinnAktiv" style="width:auto;margin:0"> Erinnerungsmails aktiv
+          </label>
+          <div class="entry-row2" style="margin-top:1rem">
+            <div>
+              <label for="soErinnTage1">1. Erinnerung — Tage vor Ablauf</label>
+              <input id="soErinnTage1" type="number" min="1" max="365" step="1" style="max-width:120px">
+            </div>
+            <div>
+              <label for="soErinnTage2">2. Erinnerung — Tage vor Ablauf</label>
+              <input id="soErinnTage2" type="number" min="1" max="365" step="1" style="max-width:120px">
+            </div>
+          </div>
+          <div class="hinw" style="margin-top:8px">Die 2. Erinnerung muss näher am Ablauf liegen als die erste.</div>
+
+          <details style="margin-top:1.25rem">
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">1. Erinnerung — Text &amp; Vorschau</summary>
+            <div style="margin-top:0.75rem">
+              <label for="soE1Betreff">Betreff</label>
+              <input id="soE1Betreff" type="text">
+              <label for="soE1Text">Mailtext</label>
+              <textarea id="soE1Text" rows="10"></textarea>
+              <div class="hinw" style="margin-top:8px" id="soErinnPlatzhalter1"></div>
+              <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem">
+                <div class="hinw" style="margin-bottom:6px">An: Person + fixe Empfänger</div>
+                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="soPvE1Betreff" style="font-weight:400"></span></div>
+                <div id="soPvE1Body" style="font-size:13px;line-height:1.6"></div>
+              </div>
+            </div>
+          </details>
+
+          <details style="margin-top:0.75rem">
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">2. Erinnerung — Text &amp; Vorschau</summary>
+            <div style="margin-top:0.75rem">
+              <label for="soE2Betreff">Betreff</label>
+              <input id="soE2Betreff" type="text">
+              <label for="soE2Text">Mailtext</label>
+              <textarea id="soE2Text" rows="10"></textarea>
+              <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem">
+                <div class="hinw" style="margin-bottom:6px">An: Person + fixe Empfänger</div>
+                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="soPvE2Betreff" style="font-weight:400"></span></div>
+                <div id="soPvE2Body" style="font-size:13px;line-height:1.6"></div>
+              </div>
+            </div>
+          </details>
+
+          <details style="margin-top:0.75rem">
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Ablauf-Meldung ans Kommando — Text &amp; Vorschau</summary>
+            <div style="margin-top:0.75rem">
+              <label for="soAbBetreff">Betreff</label>
+              <input id="soAbBetreff" type="text">
+              <label for="soAbText">Mailtext</label>
+              <textarea id="soAbText" rows="10"></textarea>
+              <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem">
+                <div class="hinw" style="margin-bottom:6px">An: fixe Empfänger · CC: betroffene Person</div>
+                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="soPvAbBetreff" style="font-weight:400"></span></div>
+                <div id="soPvAbBody" style="font-size:13px;line-height:1.6"></div>
+              </div>
+            </div>
+          </details>
+
+          <div class="entry-actions" style="justify-content:flex-start;margin-top:1.25rem">
+            <button class="btn btn-green btn-klein" id="btnSoErinnSpeichern">Speichern</button>
+            <button class="btn btn-klein" id="btnSoErinnReset">Texte auf Standard</button>
+          </div>
+          <div class="status-msg" id="soErinnStatus"></div>
+          <div class="hinw" style="margin-top:1rem;line-height:1.7">
+            Der automatische Versand benötigt einen <b>Zeit-Auslöser</b> im SoSi-Apps-Script
+            (Funktion <code>taeglicherErinnerungsCheck</code>, täglich).
+          </div>
+        </div>
       </div>
     </div>
 
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.04</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.05</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1125,13 +1204,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.04`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.05`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.04";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.05";
 
 async function soApi(payload){
   try{
@@ -1158,7 +1237,7 @@ function initSo(){
       $("soTabMail").style.display=tab==="mail"?"block":"none";
       if(tab==="stat") soLadeStatistik();
       if(tab==="fragen") soLadeFragen();
-      if(tab==="mail") soLadeMail();
+      if(tab==="mail"){ soLadeMail(); soLadeErinnerung(); }
     });
   });
   $("btnSoAddFrage").addEventListener("click", soNeueFrageForm);
@@ -1167,7 +1246,99 @@ function initSo(){
   ["soMailEmpf","soMailBetreff","soMailText"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", soMailVorschau); });
   $("btnSoMailSpeichern").addEventListener("click", soSpeichereMail);
   $("btnSoMailReset").addEventListener("click", soMailReset);
+  ["soE1Betreff","soE1Text","soE2Betreff","soE2Text","soAbBetreff","soAbText","soErinnTage1","soErinnTage2"]
+    .forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", soErinnVorschau); });
+  $("btnSoErinnSpeichern").addEventListener("click", soSpeichereErinnerung);
+  $("btnSoErinnReset").addEventListener("click", soErinnReset);
   soLadeStatistik();
+}
+
+/* ── Erinnerungsmails ── */
+let SO_ERINN_DEFAULTS=null, SO_ERINN_LINK="https://sosi.feuerwehrmeilen.ch";
+
+function soErinnBeispiel(){
+  const tage1=parseInt($("soErinnTage1").value,10)||30;
+  const tage2=parseInt($("soErinnTage2").value,10)||15;
+  const ablauf=new Date(); ablauf.setDate(ablauf.getDate()+tage1);
+  const p2=n=>String(n).padStart(2,"0");
+  return {
+    vorname:"Max", name:"Muster", kuerzel:"MUS",
+    ablaufDatum:p2(ablauf.getDate())+"."+p2(ablauf.getMonth()+1)+"."+ablauf.getFullYear(),
+    tage1:String(tage1), tage2:String(tage2),
+    link:SO_ERINN_LINK, version:SO_MAIL_VERSION
+  };
+}
+function soErinnFuelle(str,d,tage){
+  return String(str)
+    .replace(/\{vorname\}/g,d.vorname).replace(/\{name\}/g,d.name).replace(/\{kuerzel\}/g,d.kuerzel)
+    .replace(/\{ablaufDatum\}/g,d.ablaufDatum).replace(/\{tageBisAblauf\}/g,String(tage))
+    .replace(/\{link\}/g,d.link).replace(/\{version\}/g,d.version);
+}
+function soErinnVorschau(){
+  const d=soErinnBeispiel();
+  const paare=[
+    ["soE1Betreff","soE1Text","soPvE1Betreff","soPvE1Body",d.tage1],
+    ["soE2Betreff","soE2Text","soPvE2Betreff","soPvE2Body",d.tage2],
+    ["soAbBetreff","soAbText","soPvAbBetreff","soPvAbBody","0"]
+  ];
+  paare.forEach(([bId,tId,pvB,pvT,tage])=>{
+    const b=$(bId), t=$(tId);
+    if(!b||!t) return;
+    $(pvB).textContent=soErinnFuelle(b.value,d,tage);
+    $(pvT).innerHTML=escHtml(soErinnFuelle(t.value,d,tage)).replace(/\n/g,"<br>");
+  });
+  const ph=$("soErinnPlatzhalter1");
+  if(ph) ph.innerHTML="Platzhalter: <code>{vorname}</code> <code>{name}</code> <code>{kuerzel}</code> <code>{ablaufDatum}</code> <code>{tageBisAblauf}</code> <code>{link}</code> <code>{version}</code>";
+}
+async function soLadeErinnerung(){
+  const st=$("soErinnStatus");
+  st.className="status-msg"; st.style.display="none";
+  const r=await soApi({action:"adminGetErinnerung",pass:PASS});
+  if(!r.ok){ st.className="status-msg err-msg"; st.textContent="Fehler beim Laden der Erinnerungs-Einstellungen."; return; }
+  SO_ERINN_DEFAULTS=r.defaults||null;
+  if(r.link) SO_ERINN_LINK=r.link;
+  $("soErinnAktiv").checked=r.aktiv!==false;
+  $("soErinnTage1").value=r.tage1;
+  $("soErinnTage2").value=r.tage2;
+  $("soE1Betreff").value=r.e1Betreff||"";
+  $("soE1Text").value=r.e1Text||"";
+  $("soE2Betreff").value=r.e2Betreff||"";
+  $("soE2Text").value=r.e2Text||"";
+  $("soAbBetreff").value=r.abBetreff||"";
+  $("soAbText").value=r.abText||"";
+  soErinnVorschau();
+}
+async function soSpeichereErinnerung(){
+  const st=$("soErinnStatus"), btn=$("btnSoErinnSpeichern");
+  btn.disabled=true;
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
+  const r=await soApi({action:"adminSetErinnerung",pass:PASS,
+    aktiv:$("soErinnAktiv").checked,
+    tage1:$("soErinnTage1").value, tage2:$("soErinnTage2").value,
+    e1Betreff:$("soE1Betreff").value, e1Text:$("soE1Text").value,
+    e2Betreff:$("soE2Betreff").value, e2Text:$("soE2Text").value,
+    abBetreff:$("soAbBetreff").value, abText:$("soAbText").value});
+  btn.disabled=false;
+  if(r.ok){ st.className="status-msg ok-msg"; st.textContent="Gespeichert."; }
+  else if(r.error==="TAGE_REIHENFOLGE"){ st.className="status-msg err-msg"; st.textContent="Die 2. Erinnerung muss näher am Ablauf liegen als die erste."; }
+  else if(r.error==="TAGE_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Tage müssen zwischen 1 und 365 liegen."; }
+  else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."+(r.detail?" ("+r.detail+")":""); }
+}
+function soErinnReset(){
+  if(!SO_ERINN_DEFAULTS) return;
+  const d=SO_ERINN_DEFAULTS;
+  $("soErinnTage1").value=d.tage1;
+  $("soErinnTage2").value=d.tage2;
+  $("soE1Betreff").value=d.e1Betreff||"";
+  $("soE1Text").value=d.e1Text||"";
+  $("soE2Betreff").value=d.e2Betreff||"";
+  $("soE2Text").value=d.e2Text||"";
+  $("soAbBetreff").value=d.abBetreff||"";
+  $("soAbText").value=d.abText||"";
+  soErinnVorschau();
+  const st=$("soErinnStatus");
+  st.className="status-msg"; st.style.display="block";
+  st.textContent='Standard eingesetzt – zum Übernehmen "Speichern" klicken.';
 }
 
 async function soLadeStatistik(){
