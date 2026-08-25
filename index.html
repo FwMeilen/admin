@@ -310,6 +310,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           <div class="entry-actions" style="justify-content:flex-start">
             <button class="btn btn-green btn-klein" id="btnFtArchivSpeichern">Speichern</button>
             <button class="btn btn-klein" id="btnFtArchivReset">Mailtext auf Standard</button>
+            <button class="btn btn-klein" id="btnFtArchivStandard">Als Standard speichern</button>
             <button class="btn btn-klein" id="btnFtArchivJetzt">ZIP jetzt senden</button>
           </div>
           <div class="status-msg" id="ftArchivStatus"></div>
@@ -393,6 +394,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           <div class="entry-actions" style="justify-content:flex-start;margin-top:1.25rem">
             <button class="btn btn-green btn-klein" id="btnSoMailSpeichern">Speichern</button>
             <button class="btn btn-klein" id="btnSoMailReset">Mailtext auf Standard</button>
+            <button class="btn btn-klein" id="btnSoMailStandard">Als Standard speichern</button>
           </div>
           <div id="soMailStatus" class="hinw" style="margin-top:8px"></div>
         </div>
@@ -471,6 +473,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           <div class="entry-actions" style="justify-content:flex-start;margin-top:1.25rem">
             <button class="btn btn-green btn-klein" id="btnSoErinnSpeichern">Speichern</button>
             <button class="btn btn-klein" id="btnSoErinnReset">Texte auf Standard</button>
+            <button class="btn btn-klein" id="btnSoErinnStandard">Als Standard speichern</button>
           </div>
           <div class="status-msg" id="soErinnStatus"></div>
           <div class="hinw" style="margin-top:1rem;line-height:1.7">
@@ -484,7 +487,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.08</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.09</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -596,6 +599,7 @@ function initFt(){
   $("btnFtArchivSpeichern").addEventListener("click", ftSpeichereArchiv);
   $("btnFtArchivJetzt").addEventListener("click", ftArchivJetztSenden);
   $("btnFtArchivReset").addEventListener("click", ftArchivReset);
+  $("btnFtArchivStandard").addEventListener("click", ftArchivAlsStandard);
   ["ftArchivBetreff","ftArchivText","ftArchivIntervall"].forEach(id=>{
     const el=$(id); if(el) el.addEventListener("input", ftArchivVorschau);
   });
@@ -621,6 +625,20 @@ function ftArchivVorschau(){
   const text=t.value.trim()!==""?t.value:(FT_ARCHIV_DEFAULTS?FT_ARCHIV_DEFAULTS.text:"");
   $("ftPvArchivBetreff").textContent=fuelle(betreff);
   $("ftPvArchivBody").innerHTML=escHtml(fuelle(text)).replace(/\n/g,"<br>");
+}
+
+async function ftArchivAlsStandard(){
+  if(!confirm("Aktuellen Mailtext als neuen Standard hinterlegen?\n\nDer Button \"Mailtext auf Standard\" setzt danach auf diese Version zurück.")) return;
+  const st=$("ftArchivStatus"); const btn=$("btnFtArchivStandard");
+  btn.disabled=true;
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert …";
+  try{
+    const res=await ftCallAdmin({type:"admin_set_archiv_standard",password:PASS,
+      betreff:$("ftArchivBetreff").value,text:$("ftArchivText").value});
+    if(res.ok){ st.className="status-msg ok-msg"; st.textContent="Als Standard gespeichert."; ftLadeArchivEinstellungen(); }
+    else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+  finally{ btn.disabled=false; }
 }
 
 function ftArchivReset(){
@@ -1274,13 +1292,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.08`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.09`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.08";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.09";
 
 async function soApi(payload){
   try{
@@ -1318,6 +1336,8 @@ function initSo(){
   ["soMailEmpf","soMailBetreff","soMailText"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", soMailVorschau); });
   $("btnSoMailSpeichern").addEventListener("click", soSpeichereMail);
   $("btnSoMailReset").addEventListener("click", soMailReset);
+  $("btnSoMailStandard").addEventListener("click", soMailAlsStandard);
+  $("btnSoErinnStandard").addEventListener("click", soErinnAlsStandard);
   ["soE1Betreff","soE1Text","soE2Betreff","soE2Text","soAbBetreff","soAbText","soErinnTage1","soErinnTage2"]
     .forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", soErinnVorschau); });
   $("btnSoErinnSpeichern").addEventListener("click", soSpeichereErinnerung);
@@ -1630,6 +1650,31 @@ async function soSpeichereMail(){
   else if(r.error==="AUTH"){ st.style.color="var(--red)"; st.textContent="Nicht angemeldet."; }
   else{ st.style.color="var(--red)"; st.textContent="Fehler beim Speichern."+(r.detail?" ("+r.detail+")":""); }
 }
+async function soMailAlsStandard(){
+  if(!confirm("Aktuelle Texte als neuen Standard hinterlegen?\n\nDer Button \"Mailtext auf Standard\" setzt danach auf diese Version zurück.")) return;
+  const st=$("soMailStatus"); const btn=$("btnSoMailStandard");
+  btn.disabled=true; st.style.color=""; st.textContent="Wird gespeichert …";
+  const r=await soApi({action:"adminSetMailStandard",pass:PASS,
+    empfaenger:$("soMailEmpf").value,betreff:$("soMailBetreff").value,text:$("soMailText").value});
+  btn.disabled=false;
+  if(r.ok){ st.style.color="var(--green)"; st.textContent="Als Standard gespeichert."; soLadeMail(); }
+  else{ st.style.color="var(--red)"; st.textContent="Fehler beim Speichern."; }
+}
+
+async function soErinnAlsStandard(){
+  if(!confirm("Aktuelle Erinnerungstexte als neuen Standard hinterlegen?\n\nDer Button \"Texte auf Standard\" setzt danach auf diese Version zurück.")) return;
+  const st=$("soErinnStatus"); const btn=$("btnSoErinnStandard");
+  btn.disabled=true;
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert …";
+  const r=await soApi({action:"adminSetErinnerungStandard",pass:PASS,
+    e1Betreff:$("soE1Betreff").value, e1Text:$("soE1Text").value,
+    e2Betreff:$("soE2Betreff").value, e2Text:$("soE2Text").value,
+    abBetreff:$("soAbBetreff").value, abText:$("soAbText").value});
+  btn.disabled=false;
+  if(r.ok){ st.className="status-msg ok-msg"; st.textContent="Als Standard gespeichert."; soLadeErinnerung(); }
+  else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
+}
+
 function soMailReset(){
   if(!SO_MAIL_DEFAULTS) return;
   $("soMailEmpf").value=SO_MAIL_DEFAULTS.empfaenger||"";
