@@ -183,6 +183,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         <button class="tab" data-fttab="fragen">Fahrzeugfragen</button>
         <button class="tab" data-fttab="meldungen">Einsatzmeldungen</button>
         <button class="tab" data-fttab="lookup">Fahrer-Lookup</button>
+        <button class="tab" data-fttab="archiv">Einstellungen</button>
       </div>
 
       <!-- Statistik -->
@@ -270,6 +271,38 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         </div>
         <div id="ftLookupErgebnisse"></div>
       </div>
+
+      <!-- Archiv-Einstellungen -->
+      <div id="ftTabArchiv" style="display:none">
+        <div class="card">
+          <h2>PDF-Archiv-Versand</h2>
+          <p class="hinw" style="margin-bottom:1rem">Alle Fahrtraining-Bestätigungen werden automatisch im Drive archiviert. Zusätzlich können sie in einem festen Intervall als ZIP per Mail verschickt werden.</p>
+          <label for="ftArchivEmpf">Empfänger — mehrere mit Komma trennen</label>
+          <input id="ftArchivEmpf" type="text" placeholder="z. B. kdt@example.ch, ausbildung@example.ch">
+          <label for="ftArchivIntervall">Versand-Intervall</label>
+          <select id="ftArchivIntervall" style="max-width:260px">
+            <option value="woche">Wöchentlich</option>
+            <option value="monat">Monatlich</option>
+            <option value="quartal">Quartalsweise</option>
+            <option value="halbjahr">Halbjährlich</option>
+            <option value="jahr">Jährlich</option>
+          </select>
+          <div class="hinw" style="margin-top:10px" id="ftArchivLetzter"></div>
+          <div class="entry-actions" style="justify-content:flex-start">
+            <button class="btn btn-green btn-klein" id="btnFtArchivSpeichern">Speichern</button>
+            <button class="btn btn-klein" id="btnFtArchivJetzt">ZIP jetzt senden</button>
+          </div>
+          <div class="status-msg" id="ftArchivStatus"></div>
+        </div>
+        <div class="card">
+          <h2>Hinweise</h2>
+          <div class="hinw" style="line-height:1.8">
+            • PDFs werden nach <b>1 Jahr</b> automatisch aus dem Archiv gelöscht.<br>
+            • Der automatische Versand benötigt einen <b>Zeit-Auslöser</b> im Apps Script (Funktion <code>taeglicherArchivCheck</code>, täglich).<br>
+            • Versendet werden jeweils alle PDFs seit dem letzten Versand.
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ═══════════ SOSI ═══════════ -->
@@ -344,7 +377,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.03</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.04</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -441,7 +474,9 @@ function initFt(){
       $("ftTabFragen").style.display = tab==="fragen"?"block":"none";
       $("ftTabMeldungen").style.display = tab==="meldungen"?"block":"none";
       $("ftTabLookup").style.display = tab==="lookup"?"block":"none";
+      $("ftTabArchiv").style.display = tab==="archiv"?"block":"none";
       if(tab==="meldungen") ftLadeMeldungenAdmin();
+      if(tab==="archiv") ftLadeArchivEinstellungen();
     });
   });
   $("ftFahrzeug").addEventListener("change", ftLadeFragenAdmin);
@@ -451,6 +486,59 @@ function initFt(){
   $("btnFtNeueMeldung").addEventListener("click", ftNeueMeldung);
   $("btnFtLookupSuche").addEventListener("click", ftSucheLookup);
   $("ftLookupSuche").addEventListener("keydown", e=>{ if(e.key==="Enter") ftSucheLookup(); });
+  $("btnFtArchivSpeichern").addEventListener("click", ftSpeichereArchiv);
+  $("btnFtArchivJetzt").addEventListener("click", ftArchivJetztSenden);
+}
+
+/* ── Archiv-Einstellungen ── */
+async function ftLadeArchivEinstellungen(){
+  const st=$("ftArchivStatus");
+  st.className="status-msg"; st.style.display="none";
+  try{
+    const res=await ftCallAdmin({type:"admin_get_archiv",password:PASS});
+    if(res.error){ st.className="status-msg err-msg"; st.textContent="Zugriff verweigert."; return; }
+    $("ftArchivEmpf").value=res.empfaenger||"";
+    $("ftArchivIntervall").value=res.intervall||"monat";
+    const letzter=res.letzterVersand;
+    $("ftArchivLetzter").textContent = letzter
+      ? "Letzter Versand: "+new Date(letzter).toLocaleString("de-CH")
+      : "Bisher noch kein Versand erfolgt.";
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler beim Laden: "+e.message; }
+}
+
+async function ftSpeichereArchiv(){
+  const st=$("ftArchivStatus");
+  const btn=$("btnFtArchivSpeichern");
+  btn.disabled=true;
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
+  try{
+    const res=await ftCallAdmin({type:"admin_set_archiv",password:PASS,
+      empfaenger:$("ftArchivEmpf").value,intervall:$("ftArchivIntervall").value});
+    if(res.ok){ st.className="status-msg ok-msg"; st.textContent="Gespeichert."; }
+    else if(res.error==="EMAIL_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Ungültige Adresse(n): "+((res.ungueltig||[]).join(", ")); }
+    else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+  finally{ btn.disabled=false; }
+}
+
+async function ftArchivJetztSenden(){
+  if(!confirm("ZIP mit allen PDFs seit dem letzten Versand jetzt verschicken?")) return;
+  const st=$("ftArchivStatus");
+  const btn=$("btnFtArchivJetzt");
+  btn.disabled=true;
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gesendet…";
+  try{
+    const res=await ftCallAdmin({type:"admin_archiv_jetzt_senden",password:PASS});
+    if(res.ok){
+      st.className="status-msg ok-msg";
+      st.textContent=`ZIP mit ${res.anzahl} PDF${res.anzahl!==1?"s":""} versendet.`;
+      ftLadeArchivEinstellungen();
+    } else {
+      st.className="status-msg err-msg";
+      st.textContent="Fehler: "+(res.detail||res.error||"unbekannt");
+    }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+  finally{ btn.disabled=false; }
 }
 
 function ftPopulateFahrzeugSelect(){
@@ -1037,13 +1125,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.03`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.04`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.03";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.04";
 
 async function soApi(payload){
   try{
