@@ -331,7 +331,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       <div class="tabs">
         <button class="tab aktiv" data-sotab="stat">Statistik</button>
         <button class="tab" data-sotab="fragen">Fragen</button>
-        <button class="tab" data-sotab="pdf">PDF-Suche</button>
+        <button class="tab" data-sotab="pdf">Prüfungsliste</button>
         <button class="tab" data-sotab="mail">Einstellungen</button>
         <button class="tab" data-sotab="erinnerung">Erinnerungsmails</button>
       </div>
@@ -349,14 +349,23 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 
       <div id="soTabPdf" style="display:none">
         <div class="card">
-          <h2>Suche SoSi-Bestätigung</h2>
-          <label for="soSuche">Kürzel oder Name</label>
-          <div class="such-row">
-            <input id="soSuche" type="text" placeholder="z. B. LOL oder Loepfe">
-            <button class="btn btn-red" id="btnSoSuche">Suchen</button>
+          <h2>Prüfungsliste</h2>
+          <div class="entry-row2">
+            <div>
+              <label for="soListeSuche">Suche (Kürzel oder Name)</label>
+              <input id="soListeSuche" type="text" placeholder="z. B. LOL oder Loepfe">
+            </div>
+            <div>
+              <label for="soListeSort">Sortieren nach</label>
+              <select id="soListeSort">
+                <option value="name">Name</option>
+                <option value="ablauf">Ablaufdatum</option>
+              </select>
+            </div>
           </div>
+          <div class="hinw" style="margin-top:10px" id="soListeInfo"></div>
         </div>
-        <div id="soPdfInhalt"></div>
+        <div id="soListeInhalt" class="loading">Lade …</div>
       </div>
 
       <div id="soTabMail" style="display:none">
@@ -365,6 +374,10 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           <label for="soGueltigJahre">Dauer der Freigabe (Jahre)</label>
           <input id="soGueltigJahre" type="number" min="1" max="10" step="1" style="max-width:120px">
           <div class="hinw" style="margin-top:8px">Gilt für <b>neu</b> bestandene Prüfungen. Bereits bestandene Prüfungen behalten ihre bisherige Gültigkeit.</div>
+          <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+            <button class="btn btn-green btn-klein" id="btnSoGueltigSpeichern">Speichern</button>
+          </div>
+          <div class="status-msg" id="soGueltigStatus"></div>
         </div>
 
         <div class="card">
@@ -487,7 +500,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.09</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.10</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1292,13 +1305,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.09`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.10`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.09";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.10";
 
 async function soApi(payload){
   try{
@@ -1326,13 +1339,15 @@ function initSo(){
       $("soTabErinnerung").style.display=tab==="erinnerung"?"block":"none";
       if(tab==="stat") soLadeStatistik();
       if(tab==="fragen") soLadeFragen();
+      if(tab==="pdf") soLadeListe();
       if(tab==="mail") soLadeMail();
       if(tab==="erinnerung") soLadeErinnerung();
     });
   });
   $("btnSoAddFrage").addEventListener("click", soNeueFrageForm);
-  $("btnSoSuche").addEventListener("click", soSuchePdf);
-  $("soSuche").addEventListener("keydown", e=>{ if(e.key==="Enter") soSuchePdf(); });
+  $("soListeSuche").addEventListener("input", soRenderListe);
+  $("soListeSort").addEventListener("change", soRenderListe);
+  $("btnSoGueltigSpeichern").addEventListener("click", soSpeichereGueltig);
   ["soMailEmpf","soMailBetreff","soMailText"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", soMailVorschau); });
   $("btnSoMailSpeichern").addEventListener("click", soSpeichereMail);
   $("btnSoMailReset").addEventListener("click", soMailReset);
@@ -1579,21 +1594,57 @@ async function soSpeichereFrage(idx){
   }
 }
 
-async function soSuchePdf(){
-  const q=$("soSuche").value.trim();
-  const box=$("soPdfInhalt");
-  if(!q){ box.innerHTML=""; return; }
-  box.innerHTML='<div class="loading">Suche …</div>';
+let SO_LISTE=[];
+
+async function soLadeListe(){
+  $("soListeInhalt").innerHTML='<div class="loading">Lade …</div>';
   try{
-    const r=await soApi({action:"adminSuchePdf",pass:PASS,query:q});
-    if(!r.ok){ box.innerHTML=soFehlerHtml("Fehler bei der Suche.",r); return; }
-    if(!r.treffer.length){ box.innerHTML='<div class="empty">Keine Treffer.</div>'; return; }
-    box.innerHTML=r.treffer.map((t,i)=>
-      `<div class="pdfrow"><div class="meta"><b>${escHtml(t.vorname+" "+t.name)}</b> (${escHtml(t.kuerzel)})<br><small>${escHtml(t.datum)}</small></div>`
-      +(t.fileId?`<button class="btn btn-klein" id="soDl${i}">PDF herunterladen</button>`:'<span class="hinw">kein PDF</span>')+"</div>").join("");
-    r.treffer.forEach((t,i)=>{ if(t.fileId){ const b=$("soDl"+i); if(b) b.addEventListener("click", ()=>soLadePdf(t.fileId,b)); } });
-  }catch(e){ box.innerHTML=soFehlerHtml("Anzeige-Fehler:",{error:String(e&&e.message||e)}); }
+    const r=await soApi({action:"adminPruefungsliste",pass:PASS});
+    if(!r.ok){ $("soListeInhalt").innerHTML=soFehlerHtml("Fehler beim Laden.",r); return; }
+    SO_LISTE=r.liste||[];
+    $("soListeInfo").textContent=`${SO_LISTE.length} Person${SO_LISTE.length!==1?"en":""} mit bestandener Prüfung · Gültigkeitsdauer ${r.gueltigJahre} Jahre`;
+    soRenderListe();
+  }catch(e){ $("soListeInhalt").innerHTML=soFehlerHtml("Anzeige-Fehler:",{error:String(e&&e.message||e)}); }
 }
+
+function soRenderListe(){
+  const el=$("soListeInhalt");
+  const q=$("soListeSuche").value.trim().toLowerCase();
+  const sort=$("soListeSort").value;
+  let liste=SO_LISTE.slice();
+  if(q) liste=liste.filter(p=>(p.kuerzel+" "+p.vorname+" "+p.name).toLowerCase().includes(q));
+  if(sort==="ablauf") liste.sort((a,b)=>a.ablaufSort.localeCompare(b.ablaufSort));
+  else liste.sort((a,b)=>(a.name+a.vorname).localeCompare(b.name+b.vorname,"de"));
+  if(liste.length===0){ el.innerHTML='<div class="empty">Keine Einträge gefunden.</div>'; return; }
+  el.innerHTML=`<div class="card" style="padding:0"><div class="tblwrap"><table class="l5">
+    <thead><tr><th>Name</th><th>Kürzel</th><th>Prüfung</th><th>Gültig bis</th><th>Status</th><th>Dokument</th></tr></thead>
+    <tbody>`+liste.map((p,i)=>{
+      let badge;
+      if(p.tageBisAblauf<0) badge='<span class="badge" style="background:#CC0000">Abgelaufen</span>';
+      else if(p.tageBisAblauf<=30) badge=`<span class="badge" style="background:#cc7700">${p.tageBisAblauf} Tage</span>`;
+      else badge='<span class="badge" style="background:#2d6a1f">Gültig</span>';
+      const dok=p.fileId
+        ? `<button class="btn btn-klein" id="soDok${i}">PDF (${escHtml(p.pruefungsdatum)})</button>`
+        : '<span class="hinw">kein PDF</span>';
+      return `<tr><td>${escHtml(p.name)} ${escHtml(p.vorname)}</td><td>${escHtml(p.kuerzel)}</td>
+        <td>${escHtml(p.pruefungsdatum)}</td><td>${escHtml(p.ablaufdatum)}</td><td>${badge}</td><td>${dok}</td></tr>`;
+    }).join("")+`</tbody></table></div></div>`;
+  liste.forEach((p,i)=>{ if(p.fileId){ const b=$("soDok"+i); if(b) b.addEventListener("click",()=>soLadePdf(p.fileId,b)); } });
+}
+
+async function soSpeichereGueltig(){
+  const st=$("soGueltigStatus"); const btn=$("btnSoGueltigSpeichern");
+  btn.disabled=true;
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
+  const r=await soApi({action:"adminSetMail",pass:PASS,
+    empfaenger:$("soMailEmpf").value,betreff:$("soMailBetreff").value,text:$("soMailText").value,
+    gueltigJahre:$("soGueltigJahre").value});
+  btn.disabled=false;
+  if(r.ok){ st.className="status-msg ok-msg"; st.textContent="Gespeichert."; }
+  else if(r.error==="JAHRE_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Gültigkeitsdauer muss zwischen 1 und 10 Jahren liegen."; }
+  else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
+}
+
 async function soLadePdf(fileId,btn){
   const orig=btn.textContent; btn.disabled=true; btn.textContent="Lade …";
   try{
