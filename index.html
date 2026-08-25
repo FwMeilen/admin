@@ -503,12 +503,12 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.12</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.13</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
 const FT_EXEC_URL="https://script.google.com/macros/s/AKfycbwvTL3yecdyTvSV5ZPgGslm5K-3UFjW9zc4A2qn_zUk50CcSIpXEaBE1hMiaU3GnNEQ/exec";
-const SO_EXEC_URL="https://script.google.com/macros/s/AKfycbw2pswZ_F_HQ2HngWIXtOukAOGxBvEJPbo0YGOY3LNUN1jqmGf_HKHAWzIGqJ8dibBT0g/exec";
+const SO_EXEC_URL="https://script.google.com/macros/s/AKfycbz0mGY8B8I__4UV8HoMT6Jih-Aw_m_YIWvSyzpR8PP1avfnDZRtDTNU8ufKtPSrTg8sNg/exec";
 
 let PASS="";
 let FT_OK=false, SO_OK=false;
@@ -623,7 +623,7 @@ function initFt(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.12", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.13", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -1308,13 +1308,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.12`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.13`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.12";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.13";
 
 async function soApi(payload){
   try{
