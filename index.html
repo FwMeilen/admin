@@ -124,13 +124,13 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 .badge{display:inline-block;padding:2px 9px;font-size:11px;font-weight:700;color:#fff;}
 
 /* SoSi Fragen */
-.qcard{border:1px solid var(--gray-mid);border-left:3px solid var(--gray-mid);padding:0.9rem 1rem;margin-bottom:0.6rem;}
+.qcard{border:1px solid var(--gray-mid);border-left:3px solid var(--gray-mid);padding:0.9rem 1rem;margin-bottom:0.6rem;background:var(--bg);}
 .qhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;}
 .qtitel{font-weight:600;font-size:13px;}
 .qid{font-size:10px;color:var(--text3);font-weight:700;letter-spacing:.05em;margin-bottom:3px;}
 .qa{font-size:13px;margin:3px 0;color:var(--text2);}
 .qa.ok{color:var(--green);font-weight:600;}
-.pdfrow{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--gray-mid);border-left:3px solid var(--gray-mid);padding:0.8rem 1rem;margin-bottom:0.5rem;}
+.pdfrow{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--gray-mid);border-left:3px solid var(--gray-mid);padding:0.8rem 1rem;margin-bottom:0.5rem;background:var(--bg);}
 .pdfrow .meta{font-size:13px;}
 .pdfrow .meta small{color:var(--text3);}
 
@@ -503,7 +503,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.11</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.12</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -623,7 +623,7 @@ function initFt(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.11", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.12", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -1308,13 +1308,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.11`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.12`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.11";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.12";
 
 async function soApi(payload){
   try{
