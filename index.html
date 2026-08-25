@@ -332,6 +332,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         <button class="tab" data-sotab="fragen">Fragen</button>
         <button class="tab" data-sotab="pdf">PDF-Suche</button>
         <button class="tab" data-sotab="mail">Einstellungen</button>
+        <button class="tab" data-sotab="erinnerung">Erinnerungsmails</button>
       </div>
 
       <div id="soTabStat"><div id="soStatInhalt" class="loading">Lade …</div></div>
@@ -392,7 +393,10 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           <span id="soMailStatus" class="hinw"></span>
         </div>
 
-        <div class="card" style="margin-top:1.5rem">
+      </div>
+
+      <div id="soTabErinnerung" style="display:none">
+        <div class="card">
           <h2>Erinnerungsmails</h2>
           <p class="hinw" style="margin-bottom:1rem">
             Vor Ablauf der Freigabe (Prüfungsdatum + Gültigkeitsdauer) wird automatisch erinnert.
@@ -476,7 +480,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.06</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.07</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1266,13 +1270,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.06`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.07`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.06";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.07";
 
 async function soApi(payload){
   try{
@@ -1297,9 +1301,11 @@ function initSo(){
       $("soTabFragen").style.display=tab==="fragen"?"block":"none";
       $("soTabPdf").style.display=tab==="pdf"?"block":"none";
       $("soTabMail").style.display=tab==="mail"?"block":"none";
+      $("soTabErinnerung").style.display=tab==="erinnerung"?"block":"none";
       if(tab==="stat") soLadeStatistik();
       if(tab==="fragen") soLadeFragen();
-      if(tab==="mail"){ soLadeMail(); soLadeErinnerung(); }
+      if(tab==="mail") soLadeMail();
+      if(tab==="erinnerung") soLadeErinnerung();
     });
   });
   $("btnSoAddFrage").addEventListener("click", soNeueFrageForm);
