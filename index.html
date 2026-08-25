@@ -503,7 +503,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.13</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.14</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -623,7 +623,7 @@ function initFt(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.13", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.14", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -1308,13 +1308,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.13`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.14`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.13";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.14";
 
 async function soApi(payload){
   try{
@@ -1704,9 +1704,20 @@ async function soSpeichereGueltig(){
     empfaenger:$("soMailEmpf").value,betreff:$("soMailBetreff").value,text:$("soMailText").value,
     gueltigJahre:$("soGueltigJahre").value});
   btn.disabled=false;
-  if(r.ok){ st.className="status-msg ok-msg"; st.textContent="Gespeichert."; }
+  if(r.ok){
+    // Gegenprüfen was tatsächlich gespeichert wurde
+    const kontrolle=await soApi({action:"adminGetMail",pass:PASS});
+    if(kontrolle.ok){
+      $("soGueltigJahre").value=kontrolle.gueltigJahre;
+      st.className="status-msg ok-msg";
+      st.textContent=`Gespeichert – Gültigkeitsdauer beträgt neu ${kontrolle.gueltigJahre} Jahre.`;
+    } else {
+      st.className="status-msg ok-msg"; st.textContent="Gespeichert.";
+    }
+  }
   else if(r.error==="JAHRE_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Gültigkeitsdauer muss zwischen 1 und 10 Jahren liegen."; }
-  else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
+  else if(r.error==="AUTH"){ st.className="status-msg err-msg"; st.textContent="Nicht angemeldet."; }
+  else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."+(r.detail?" ("+r.detail+")":""); }
 }
 
 async function soLadePdf(fileId,btn){
