@@ -288,8 +288,28 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
             <option value="jahr">Jährlich</option>
           </select>
           <div class="hinw" style="margin-top:10px" id="ftArchivLetzter"></div>
+
+          <details style="margin-top:1.25rem">
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Mailtext &amp; Vorschau</summary>
+            <div style="margin-top:0.75rem">
+              <label for="ftArchivBetreff">Betreff</label>
+              <input id="ftArchivBetreff" type="text">
+              <label for="ftArchivText">Mailtext</label>
+              <textarea id="ftArchivText" rows="10"></textarea>
+              <div class="hinw" style="margin-top:8px">
+                Platzhalter: <code>{anzahl}</code> <code>{datum}</code> <code>{zeitraum}</code> <code>{intervall}</code> <code>{version}</code>. Leerst du ein Feld, greift wieder der Standard.
+              </div>
+              <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem">
+                <div class="hinw" style="margin-bottom:6px">An: konfigurierte Empfänger · Anhang: ZIP mit allen PDFs</div>
+                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="ftPvArchivBetreff" style="font-weight:400"></span></div>
+                <div id="ftPvArchivBody" style="font-size:13px;line-height:1.6"></div>
+              </div>
+            </div>
+          </details>
+
           <div class="entry-actions" style="justify-content:flex-start">
             <button class="btn btn-green btn-klein" id="btnFtArchivSpeichern">Speichern</button>
+            <button class="btn btn-klein" id="btnFtArchivReset">Mailtext auf Standard</button>
             <button class="btn btn-klein" id="btnFtArchivJetzt">ZIP jetzt senden</button>
           </div>
           <div class="status-msg" id="ftArchivStatus"></div>
@@ -456,7 +476,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.05</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.06</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -567,9 +587,44 @@ function initFt(){
   $("ftLookupSuche").addEventListener("keydown", e=>{ if(e.key==="Enter") ftSucheLookup(); });
   $("btnFtArchivSpeichern").addEventListener("click", ftSpeichereArchiv);
   $("btnFtArchivJetzt").addEventListener("click", ftArchivJetztSenden);
+  $("btnFtArchivReset").addEventListener("click", ftArchivReset);
+  ["ftArchivBetreff","ftArchivText","ftArchivIntervall"].forEach(id=>{
+    const el=$(id); if(el) el.addEventListener("input", ftArchivVorschau);
+  });
+  $("ftArchivIntervall").addEventListener("change", ftArchivVorschau);
 }
 
 /* ── Archiv-Einstellungen ── */
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.11", FT_ARCHIV_LETZTER="";
+
+function ftArchivVorschau(){
+  const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
+  const zeitraum=FT_ARCHIV_LETZTER
+    ? "seit "+new Date(FT_ARCHIV_LETZTER).toLocaleDateString("de-CH")
+    : "alle bisherigen";
+  const d={anzahl:"12",datum:new Date().toLocaleDateString("de-CH"),zeitraum,intervall:intervallText,version:FT_ARCHIV_VERSION};
+  const fuelle=v=>String(v)
+    .replace(/\{anzahl\}/g,d.anzahl).replace(/\{datum\}/g,d.datum)
+    .replace(/\{zeitraum\}/g,d.zeitraum).replace(/\{intervall\}/g,d.intervall)
+    .replace(/\{version\}/g,d.version);
+  const b=$("ftArchivBetreff"), t=$("ftArchivText");
+  if(!b||!t) return;
+  const betreff=b.value.trim()||(FT_ARCHIV_DEFAULTS?FT_ARCHIV_DEFAULTS.betreff:"");
+  const text=t.value.trim()!==""?t.value:(FT_ARCHIV_DEFAULTS?FT_ARCHIV_DEFAULTS.text:"");
+  $("ftPvArchivBetreff").textContent=fuelle(betreff);
+  $("ftPvArchivBody").innerHTML=escHtml(fuelle(text)).replace(/\n/g,"<br>");
+}
+
+function ftArchivReset(){
+  if(!FT_ARCHIV_DEFAULTS) return;
+  $("ftArchivBetreff").value=FT_ARCHIV_DEFAULTS.betreff||"";
+  $("ftArchivText").value=FT_ARCHIV_DEFAULTS.text||"";
+  ftArchivVorschau();
+  const st=$("ftArchivStatus");
+  st.className="status-msg"; st.style.display="block";
+  st.textContent='Standard eingesetzt – zum Übernehmen "Speichern" klicken.';
+}
+
 async function ftLadeArchivEinstellungen(){
   const st=$("ftArchivStatus");
   st.className="status-msg"; st.style.display="none";
@@ -578,10 +633,16 @@ async function ftLadeArchivEinstellungen(){
     if(res.error){ st.className="status-msg err-msg"; st.textContent="Zugriff verweigert."; return; }
     $("ftArchivEmpf").value=res.empfaenger||"";
     $("ftArchivIntervall").value=res.intervall||"monat";
+    $("ftArchivBetreff").value=res.betreff||"";
+    $("ftArchivText").value=res.text||"";
+    FT_ARCHIV_DEFAULTS=res.defaults||null;
+    if(res.version) FT_ARCHIV_VERSION=res.version;
     const letzter=res.letzterVersand;
+    FT_ARCHIV_LETZTER=letzter||"";
     $("ftArchivLetzter").textContent = letzter
       ? "Letzter Versand: "+new Date(letzter).toLocaleString("de-CH")
       : "Bisher noch kein Versand erfolgt.";
+    ftArchivVorschau();
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler beim Laden: "+e.message; }
 }
 
@@ -592,7 +653,8 @@ async function ftSpeichereArchiv(){
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
   try{
     const res=await ftCallAdmin({type:"admin_set_archiv",password:PASS,
-      empfaenger:$("ftArchivEmpf").value,intervall:$("ftArchivIntervall").value});
+      empfaenger:$("ftArchivEmpf").value,intervall:$("ftArchivIntervall").value,
+      betreff:$("ftArchivBetreff").value,text:$("ftArchivText").value});
     if(res.ok){ st.className="status-msg ok-msg"; st.textContent="Gespeichert."; }
     else if(res.error==="EMAIL_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Ungültige Adresse(n): "+((res.ungueltig||[]).join(", ")); }
     else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
@@ -1204,13 +1266,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.05`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.06`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.05";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.06";
 
 async function soApi(payload){
   try{
