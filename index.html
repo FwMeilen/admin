@@ -364,6 +364,9 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
             </div>
           </div>
           <div class="hinw" style="margin-top:10px" id="soListeInfo"></div>
+          <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+            <button class="btn btn-green btn-klein" id="btnSoListePdf">Liste als PDF</button>
+          </div>
         </div>
         <div id="soListeInhalt" class="loading">Lade …</div>
       </div>
@@ -500,7 +503,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.10</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.11</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1305,13 +1308,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.10`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.11`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.10";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.11";
 
 async function soApi(payload){
   try{
@@ -1347,6 +1350,7 @@ function initSo(){
   $("btnSoAddFrage").addEventListener("click", soNeueFrageForm);
   $("soListeSuche").addEventListener("input", soRenderListe);
   $("soListeSort").addEventListener("change", soRenderListe);
+  $("btnSoListePdf").addEventListener("click", soListeAlsPdf);
   $("btnSoGueltigSpeichern").addEventListener("click", soSpeichereGueltig);
   ["soMailEmpf","soMailBetreff","soMailText"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", soMailVorschau); });
   $("btnSoMailSpeichern").addEventListener("click", soSpeichereMail);
@@ -1630,6 +1634,66 @@ function soRenderListe(){
         <td>${escHtml(p.pruefungsdatum)}</td><td>${escHtml(p.ablaufdatum)}</td><td>${badge}</td><td>${dok}</td></tr>`;
     }).join("")+`</tbody></table></div></div>`;
   liste.forEach((p,i)=>{ if(p.fileId){ const b=$("soDok"+i); if(b) b.addEventListener("click",()=>soLadePdf(p.fileId,b)); } });
+}
+
+function soListeAlsPdf(){
+  if(!window.jspdf){alert("PDF-Bibliothek konnte nicht geladen werden.");return;}
+  const q=$("soListeSuche").value.trim().toLowerCase();
+  const sort=$("soListeSort").value;
+  let liste=SO_LISTE.slice();
+  if(q) liste=liste.filter(p=>(p.kuerzel+" "+p.vorname+" "+p.name).toLowerCase().includes(q));
+  if(sort==="ablauf") liste.sort((a,b)=>a.ablaufSort.localeCompare(b.ablaufSort));
+  else liste.sort((a,b)=>(a.name+a.vorname).localeCompare(b.name+b.vorname,"de"));
+  if(liste.length===0){ alert("Keine Einträge zum Exportieren."); return; }
+
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  let y=20;
+
+  function kopf(){
+    doc.setFont("helvetica","bold"); doc.setFontSize(14);
+    doc.text("Stützpunktfeuerwehr Meilen",20,y); y+=7;
+    doc.setFontSize(11); doc.text("Sondersignal – Prüfungsliste",20,y); y+=4;
+    doc.setDrawColor(204,0,0); doc.setLineWidth(0.8); doc.line(20,y,190,y); y+=8;
+    doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(120,120,120);
+    const filterTxt=q?` · Filter: "${q}"`:"";
+    const sortTxt=sort==="ablauf"?"Ablaufdatum":"Name";
+    doc.text(`Stand: ${new Date().toLocaleDateString("de-CH")} · ${liste.length} Einträge · Sortiert nach ${sortTxt}${filterTxt}`,20,y);
+    doc.setTextColor(0,0,0); y+=8;
+    spaltenkopf();
+  }
+  function spaltenkopf(){
+    doc.setFont("helvetica","bold"); doc.setFontSize(9);
+    doc.text("Name",20,y); doc.text("Kürzel",78,y); doc.text("Prüfung",100,y);
+    doc.text("Gültig bis",128,y); doc.text("Status",158,y);
+    y+=2; doc.setDrawColor(224,224,224); doc.setLineWidth(0.3); doc.line(20,y,190,y); y+=5;
+    doc.setFont("helvetica","normal");
+  }
+
+  kopf();
+
+  liste.forEach(p=>{
+    if(y>272){ doc.addPage(); y=20; spaltenkopf(); }
+    doc.setFontSize(9); doc.setTextColor(0,0,0);
+    const name=doc.splitTextToSize(`${p.name} ${p.vorname}`,55);
+    doc.text(name[0],20,y);
+    doc.text(p.kuerzel,78,y);
+    doc.text(p.pruefungsdatum,100,y);
+    doc.text(p.ablaufdatum,128,y);
+    if(p.tageBisAblauf<0){ doc.setTextColor(204,0,0); doc.text("Abgelaufen",158,y); }
+    else if(p.tageBisAblauf<=30){ doc.setTextColor(204,119,0); doc.text(`${p.tageBisAblauf} Tage`,158,y); }
+    else { doc.setTextColor(45,106,31); doc.text("Gültig",158,y); }
+    doc.setTextColor(0,0,0);
+    y+=6;
+  });
+
+  y+=4;
+  if(y>282){ doc.addPage(); y=20; }
+  doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=5;
+  doc.setFontSize(8); doc.setTextColor(120,120,120);
+  doc.text(`Erstellt: ${new Date().toLocaleString("de-CH")} · MWD Admin`,20,y);
+
+  doc.save(`SoSi_Pruefungsliste_${new Date().toISOString().slice(0,10)}.pdf`);
 }
 
 async function soSpeichereGueltig(){
