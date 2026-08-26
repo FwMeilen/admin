@@ -738,6 +738,25 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       </div>
 
       <div class="card">
+        <h2>Ladezeiten</h2>
+        <details>
+          <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Ladezeiten messen</summary>
+          <div style="margin-top:0.75rem">
+            <p class="hinw" style="margin-bottom:1rem">
+              Misst, wie lange die einzelnen Datenquellen brauchen. So lässt sich erkennen,
+              wo die Wartezeit tatsächlich entsteht.
+            </p>
+            <div class="entry-actions" style="justify-content:flex-start">
+              <button class="btn btn-red btn-klein" id="btnMessungCache">Mit Zwischenspeicher</button>
+              <button class="btn btn-klein" id="btnMessungOhne">Ohne Zwischenspeicher</button>
+            </div>
+            <div class="status-msg" id="messungStatus"></div>
+            <div id="messungErgebnis" style="margin-top:1rem"></div>
+          </div>
+        </details>
+      </div>
+
+      <div class="card">
         <h2>Zwischenspeicher</h2>
         <details>
           <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Zwischenspeicher leeren</summary>
@@ -989,7 +1008,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.37</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.38</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1190,7 +1209,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.37";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.38";
 
 let GAB_NT_ID=null;
 
@@ -1577,6 +1596,62 @@ function gabRendern(){
     }).join("")+`</tbody></table></div></div>`;
 }
 
+async function messungStarten(mitCache){
+  const st=$("messungStatus"), el=$("messungErgebnis");
+  const btns=[$("btnMessungCache"),$("btnMessungOhne")];
+  btns.forEach(b=>b.disabled=true);
+  st.className="status-msg"; st.style.display="block";
+  st.textContent = mitCache ? "Wird gemessen…" : "Zwischenspeicher wird geleert und gemessen…";
+  el.innerHTML="";
+  const gestartet=Date.now();
+  try{
+    const r=await ftCallAdmin({type:"admin_messung",password:PASS,mitCache:!!mitCache});
+    if(!r.ok){ st.className="status-msg err-msg"; st.textContent="Fehler bei der Messung."; return; }
+    const gesamtClient=Date.now()-gestartet;
+    const netz=Math.max(0,gesamtClient-r.gesamtMs);
+    st.className="status-msg ok-msg";
+    st.textContent = mitCache
+      ? "Gemessen mit aktivem Zwischenspeicher."
+      : "Gemessen ohne Zwischenspeicher (erster Aufruf, wie beim Kaltstart).";
+
+    const balken=(ms,max)=>{
+      const breite=max>0?Math.round(ms/max*100):0;
+      const farbe=ms>2000?"var(--red)":ms>700?"#cc7700":"var(--green)";
+      return `<div style="height:5px;background:var(--gray-mid);width:100%"><div style="height:5px;width:${breite}%;background:${farbe}"></div></div>`;
+    };
+    const max=Math.max.apply(null,r.messungen.map(m=>m.ms).concat([netz]));
+
+    el.innerHTML=`<div class="tblwrap"><table class="l5">
+      <thead><tr><th>Schritt</th><th style="text-align:right">Zeit</th><th style="width:110px"></th><th>Details</th></tr></thead>
+      <tbody>`
+      +r.messungen.map(m=>`<tr>
+        <td>${escHtml(m.schritt)}</td>
+        <td style="text-align:right;font-variant-numeric:tabular-nums"><b>${(m.ms/1000).toFixed(2)}s</b></td>
+        <td>${balken(m.ms,max)}</td>
+        <td class="hinw">${escHtml(m.info)}</td>
+      </tr>`).join("")
+      +`<tr><td colspan="4" style="border-bottom:none;padding:4px 0"></td></tr>
+        <tr>
+          <td><b>Verarbeitung total</b></td>
+          <td style="text-align:right"><b>${(r.gesamtMs/1000).toFixed(2)}s</b></td>
+          <td></td><td class="hinw">Zeit im Apps Script</td>
+        </tr>
+        <tr>
+          <td>Übertragung &amp; Verbindungsaufbau</td>
+          <td style="text-align:right;font-variant-numeric:tabular-nums">${(netz/1000).toFixed(2)}s</td>
+          <td>${balken(netz,max)}</td>
+          <td class="hinw">Googles Weiterleitung – nicht beeinflussbar</td>
+        </tr>
+        <tr>
+          <td><b>Gesamt bis zur Anzeige</b></td>
+          <td style="text-align:right"><b>${(gesamtClient/1000).toFixed(2)}s</b></td>
+          <td></td><td></td>
+        </tr>
+      </tbody></table></div>`;
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+  finally{ btns.forEach(b=>b.disabled=false); }
+}
+
 async function cacheLeeren(){
   const st=$("cacheStatus"), btn=$("btnCacheLeeren");
   btn.disabled=true;
@@ -1743,6 +1818,8 @@ function initBackup(){
     if($("bkDetails").open && BK_LISTE.length===0) bkLadeListe();
   });
   $("btnCacheLeeren").addEventListener("click", cacheLeeren);
+  $("btnMessungCache").addEventListener("click", ()=>messungStarten(true));
+  $("btnMessungOhne").addEventListener("click", ()=>messungStarten(false));
   $("grDetails").addEventListener("toggle", ()=>{
     if($("grDetails").open) grLadeGrundlagen();
   });
@@ -1974,7 +2051,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.37";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.38";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -2259,7 +2336,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.37", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.38", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -2995,13 +3072,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.37`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.38`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.37";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.38";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
