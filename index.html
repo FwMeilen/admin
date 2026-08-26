@@ -173,7 +173,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         <option value="ft">Fahrtraining</option>
         <option value="so">SoSi-Prüfung</option>
         <option value="res">Fahrzeugreservationen</option>
-        <option value="backup">Backup</option>
+        <option value="backup">Admin</option>
       </select>
     </div>
     <div class="warnung" id="authWarnung" style="display:none"></div>
@@ -485,18 +485,23 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
     <div id="toolBackup" style="display:none">
       <div class="card">
         <h2>Backup &amp; Wiederherstellung</h2>
-        <p class="hinw" style="margin-bottom:1rem">
-          Einmal wöchentlich wird automatisch ein vollständiges Backup erstellt –
-          Fahrtraining, SoSi und alle Einstellungen. Backups werden <b id="bkAufbewahrung">6 Monate</b> aufbewahrt.
-          <br><span style="color:var(--text3)">Die Übungsadressen sind nicht enthalten (sehr umfangreich und jederzeit neu befüllbar).</span>
-        </p>
-        <div class="entry-actions" style="justify-content:flex-start">
-          <button class="btn btn-red btn-klein" id="btnBkLaden">Liste aktualisieren</button>
-          <button class="btn btn-green btn-klein" id="btnBkJetzt">Backup jetzt erstellen</button>
-        </div>
-        <div class="status-msg" id="bkStatus"></div>
+        <details id="bkDetails">
+          <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Backups verwalten</summary>
+          <div style="margin-top:0.75rem">
+            <p class="hinw" style="margin-bottom:1rem">
+              Einmal wöchentlich wird automatisch ein vollständiges Backup erstellt –
+              Fahrtraining, SoSi und alle Einstellungen. Backups werden <b id="bkAufbewahrung">6 Monate</b> aufbewahrt.
+              <br><span style="color:var(--text3)">Die Übungsadressen sind nicht enthalten (sehr umfangreich und jederzeit neu befüllbar).</span>
+            </p>
+            <div class="entry-actions" style="justify-content:flex-start">
+              <button class="btn btn-red btn-klein" id="btnBkLaden">Liste aktualisieren</button>
+              <button class="btn btn-green btn-klein" id="btnBkJetzt">Backup jetzt erstellen</button>
+            </div>
+            <div class="status-msg" id="bkStatus"></div>
+            <div id="bkListe" style="margin-top:1rem"></div>
+          </div>
+        </details>
       </div>
-      <div id="bkListe" class="loading">Lade …</div>
     </div>
 
     <!-- ═══════════ SOSI ═══════════ -->
@@ -711,7 +716,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.24</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.25</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -861,7 +866,9 @@ function initBackup(){
   $("btnBkAbbrechen").addEventListener("click", bkDialogSchliessen);
   $("btnBkRestore").addEventListener("click", bkWiederherstellen);
   $("bkRestoreBg").addEventListener("click", e=>{ if(e.target===$("bkRestoreBg")) bkDialogSchliessen(); });
-  bkLadeListe();
+  $("bkDetails").addEventListener("toggle", ()=>{
+    if($("bkDetails").open && BK_LISTE.length===0) bkLadeListe();
+  });
 }
 
 async function bkLadeListe(){
@@ -1090,7 +1097,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.24";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.25";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -1375,7 +1382,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.24", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.25", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -2086,13 +2093,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.24`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.25`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.24";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.25";
 
 async function soApi(payload){
   try{
