@@ -461,12 +461,20 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           <details>
             <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Reservationstypen</summary>
             <div style="margin-top:0.75rem">
-              <p class="hinw" style="margin-bottom:1rem">Diese Typen stehen im Reservationsformular zur Auswahl. Mehrere mit Komma trennen. Der Typ erscheint als Präfix im Kalendereintrag.</p>
-              <label for="ftResTypen">Typen</label>
-              <input id="ftResTypen" type="text" placeholder="Fahrtraining, Übung, Reservation">
-              <div class="hinw" style="margin-top:8px">
-                Beim Typ <b>Fahrtraining</b> gelten Sonderregeln: kein Bemerkungsfeld, und sonntags nicht buchbar.
+              <p class="hinw" style="margin-bottom:1rem">Diese Typen stehen im Reservationsformular zur Auswahl. Der Typ erscheint als Präfix im Kalendereintrag.</p>
+
+              <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:0.85rem 1rem;margin-bottom:1rem">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin-bottom:4px">Fest hinterlegt</div>
+                <div style="font-size:14px;font-weight:700">Fahrtraining</div>
+                <div class="hinw" style="margin-top:4px">
+                  Steht immer an erster Stelle und ist nicht änderbar – für diesen Typ gelten
+                  Sonderregeln: kein Bemerkungsfeld, sonntags nicht buchbar.
+                </div>
               </div>
+
+              <label for="ftResTypen">Weitere Typen (mehrere mit Komma trennen)</label>
+              <input id="ftResTypen" type="text" placeholder="Übung, Reservation">
+              <div class="hinw" style="margin-top:8px" id="ftResVorschau"></div>
               <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
                 <button class="btn btn-green btn-klein" id="btnFtResSpeichern">Speichern</button>
                 <button class="btn btn-klein" id="btnFtResReset">Auf Standard</button>
@@ -1008,7 +1016,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.39</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.40</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1209,7 +1217,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.39";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.40";
 
 let GAB_NT_ID=null;
 
@@ -1955,6 +1963,7 @@ function initRes(){
   });
   $("btnFtResSpeichern").addEventListener("click", ftSpeichereResTypen);
   $("btnFtResReset").addEventListener("click", ftResTypenReset);
+  $("ftResTypen").addEventListener("input", ()=>ftResVorschau(null));
   $("btnFtResMailSpeichern").addEventListener("click", ftSpeichereResMail);
   $("btnFtResMailReset").addEventListener("click", ftResMailReset);
   ["ftResMailBetreff","ftResMailText"].forEach(id=>{
@@ -2064,7 +2073,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.39";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.40";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -2124,7 +2133,7 @@ function ftResMailReset(){
 }
 
 /* ── Reservationstypen ── */
-let FT_RES_STANDARD="Fahrtraining,Übung,Reservation";
+let FT_RES_STANDARD="Übung,Reservation";
 
 async function ftLadeResTypen(){
   const st=$("ftResStatus");
@@ -2134,6 +2143,7 @@ async function ftLadeResTypen(){
     if(res.error){ st.className="status-msg err-msg"; st.textContent="Zugriff verweigert."; return; }
     $("ftResTypen").value=res.typen||"";
     if(res.standard) FT_RES_STANDARD=res.standard;
+    ftResVorschau(res.alle);
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler beim Laden: "+e.message; }
 }
 
@@ -2143,15 +2153,28 @@ async function ftSpeichereResTypen(){
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
   try{
     const res=await ftCallAdmin({type:"admin_set_res_typen",password:PASS,typen:$("ftResTypen").value});
-    if(res.ok){ st.className="status-msg ok-msg"; st.textContent="Gespeichert: "+res.typen.join(" · "); }
-    else if(res.error==="LEER"){ st.className="status-msg err-msg"; st.textContent="Mindestens ein Typ nötig."; }
+    if(res.ok){
+      st.className="status-msg ok-msg";
+      st.textContent="Gespeichert. Auswahl im Formular: "+(res.alle||[]).join(" · ");
+      ftResVorschau(res.alle);
+    }
     else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
   finally{ btn.disabled=false; }
 }
 
+function ftResVorschau(alle){
+  const el=$("ftResVorschau");
+  if(!el) return;
+  const liste = alle && alle.length
+    ? alle
+    : ["Fahrtraining"].concat($("ftResTypen").value.split(",").map(x=>x.trim()).filter(x=>x));
+  el.innerHTML="Auswahl im Formular: "+liste.map(t=>`<b>${escHtml(t)}</b>`).join(" · ");
+}
+
 function ftResTypenReset(){
   $("ftResTypen").value=FT_RES_STANDARD;
+  ftResVorschau(null);
   const st=$("ftResStatus");
   st.className="status-msg"; st.style.display="block";
   st.textContent='Standard eingesetzt – zum Übernehmen "Speichern" klicken.';
@@ -2349,7 +2372,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.39", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.40", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -3085,13 +3108,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.39`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.40`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.39";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.40";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
