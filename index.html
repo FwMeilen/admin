@@ -760,7 +760,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.29</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.30</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -843,10 +843,28 @@ function vollerName(kuerzel){
   return (FT_MITGLIEDER[k]&&FT_MITGLIEDER[k].vollerName)||kuerzel;
 }
 
-async function ftCallAdmin(payload){
+/**
+ * Aufruf ans Fahrtraining-Backend.
+ * Google liefert gelegentlich statt JSON eine HTML-Seite (kurzzeitige Aussetzer,
+ * Weiterleitungen). In dem Fall wird einmal automatisch neu versucht.
+ */
+async function ftCallAdmin(payload,versuch){
+  versuch=versuch||1;
   const res=await fetch(FT_EXEC_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)});
   const text=await res.text();
-  return JSON.parse(text);
+  try{
+    return JSON.parse(text);
+  }catch(e){
+    const istHtml=text.trim().slice(0,15).toLowerCase().includes("<!doctype")
+      || text.trim().startsWith("<");
+    if(istHtml && versuch<3){
+      await new Promise(r=>setTimeout(r,600*versuch));
+      return ftCallAdmin(payload,versuch+1);
+    }
+    throw new Error(istHtml
+      ? "Server nicht erreichbar (nach "+versuch+" Versuchen). Bitte kurz warten und erneut versuchen."
+      : "Unerwartete Antwort vom Server.");
+  }
 }
 
 async function ftHoleFahrzeuge(){
@@ -1276,7 +1294,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.29";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.30";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -1561,7 +1579,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.29", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.30", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -2297,19 +2315,30 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.29`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.30`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.29";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.30";
 
-async function soApi(payload){
+async function soApi(payload,versuch){
+  versuch=versuch||1;
   try{
     const res=await fetch(SO_EXEC_URL,{method:"POST",body:JSON.stringify(payload)});
     const txt=await res.text();
-    try{ return JSON.parse(txt); }catch(e){ return {ok:false,error:"KEIN_JSON",detail:txt.slice(0,200)}; }
+    try{
+      return JSON.parse(txt);
+    }catch(e){
+      const istHtml=txt.trim().slice(0,15).toLowerCase().includes("<!doctype") || txt.trim().startsWith("<");
+      if(istHtml && versuch<3){
+        await new Promise(r=>setTimeout(r,600*versuch));
+        return soApi(payload,versuch+1);
+      }
+      return {ok:false,error:"KEIN_JSON",
+        detail: istHtml ? "Server nicht erreichbar (nach "+versuch+" Versuchen)." : txt.slice(0,200)};
+    }
   }catch(e){ return {ok:false,error:"NETZWERK",detail:String(e&&e.message||e)}; }
 }
 function soFehlerHtml(prefix,r){
