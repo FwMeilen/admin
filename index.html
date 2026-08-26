@@ -394,6 +394,9 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
                 <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:13px;letter-spacing:0;color:var(--text);margin-top:0.75rem">
                   <input type="checkbox" id="ftFzgNeuStuetz" style="width:auto;margin:0"> Stützpunkt-Fahrzeug (Gebietsabfrage im Fahrtraining)
                 </label>
+                <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:13px;letter-spacing:0;color:var(--text);margin-top:0.5rem">
+                  <input type="checkbox" id="ftFzgNeuKeinFt" style="width:auto;margin:0"> Nicht für Fahrtrainings freigeben
+                </label>
                 <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
                   <button class="btn btn-green btn-klein" id="btnFtFzgAdd">Hinzufügen</button>
                 </div>
@@ -401,6 +404,8 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
               </div>
 
               <div class="hinw" style="margin-top:1.25rem;line-height:1.7">
+                <b>Fahrtraining</b> steuert, ob mit dem Fahrzeug ein Fahrtraining erfasst werden kann.
+                Reservationen bleiben in jedem Fall möglich.<br>
                 <b>Archivieren</b> blendet ein Fahrzeug in allen Formularen aus – Fragen und Historie bleiben erhalten und es kann jederzeit reaktiviert werden.<br>
                 <b>Umbenennen</b> passt automatisch den Reiter im Fragen-Sheet und alle bisherigen Einträge an.
               </div>
@@ -1017,7 +1022,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.41</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.42</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1218,7 +1223,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.41";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.42";
 
 let GAB_NT_ID=null;
 
@@ -2121,7 +2126,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.41";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.42";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -2256,7 +2261,7 @@ function ftRenderFahrzeuge(){
   if(liste.length===0){ el.innerHTML='<div class="empty">Keine Fahrzeuge in dieser Auswahl.</div>'; return; }
 
   el.innerHTML=`<div class="tblwrap"><table class="l5">
-    <thead><tr><th>Fahrzeug</th><th>Kat.</th><th>Stützpunkt</th><th>Status</th><th style="text-align:right">Aktion</th></tr></thead>
+    <thead><tr><th>Fahrzeug</th><th>Kat.</th><th>Stützpunkt</th><th>Fahrtraining</th><th>Status</th><th style="text-align:right">Aktion</th></tr></thead>
     <tbody>`+liste.map(f=>{
       const sicher=f.name.replace(/'/g,"\\'");
       if(FT_FZG_EDIT===f.name) return ftFzgZeileEdit(f,sicher);
@@ -2264,10 +2269,14 @@ function ftRenderFahrzeuge(){
       const badge=archiviert
         ? '<span class="badge" style="background:#888">Archiviert</span>'
         : '<span class="badge" style="background:#2d6a1f">Aktiv</span>';
+      const ftZelle = f.keinFt
+        ? '<span class="badge" style="background:#cc7700">gesperrt</span>'
+        : '<span style="color:var(--green)">✓</span>';
       return `<tr${archiviert?' style="opacity:.55"':''}>
         <td><b>${escHtml(f.name)}</b></td>
         <td>${escHtml(f.kat)}</td>
         <td>${f.stuetzpunkt?"✓":"–"}</td>
+        <td>${ftZelle}</td>
         <td>${badge}</td>
         <td style="text-align:right;white-space:nowrap">
           <button class="btn btn-klein" onclick="ftFzgEditStart('${sicher}')">Bearbeiten</button>
@@ -2295,6 +2304,7 @@ function ftFzgZeileEdit(f,sicher){
       <option value="C"${f.kat==="C"?" selected":""}>C</option>
     </select></td>
     <td style="text-align:center"><input type="checkbox" id="ftFzgEditStuetz" style="width:auto"${f.stuetzpunkt?" checked":""}></td>
+    <td style="text-align:center" title="Für Fahrtrainings freigegeben"><input type="checkbox" id="ftFzgEditFt" style="width:auto"${f.keinFt?"":" checked"}></td>
     <td>${f.aktiv===false?'<span class="badge" style="background:#888">Archiviert</span>':'<span class="badge" style="background:#2d6a1f">Aktiv</span>'}</td>
     <td style="text-align:right;white-space:nowrap">
       <button class="btn btn-klein" onclick="ftFzgEditAbbrechen()">Abbrechen</button>
@@ -2317,17 +2327,18 @@ function ftFzgEditSpeichern(alt){
   const name=$("ftFzgEditName").value.trim();
   const kat=$("ftFzgEditKat").value;
   const stuetz=$("ftFzgEditStuetz").checked;
+  const keinFt=!$("ftFzgEditFt").checked;
   if(!name){ alert("Die Bezeichnung darf nicht leer sein."); return; }
   if(name!==alt && !confirm(`"${alt}" wirklich in "${name}" umbenennen?\n\nBetrifft: Fahrzeugliste, Reiter im Fragen-Sheet und alle bisherigen Einträge in Fahrten, Fragen und Tätigkeiten.`)) return;
   FT_FZG_EDIT=null;
-  ftFzgUpdate(alt,name,kat,stuetz);
+  ftFzgUpdate(alt,name,kat,stuetz,keinFt);
 }
 
-async function ftFzgUpdate(alt,name,kat,stuetzpunkt){
+async function ftFzgUpdate(alt,name,kat,stuetzpunkt,keinFt){
   const st=$("ftFzgStatus");
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
   try{
-    const res=await ftCallAdmin({type:"admin_fahrzeug_update",password:PASS,alt,name,kat,stuetzpunkt});
+    const res=await ftCallAdmin({type:"admin_fahrzeug_update",password:PASS,alt,name,kat,stuetzpunkt,keinFt:!!keinFt});
     if(res.ok){
       FT_FZG_LISTE=res.liste||[];
       FT_FZG_EDIT=null;
@@ -2390,12 +2401,13 @@ async function ftFzgHinzufuegen(){
   const name=$("ftFzgNeuName").value.trim();
   const kat=$("ftFzgNeuKat").value;
   const stuetzpunkt=$("ftFzgNeuStuetz").checked;
+  const keinFt=$("ftFzgNeuKeinFt").checked;
   st.className="status-msg"; st.style.display="block";
   if(!name){ st.className="status-msg err-msg"; st.textContent="Bitte eine Bezeichnung eingeben."; return; }
   btn.disabled=true;
   st.textContent="Wird angelegt…";
   try{
-    const res=await ftCallAdmin({type:"admin_fahrzeug_add",password:PASS,name,kat,stuetzpunkt});
+    const res=await ftCallAdmin({type:"admin_fahrzeug_add",password:PASS,name,kat,stuetzpunkt,keinFt});
     if(res.ok){
       FT_FZG_LISTE=res.liste||[];
       $("ftFzgFilter").value=kat;
@@ -2405,7 +2417,7 @@ async function ftFzgHinzufuegen(){
       if(res.reiterAngelegt) txt+=" Reiter im Fragen-Sheet angelegt.";
       if(res.warnung) txt+=" ⚠ "+res.warnung;
       st.textContent=txt;
-      $("ftFzgNeuName").value=""; $("ftFzgNeuStuetz").checked=false;
+      $("ftFzgNeuName").value=""; $("ftFzgNeuStuetz").checked=false; $("ftFzgNeuKeinFt").checked=false;
       ftHoleFahrzeuge();
     } else if(res.error==="NAME_VERGEBEN"){
       st.className="status-msg err-msg"; st.textContent="Diese Bezeichnung ist bereits vergeben.";
@@ -2420,7 +2432,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.41", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.42", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -3156,13 +3168,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.41`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.42`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.41";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.42";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
