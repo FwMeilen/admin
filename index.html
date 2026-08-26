@@ -1008,7 +1008,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.38</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.39</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1209,7 +1209,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.38";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.39";
 
 let GAB_NT_ID=null;
 
@@ -1608,7 +1608,9 @@ async function messungStarten(mitCache){
     const r=await ftCallAdmin({type:"admin_messung",password:PASS,mitCache:!!mitCache});
     if(!r.ok){ st.className="status-msg err-msg"; st.textContent="Fehler bei der Messung."; return; }
     const gesamtClient=Date.now()-gestartet;
-    const netz=Math.max(0,gesamtClient-r.gesamtMs);
+    const skript=r.skriptMs!=null?r.skriptMs:r.gesamtMs;
+    const vorlauf=Math.max(0,skript-r.gesamtMs);
+    const netz=Math.max(0,gesamtClient-skript);
     st.className="status-msg ok-msg";
     st.textContent = mitCache
       ? "Gemessen mit aktivem Zwischenspeicher."
@@ -1632,9 +1634,20 @@ async function messungStarten(mitCache){
       </tr>`).join("")
       +`<tr><td colspan="4" style="border-bottom:none;padding:4px 0"></td></tr>
         <tr>
-          <td><b>Verarbeitung total</b></td>
-          <td style="text-align:right"><b>${(r.gesamtMs/1000).toFixed(2)}s</b></td>
-          <td></td><td class="hinw">Zeit im Apps Script</td>
+          <td>Summe der Schritte</td>
+          <td style="text-align:right;font-variant-numeric:tabular-nums">${(r.gesamtMs/1000).toFixed(2)}s</td>
+          <td></td><td class="hinw">gemessene Datenzugriffe</td>
+        </tr>
+        <tr>
+          <td>Vorlauf im Script</td>
+          <td style="text-align:right;font-variant-numeric:tabular-nums">${(vorlauf/1000).toFixed(2)}s</td>
+          <td>${balken(vorlauf,max)}</td>
+          <td class="hinw">Start, Passwortprüfung, Aufbau</td>
+        </tr>
+        <tr>
+          <td><b>Script total</b></td>
+          <td style="text-align:right"><b>${(skript/1000).toFixed(2)}s</b></td>
+          <td></td><td class="hinw">gesamte Zeit im Apps Script</td>
         </tr>
         <tr>
           <td>Übertragung &amp; Verbindungsaufbau</td>
@@ -2051,7 +2064,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.38";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.39";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -2336,7 +2349,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.38", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.39", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -3072,13 +3085,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.38`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.39`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.38";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.39";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
