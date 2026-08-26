@@ -740,6 +740,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
                 <span class="ampel-text"><b>SoSi-Backend</b><span id="ampelSoText" class="hinw">wird geprüft …</span></span>
               </div>
             </div>
+            <div class="status-msg" id="grAusloeserHinweis"></div>
             <div id="grInhalt" class="loading">Lade …</div>
           </div>
         </details>
@@ -1016,7 +1017,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.40</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.41</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1217,7 +1218,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.40";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.41";
 
 let GAB_NT_ID=null;
 
@@ -1717,10 +1718,26 @@ async function grLadeGrundlagen(){
 
     GR_GELADEN=true;
     el.innerHTML=grBaueHtml(ft,so);
+    grPruefeAusloeser(ft,so);
   }catch(e){
     grSetzeAmpel("Ft","rot","Prüfung fehlgeschlagen");
     grSetzeAmpel("So","rot","Prüfung fehlgeschlagen");
     el.innerHTML=`<div class="empty">Fehler beim Laden: ${escHtml(e.message)}</div>`;
+  }
+}
+
+function grPruefeAusloeser(ft,so){
+  const zaehle=(soll,ist)=>(soll||[]).filter(s=>!(ist||[]).some(t=>t.funktion===s.funktion)).length;
+  const fehlen = zaehle(ft&&ft.erwarteteAusloeser, ft&&ft.ausloeser)
+    + zaehle(so&&so.erwarteteAusloeser, so&&so.ausloeser);
+  const el=$("grAusloeserHinweis");
+  if(!el) return;
+  if(fehlen>0){
+    el.className="status-msg err-msg";
+    el.textContent=`${fehlen} zeitgesteuerte${fehlen===1?"r":""} Auslöser fehlt${fehlen===1?"":"en"} – siehe unten bei «Automatische Auslöser».`;
+  } else {
+    el.className="status-msg ok-msg";
+    el.textContent="Alle zeitgesteuerten Auslöser sind eingerichtet.";
   }
 }
 
@@ -1801,15 +1818,46 @@ function grBaueHtml(ft,so){
       grZeile(ft.kalender.bezeichnung,ft.kalender.name,ft.kalender.url,"ID: "+escHtml(ft.kalender.id)));
   }
 
-  // Auslöser
+  // Auslöser – Soll gegen Ist
+  const tIst=(ft&&ft.ok&&ft.ausloeser)||[];
+  const sIst=(so&&so.ok&&so.ausloeser)||[];
+  const tSoll=(ft&&ft.ok&&ft.erwarteteAusloeser)||[];
+  const sSoll=(so&&so.ok&&so.erwarteteAusloeser)||[];
+
+  function trigZeile(script,soll,istListe){
+    const da=istListe.some(t=>t.funktion===soll.funktion);
+    const farbe=da?"var(--green)":"var(--red)";
+    const text=da?"Eingerichtet":"FEHLT";
+    return `<div class="frage-row" style="align-items:flex-start;gap:10px;padding:10px 0">
+      <span style="width:11px;height:11px;border-radius:50%;background:${farbe};flex-shrink:0;margin-top:4px"></span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gray)">${escHtml(script)}</div>
+        <div style="font-size:13px;font-weight:700">${escHtml(soll.funktion)}</div>
+        <div class="hinw" style="font-size:11px">${escHtml(soll.zweck)} · ${escHtml(soll.rhythmus)}</div>
+      </div>
+      <span style="font-size:11px;font-weight:700;color:${farbe};white-space:nowrap;margin-top:4px">${text}</span>
+    </div>`;
+  }
+
   let trigger="";
-  const tListe=(ft&&ft.ok&&ft.ausloeser)||[];
-  const sListe=(so&&so.ok&&so.ausloeser)||[];
-  if(tListe.length===0&&sListe.length===0){
-    trigger='<div class="hinw" style="padding:8px 0">Keine zeitgesteuerten Auslöser eingerichtet.</div>';
-  } else {
-    trigger=tListe.map(t=>grZeile("Fahrtraining-Script",t.funktion,null,escHtml(t.typ))).join("")
-      +sListe.map(t=>grZeile("SoSi-Script",t.funktion,null,escHtml(t.typ))).join("");
+  tSoll.forEach(s=>{ trigger+=trigZeile("Fahrtraining-Script",s,tIst); });
+  sSoll.forEach(s=>{ trigger+=trigZeile("SoSi-Script",s,sIst); });
+
+  // Zusätzliche, nicht erwartete Auslöser ebenfalls zeigen
+  const extra=[]
+    .concat(tIst.filter(t=>!tSoll.some(s=>s.funktion===t.funktion)).map(t=>({script:"Fahrtraining-Script",t})))
+    .concat(sIst.filter(t=>!sSoll.some(s=>s.funktion===t.funktion)).map(t=>({script:"SoSi-Script",t})));
+  extra.forEach(x=>{
+    trigger+=grZeile(x.script+" · zusätzlich",x.t.funktion,null,escHtml(x.t.typ));
+  });
+
+  const fehlen=tSoll.filter(s=>!tIst.some(t=>t.funktion===s.funktion)).length
+    +sSoll.filter(s=>!sIst.some(t=>t.funktion===s.funktion)).length;
+  if(fehlen>0){
+    trigger=`<div class="warnung" style="margin-bottom:10px">⚠ ${fehlen} Auslöser ${fehlen===1?"ist":"sind"} nicht eingerichtet – die betroffenen Automatiken laufen nicht.</div>`+trigger;
+  }
+  if(tSoll.length===0&&sSoll.length===0){
+    trigger='<div class="hinw" style="padding:8px 0">Keine Angaben verfügbar.</div>';
   }
   html+=grAbschnitt("Automatische Auslöser",trigger);
 
@@ -2073,7 +2121,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.40";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.41";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -2372,7 +2420,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.40", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.41", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -3108,13 +3156,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.40`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.41`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.40";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.41";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
