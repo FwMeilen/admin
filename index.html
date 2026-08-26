@@ -172,6 +172,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       <select id="toolSelect" style="max-width:300px">
         <option value="ft">Fahrtraining</option>
         <option value="so">SoSi-Prüfung</option>
+        <option value="res">Fahrzeugreservationen</option>
       </select>
     </div>
     <div class="warnung" id="authWarnung" style="display:none"></div>
@@ -184,7 +185,6 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         <button class="tab" data-fttab="meldungen">Einsatzmeldungen</button>
         <button class="tab" data-fttab="lookup">Fahrer-Lookup</button>
         <button class="tab" data-fttab="archiv">Einstellungen</button>
-        <button class="tab" data-fttab="reservation">Fahrzeugreservationen</button>
       </div>
 
       <!-- Statistik -->
@@ -277,6 +277,9 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       <div id="ftTabArchiv" style="display:none">
         <div class="card">
           <h2>PDF-Archiv-Versand</h2>
+          <details>
+          <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Empfänger &amp; Intervall</summary>
+          <div style="margin-top:0.75rem">
           <p class="hinw" style="margin-bottom:1rem">Alle Fahrtraining-Bestätigungen werden automatisch im Drive archiviert. Zusätzlich können sie in einem festen Intervall als ZIP per Mail verschickt werden.</p>
           <label for="ftArchivEmpf">Empfänger — mehrere mit Komma trennen</label>
           <input id="ftArchivEmpf" type="text" placeholder="z. B. kdt@example.ch, ausbildung@example.ch">
@@ -315,6 +318,8 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
             <button class="btn btn-klein" id="btnFtArchivJetzt">ZIP jetzt senden</button>
           </div>
           <div class="status-msg" id="ftArchivStatus"></div>
+          </div>
+          </details>
         </div>
         <div class="card">
           <h2>Hinweise</h2>
@@ -326,26 +331,62 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         </div>
       </div>
 
-      <!-- Fahrzeugreservationen -->
-      <div id="ftTabReservation" style="display:none">
+    </div>
+
+    <!-- ═══════════ FAHRZEUGRESERVATIONEN ═══════════ -->
+    <div id="toolRes" style="display:none">
+      <div class="tabs">
+        <button class="tab aktiv" data-restab="kalender">Kalender</button>
+        <button class="tab" data-restab="export">Kalenderexport</button>
+        <button class="tab" data-restab="einstellungen">Einstellungen</button>
+      </div>
+
+      <div id="resTabKalender">
         <div class="card">
-          <h2>Reservationstypen</h2>
-          <p class="hinw" style="margin-bottom:1rem">Diese Typen stehen im Reservationsformular zur Auswahl. Mehrere mit Komma trennen. Der Typ erscheint als Präfix im Kalendereintrag.</p>
-          <label for="ftResTypen">Typen</label>
-          <input id="ftResTypen" type="text" placeholder="Fahrtraining, Übung, Reservation">
-          <div class="hinw" style="margin-top:8px">
-            Beim Typ <b>Fahrtraining</b> gelten Sonderregeln: kein Bemerkungsfeld, und sonntags nicht buchbar.
+          <h2>Belegung</h2>
+          <iframe src="https://calendar.google.com/calendar/embed?src=62b1941e2e5dbdd33420a9e65da917d307323bf984b1713a2b60b1f1009c9a69%40group.calendar.google.com&ctz=Europe%2FZurich&mode=WEEK&showTitle=0&showPrint=0&showTabs=0&showCalendars=0&hl=de_CH"
+            style="border:1px solid var(--gray-mid);width:100%;height:620px" frameborder="0" scrolling="no"></iframe>
+        </div>
+      </div>
+
+      <div id="resTabExport" style="display:none">
+        <div class="card">
+          <h2>Kalenderexport</h2>
+          <p class="hinw" style="margin-bottom:1rem">Reservationen als .ics-Datei exportieren – einzeln oder alle auf einmal.</p>
+          <div class="entry-row2">
+            <div><label for="resExpVon">Von</label><input type="date" id="resExpVon"></div>
+            <div><label for="resExpBis">Bis</label><input type="date" id="resExpBis"></div>
           </div>
           <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
-            <button class="btn btn-green btn-klein" id="btnFtResSpeichern">Speichern</button>
-            <button class="btn btn-klein" id="btnFtResReset">Auf Standard</button>
+            <button class="btn btn-red btn-klein" id="btnResLaden">Einträge laden</button>
+            <button class="btn btn-green btn-klein" id="btnResExportAlle">Auswahl exportieren</button>
+            <button class="btn btn-klein" id="btnResAlleWaehlen">Alle auswählen</button>
+            <button class="btn btn-klein" id="btnResKeineWaehlen">Auswahl aufheben</button>
           </div>
-          <div class="status-msg" id="ftResStatus"></div>
+          <div class="status-msg" id="resExpStatus"></div>
         </div>
+        <div id="resExpListe"></div>
+      </div>
+
+      <div id="resTabEinstellungen" style="display:none">
         <div class="card">
-          <h2>Kalender</h2>
-          <iframe src="https://calendar.google.com/calendar/embed?src=62b1941e2e5dbdd33420a9e65da917d307323bf984b1713a2b60b1f1009c9a69%40group.calendar.google.com&ctz=Europe%2FZurich&mode=WEEK&showTitle=0&showPrint=0&showTabs=0&showCalendars=0&hl=de_CH"
-            style="border:1px solid var(--gray-mid);width:100%;height:560px" frameborder="0" scrolling="no"></iframe>
+          <h2>Einstellungen</h2>
+          <details>
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Reservationstypen</summary>
+            <div style="margin-top:0.75rem">
+              <p class="hinw" style="margin-bottom:1rem">Diese Typen stehen im Reservationsformular zur Auswahl. Mehrere mit Komma trennen. Der Typ erscheint als Präfix im Kalendereintrag.</p>
+              <label for="ftResTypen">Typen</label>
+              <input id="ftResTypen" type="text" placeholder="Fahrtraining, Übung, Reservation">
+              <div class="hinw" style="margin-top:8px">
+                Beim Typ <b>Fahrtraining</b> gelten Sonderregeln: kein Bemerkungsfeld, und sonntags nicht buchbar.
+              </div>
+              <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+                <button class="btn btn-green btn-klein" id="btnFtResSpeichern">Speichern</button>
+                <button class="btn btn-klein" id="btnFtResReset">Auf Standard</button>
+              </div>
+              <div class="status-msg" id="ftResStatus"></div>
+            </div>
+          </details>
         </div>
       </div>
     </div>
@@ -398,6 +439,9 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       <div id="soTabMail" style="display:none">
         <div class="card">
           <h2>Gültigkeitsdauer</h2>
+          <details>
+          <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Dauer anpassen</summary>
+          <div style="margin-top:0.75rem">
           <label for="soGueltigJahre">Dauer der Freigabe (Jahre)</label>
           <input id="soGueltigJahre" type="number" min="1" max="10" step="1" style="max-width:120px">
           <div class="hinw" style="margin-top:8px">Gilt für <b>neu</b> bestandene Prüfungen. Bereits bestandene Prüfungen behalten ihre bisherige Gültigkeit.</div>
@@ -405,6 +449,8 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
             <button class="btn btn-green btn-klein" id="btnSoGueltigSpeichern">Speichern</button>
           </div>
           <div class="status-msg" id="soGueltigStatus"></div>
+          </div>
+          </details>
         </div>
 
         <div class="card">
@@ -527,7 +573,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.15</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.16</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -586,9 +632,11 @@ function switchTool(){
   const tool=$("toolSelect").value;
   $("toolFt").style.display = tool==="ft" ? "block" : "none";
   $("toolSo").style.display = tool==="so" ? "block" : "none";
+  $("toolRes").style.display = tool==="res" ? "block" : "none";
   if(tool==="ft" && !FT_OK) alert("Fahrtraining-Backend ist nicht angemeldet (Passwort nicht synchron).");
   if(tool==="so" && !SO_OK) alert("SoSi-Backend ist nicht angemeldet (Passwort nicht synchron).");
   if(tool==="so" && SO_OK && !SO_INIT) initSo();
+  if(tool==="res" && FT_OK && !RES_INIT) initRes();
 }
 
 /* ══════════════════ FAHRTRAINING ══════════════════ */
@@ -625,10 +673,8 @@ function initFt(){
       $("ftTabMeldungen").style.display = tab==="meldungen"?"block":"none";
       $("ftTabLookup").style.display = tab==="lookup"?"block":"none";
       $("ftTabArchiv").style.display = tab==="archiv"?"block":"none";
-      $("ftTabReservation").style.display = tab==="reservation"?"block":"none";
       if(tab==="meldungen") ftLadeMeldungenAdmin();
       if(tab==="archiv") ftLadeArchivEinstellungen();
-      if(tab==="reservation") ftLadeResTypen();
     });
   });
   $("ftFahrzeug").addEventListener("change", ftLadeFragenAdmin);
@@ -642,15 +688,134 @@ function initFt(){
   $("btnFtArchivJetzt").addEventListener("click", ftArchivJetztSenden);
   $("btnFtArchivReset").addEventListener("click", ftArchivReset);
   $("btnFtArchivStandard").addEventListener("click", ftArchivAlsStandard);
-  $("btnFtResSpeichern").addEventListener("click", ftSpeichereResTypen);
-  $("btnFtResReset").addEventListener("click", ftResTypenReset);
   ["ftArchivBetreff","ftArchivText","ftArchivIntervall"].forEach(id=>{
     const el=$(id); if(el) el.addEventListener("input", ftArchivVorschau);
   });
   $("ftArchivIntervall").addEventListener("change", ftArchivVorschau);
 }
 
-/* ── Fahrzeugreservationen ── */
+/* ══════════════════ FAHRZEUGRESERVATIONEN ══════════════════ */
+let RES_INIT=false, RES_EVENTS=[];
+
+function initRes(){
+  RES_INIT=true;
+  document.querySelectorAll("[data-restab]").forEach(t=>{
+    t.addEventListener("click", ()=>{
+      document.querySelectorAll("[data-restab]").forEach(x=>x.classList.remove("aktiv"));
+      t.classList.add("aktiv");
+      const tab=t.dataset.restab;
+      $("resTabKalender").style.display=tab==="kalender"?"block":"none";
+      $("resTabExport").style.display=tab==="export"?"block":"none";
+      $("resTabEinstellungen").style.display=tab==="einstellungen"?"block":"none";
+      if(tab==="einstellungen") ftLadeResTypen();
+    });
+  });
+  $("btnFtResSpeichern").addEventListener("click", ftSpeichereResTypen);
+  $("btnFtResReset").addEventListener("click", ftResTypenReset);
+  $("btnResLaden").addEventListener("click", resLadeEvents);
+  $("btnResExportAlle").addEventListener("click", resExportAuswahl);
+  $("btnResAlleWaehlen").addEventListener("click", ()=>resSetzeAuswahl(true));
+  $("btnResKeineWaehlen").addEventListener("click", ()=>resSetzeAuswahl(false));
+  // Standard-Zeitraum: 3 Monate zurück bis 12 Monate voraus
+  const heute=new Date();
+  const von=new Date(heute.getFullYear(),heute.getMonth()-3,1);
+  const bis=new Date(heute.getFullYear()+1,heute.getMonth(),1);
+  $("resExpVon").value=von.toISOString().slice(0,10);
+  $("resExpBis").value=bis.toISOString().slice(0,10);
+}
+
+async function resLadeEvents(){
+  const st=$("resExpStatus"), el=$("resExpListe");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird geladen…";
+  el.innerHTML="";
+  try{
+    const res=await ftCallAdmin({type:"admin_kalender_events",password:PASS,
+      von:$("resExpVon").value+"T00:00:00", bis:$("resExpBis").value+"T23:59:59"});
+    if(res.error==="auth"){ st.className="status-msg err-msg"; st.textContent="Zugriff verweigert."; return; }
+    if(!res.ok){ st.className="status-msg err-msg"; st.textContent="Fehler: "+(res.detail||res.error); return; }
+    RES_EVENTS=res.events||[];
+    st.style.display="none";
+    resRenderEvents();
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+function resRenderEvents(){
+  const el=$("resExpListe");
+  if(RES_EVENTS.length===0){ el.innerHTML='<div class="empty">Keine Einträge im gewählten Zeitraum.</div>'; return; }
+  el.innerHTML=`<div class="card" style="padding:0"><div class="tblwrap"><table class="l5">
+    <thead><tr><th style="width:40px"></th><th>Titel</th><th>Von</th><th>Bis</th><th></th></tr></thead><tbody>`
+    +RES_EVENTS.map((ev,i)=>`<tr>
+      <td><input type="checkbox" class="res-check" data-idx="${i}" style="width:auto"></td>
+      <td>${escHtml(ev.titel)}</td>
+      <td>${escHtml(ev.vonText)}</td>
+      <td>${escHtml(ev.bisText)}</td>
+      <td><button class="btn btn-klein" onclick="resExportEinzeln(${i})">.ics</button></td>
+    </tr>`).join("")
+    +`</tbody></table></div></div>`;
+}
+
+function resSetzeAuswahl(wert){
+  document.querySelectorAll(".res-check").forEach(c=>{c.checked=wert;});
+}
+
+function resIcsDatum(iso){
+  return iso.replace(/[-:]/g,"");
+}
+
+function resBaueIcs(events){
+  const zeilen=[
+    "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Stuetzpunktfeuerwehr Meilen//MWD//DE","CALSCALE:GREGORIAN",
+    "BEGIN:VTIMEZONE","TZID:Europe/Zurich",
+    "BEGIN:STANDARD","DTSTART:19701025T030000","TZOFFSETFROM:+0200","TZOFFSETTO:+0100","RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU","END:STANDARD",
+    "BEGIN:DAYLIGHT","DTSTART:19700329T020000","TZOFFSETFROM:+0100","TZOFFSETTO:+0200","RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU","END:DAYLIGHT",
+    "END:VTIMEZONE"
+  ];
+  const stempel=new Date().toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";
+  events.forEach(ev=>{
+    zeilen.push("BEGIN:VEVENT");
+    zeilen.push("UID:"+(ev.id||Math.random().toString(36).slice(2))+"@feuerwehrmeilen.ch");
+    zeilen.push("DTSTAMP:"+stempel);
+    zeilen.push("DTSTART;TZID=Europe/Zurich:"+resIcsDatum(ev.vonIso));
+    zeilen.push("DTEND;TZID=Europe/Zurich:"+resIcsDatum(ev.bisIso));
+    zeilen.push("SUMMARY:"+String(ev.titel).replace(/([,;\\])/g,"\\$1"));
+    if(ev.beschreibung) zeilen.push("DESCRIPTION:"+String(ev.beschreibung).replace(/\n/g,"\\n").replace(/([,;])/g,"\\$1"));
+    zeilen.push("END:VEVENT");
+  });
+  zeilen.push("END:VCALENDAR");
+  return zeilen.join("\r\n");
+}
+
+function resDownloadIcs(inhalt,dateiname){
+  const blob=new Blob([inhalt],{type:"text/calendar;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=dateiname;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function resExportEinzeln(idx){
+  const ev=RES_EVENTS[idx];
+  if(!ev) return;
+  const name=ev.titel.replace(/[^\wäöüÄÖÜß -]/g,"").replace(/\s+/g,"_");
+  resDownloadIcs(resBaueIcs([ev]),`Reservation_${name}_${ev.vonIso.slice(0,10)}.ics`);
+}
+
+function resExportAuswahl(){
+  const gewaehlt=[];
+  document.querySelectorAll(".res-check").forEach(c=>{ if(c.checked) gewaehlt.push(RES_EVENTS[parseInt(c.dataset.idx,10)]); });
+  const st=$("resExpStatus");
+  if(gewaehlt.length===0){
+    st.className="status-msg err-msg"; st.style.display="block";
+    st.textContent="Bitte mindestens einen Eintrag auswählen.";
+    return;
+  }
+  resDownloadIcs(resBaueIcs(gewaehlt),`Fahrzeugreservationen_${new Date().toISOString().slice(0,10)}.ics`);
+  st.className="status-msg ok-msg"; st.style.display="block";
+  st.textContent=`${gewaehlt.length} Eintrag${gewaehlt.length!==1?"e":""} exportiert.`;
+}
+
+/* ── Reservationstypen ── */
 let FT_RES_STANDARD="Fahrtraining,Übung,Reservation";
 
 async function ftLadeResTypen(){
@@ -685,7 +850,7 @@ function ftResTypenReset(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.15", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.16", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -1370,13 +1535,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.15`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.16`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.15";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.16";
 
 async function soApi(payload){
   try{
