@@ -989,7 +989,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.36</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.37</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1190,7 +1190,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.36";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.37";
 
 let GAB_NT_ID=null;
 
@@ -1206,16 +1206,21 @@ async function gabNachtragen(kuerzelBestaetigt, ueberschreiben){
   if(!kuerzelBestaetigt && !ueberschreiben) GAB_NT_ID=null;
   if(!GAB_NT_ID) GAB_NT_ID=Date.now()+"-"+Math.random().toString(36).slice(2,10);
   btn.disabled=true; st.textContent="Wird eingetragen…";
+  const gestartet=Date.now();
   try{
     const r=await ftCallAdmin({type:"admin_ga_b_nachtragen",password:PASS,
       anfrageId:GAB_NT_ID,
       kuerzel,datum,kuerzelBestaetigt:!!kuerzelBestaetigt,ueberschreiben:!!ueberschreiben});
     if(r.ok){
+      const gesamt=Math.round((Date.now()-gestartet)/100)/10;
+      const server=r.dauerMs!=null?` · Server ${Math.round(r.dauerMs/100)/10}s`:"";
       st.className="status-msg ok-msg";
-      st.textContent=`${r.kuerzel}${r.name?" ("+r.name+")":""} – Grundausbildung B am ${r.datum} eingetragen.`;
+      st.textContent=`${r.kuerzel}${r.name?" ("+r.name+")":""} – Grundausbildung B am ${r.datum} eingetragen. `
+        +`(${gesamt}s${server})`;
       $("gabNtKuerzel").value=""; $("gabNtDatum").value="";
       GAB_NT_ID=null;
-      gabLadeResultate();
+      // Listen im Hintergrund erneuern – blockiert die Rückmeldung nicht
+      setTimeout(()=>{ gabLadeResultate(); svLadeStatus(); },50);
     } else if(r.error==="KUERZEL_UNBEKANNT"){
       btn.disabled=false;
       if(confirm(`Das Kürzel „${kuerzel}" ist nicht in der Mitgliederliste.\n\nTrotzdem eintragen?`)){
@@ -1969,7 +1974,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.36";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.37";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -2254,7 +2259,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.36", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.37", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -2990,13 +2995,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.36`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.37`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.36";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.37";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
