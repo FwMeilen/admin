@@ -1022,7 +1022,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.42</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.43</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1223,7 +1223,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.42";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.43";
 
 let GAB_NT_ID=null;
 
@@ -1737,9 +1737,14 @@ function grPruefeAusloeser(ft,so){
     + zaehle(so&&so.erwarteteAusloeser, so&&so.ausloeser);
   const el=$("grAusloeserHinweis");
   if(!el) return;
+  const unbekannt = (ft&&ft.ok&&!(ft.erwarteteAusloeser||[]).length)
+    || (so&&so.ok&&!(so.erwarteteAusloeser||[]).length);
   if(fehlen>0){
     el.className="status-msg err-msg";
     el.textContent=`${fehlen} zeitgesteuerte${fehlen===1?"r":""} Auslöser fehlt${fehlen===1?"":"en"} – siehe unten bei «Automatische Auslöser».`;
+  } else if(unbekannt){
+    el.className="status-msg err-msg";
+    el.textContent="Auslöser können nicht vollständig geprüft werden – ein Script läuft noch auf einer älteren Version.";
   } else {
     el.className="status-msg ok-msg";
     el.textContent="Alle zeitgesteuerten Auslöser sind eingerichtet.";
@@ -1848,13 +1853,29 @@ function grBaueHtml(ft,so){
   tSoll.forEach(s=>{ trigger+=trigZeile("Fahrtraining-Script",s,tIst); });
   sSoll.forEach(s=>{ trigger+=trigZeile("SoSi-Script",s,sIst); });
 
-  // Zusätzliche, nicht erwartete Auslöser ebenfalls zeigen
+  // Weitere Auslöser zeigen – aber nur als "zusätzlich" bezeichnen,
+  // wenn das Script überhaupt eine Soll-Liste liefert (sonst irreführend)
   const extra=[]
-    .concat(tIst.filter(t=>!tSoll.some(s=>s.funktion===t.funktion)).map(t=>({script:"Fahrtraining-Script",t})))
-    .concat(sIst.filter(t=>!sSoll.some(s=>s.funktion===t.funktion)).map(t=>({script:"SoSi-Script",t})));
+    .concat(tIst.filter(t=>!tSoll.some(s=>s.funktion===t.funktion))
+      .map(t=>({script:"Fahrtraining-Script",t,sollBekannt:tSoll.length>0})))
+    .concat(sIst.filter(t=>!sSoll.some(s=>s.funktion===t.funktion))
+      .map(t=>({script:"SoSi-Script",t,sollBekannt:sSoll.length>0})));
   extra.forEach(x=>{
-    trigger+=grZeile(x.script+" · zusätzlich",x.t.funktion,null,escHtml(x.t.typ));
+    const bez=x.sollBekannt ? x.script+" · zusätzlich" : x.script;
+    const zusatz=x.sollBekannt ? escHtml(x.t.typ)
+      : escHtml(x.t.typ)+" – Script liefert keine Soll-Liste (ältere Version)";
+    trigger+=grZeile(bez,x.t.funktion,null,zusatz);
   });
+
+  // Hinweis, falls ein Script noch keine Soll-Liste kennt
+  const ohneSoll=[];
+  if(ft&&ft.ok&&tSoll.length===0) ohneSoll.push("Fahrtraining");
+  if(so&&so.ok&&sSoll.length===0) ohneSoll.push("SoSi");
+  if(ohneSoll.length>0){
+    trigger=`<div class="warnung" style="margin-bottom:10px">Das ${ohneSoll.join("- und ")}-Script `
+      +`meldet noch keine erwarteten Auslöser – bitte die aktuelle Code.gs einspielen und neu deployen. `
+      +`Bis dahin lässt sich nicht prüfen, ob dort etwas fehlt.</div>`+trigger;
+  }
 
   const fehlen=tSoll.filter(s=>!tIst.some(t=>t.funktion===s.funktion)).length
     +sSoll.filter(s=>!sIst.some(t=>t.funktion===s.funktion)).length;
@@ -2126,7 +2147,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.42";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.43";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -2432,7 +2453,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.42", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.43", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -3168,13 +3189,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.42`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.43`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.42";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.43";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
