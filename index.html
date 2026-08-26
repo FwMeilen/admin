@@ -260,7 +260,17 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       <div id="ftTabMeldungen" style="display:none">
         <div class="card">
           <h2>Einsatzmeldungen</h2>
-          <label for="ftMeldungSort">Sortieren nach</label>
+          <div class="entry-row2">
+            <div>
+              <label for="ftMeldungSuche">Suche</label>
+              <input id="ftMeldungSuche" type="text" placeholder="Meldung, Kategorie, Einsatzmittel …">
+            </div>
+            <div>
+              <label for="ftMeldungKatFilter">Kategorie</label>
+              <select id="ftMeldungKatFilter"><option value="">Alle Kategorien</option></select>
+            </div>
+          </div>
+          <label for="ftMeldungSort" style="margin-top:0.75rem">Sortieren nach</label>
           <select id="ftMeldungSort" style="max-width:220px"><option value="kategorie">Kategorie</option><option value="alarmierung">Alarmierung</option></select>
         </div>
         <div class="top-actions">
@@ -750,7 +760,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.28</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.29</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -872,6 +882,8 @@ function initFt(){
   $("ftFahrzeug").addEventListener("change", ftLadeFragenAdmin);
   $("ftTypFilter").addEventListener("change", ()=>ftRenderFragenListe(FT_LETZTE_FRAGEN));
   $("ftMeldungSort").addEventListener("change", ()=>ftRenderMeldungenListe(FT_LETZTE_MELDUNGEN));
+  $("ftMeldungSuche").addEventListener("input", ()=>ftRenderMeldungenListe(FT_LETZTE_MELDUNGEN));
+  $("ftMeldungKatFilter").addEventListener("change", ()=>ftRenderMeldungenListe(FT_LETZTE_MELDUNGEN));
   $("btnFtNeueFrage").addEventListener("click", ftNeueFrage);
   $("btnFtNeueMeldung").addEventListener("click", ftNeueMeldung);
   $("btnFtLookupLaden").addEventListener("click", ftLadeFahrten);
@@ -1264,7 +1276,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.28";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.29";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -1549,7 +1561,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.28", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.29", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -2001,15 +2013,40 @@ async function ftLadeMeldungenAdmin(){
     const res=await ftCallAdmin({type:"admin_list_einsatzmeldungen",password:PASS});
     if(res.error){el.innerHTML='<div class="empty">Zugriff verweigert.</div>';return;}
     FT_LETZTE_MELDUNGEN=res.rows||[];
+    ftFuelleKategorieFilter(FT_LETZTE_MELDUNGEN);
     ftRenderMeldungenListe(FT_LETZTE_MELDUNGEN);
   }catch(e){ el.innerHTML=`<div class="empty">Fehler beim Laden: ${escHtml(e.message)}</div>`; }
 }
+function ftFuelleKategorieFilter(rows){
+  const sel=$("ftMeldungKatFilter");
+  const bisher=sel.value;
+  const kats=[...new Set(rows.map(r=>String(r.kategorie||"").trim()).filter(x=>x))]
+    .sort((a,b)=>a.localeCompare(b,"de"));
+  sel.innerHTML='<option value="">Alle Kategorien</option>'
+    +kats.map(k=>`<option value="${escHtml(k)}">${escHtml(k)}</option>`).join("");
+  if(kats.indexOf(bisher)>=0) sel.value=bisher;
+}
+
 function ftRenderMeldungenListe(rows){
   const el=$("ftMeldungenListe");
   const sortBy=$("ftMeldungSort").value;
-  const sortiert=[...rows].sort((a,b)=>String(a[sortBy]||"").localeCompare(String(b[sortBy]||""),"de"));
-  $("ftMeldungenCount").textContent=`${sortiert.length} Eintrag${sortiert.length!==1?"e":""}`;
-  if(sortiert.length===0){el.innerHTML='<div class="empty">Noch keine Einträge.</div>';return;}
+  const q=$("ftMeldungSuche").value.trim().toLowerCase();
+  const kat=$("ftMeldungKatFilter").value;
+
+  let gefiltert=rows;
+  if(kat) gefiltert=gefiltert.filter(r=>String(r.kategorie||"").trim()===kat);
+  if(q) gefiltert=gefiltert.filter(r=>
+    `${r.kategorie||""} ${r.alarmierung||""} ${r.meldung||""} ${r.mittel||""}`.toLowerCase().includes(q));
+
+  const sortiert=[...gefiltert].sort((a,b)=>String(a[sortBy]||"").localeCompare(String(b[sortBy]||""),"de"));
+  const gesamt=rows.length;
+  $("ftMeldungenCount").textContent = (q||kat)
+    ? `${sortiert.length} von ${gesamt} Einträgen`
+    : `${gesamt} Eintrag${gesamt!==1?"e":""}`;
+  if(sortiert.length===0){
+    el.innerHTML=`<div class="empty">${(q||kat)?"Keine Treffer für diese Auswahl.":"Noch keine Einträge."}</div>`;
+    return;
+  }
   el.innerHTML=sortiert.map(r=>ftMeldungCardHtml(r)).join("");
 }
 function ftMeldungCardHtml(r){
@@ -2260,13 +2297,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.28`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.29`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.28";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.29";
 
 async function soApi(payload){
   try{
