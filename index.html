@@ -533,6 +533,35 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
             <button class="btn btn-red btn-klein" id="btnGabLaden">Aktualisieren</button>
           </div>
         </div>
+
+        <div class="card">
+          <h2>Nachtragen</h2>
+          <details>
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">B-Grundausbildung nachtragen</summary>
+            <div style="margin-top:0.75rem">
+              <p class="hinw" style="margin-bottom:1rem">
+                Für Personen, welche die Grundausbildung B vor Einführung dieses Tools
+                absolviert haben. Der Eintrag zählt wie ein bestandener Test – auch für
+                die SoSi-Vorbereitung.
+              </p>
+              <div class="entry-row2">
+                <div>
+                  <label for="gabNtKuerzel">Kürzel</label>
+                  <input id="gabNtKuerzel" type="text" maxlength="4" style="text-transform:uppercase" placeholder="z. B. LOL">
+                </div>
+                <div>
+                  <label for="gabNtDatum">Datum der Grundausbildung</label>
+                  <input id="gabNtDatum" type="date">
+                </div>
+              </div>
+              <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+                <button class="btn btn-green btn-klein" id="btnGabNachtragen">Eintragen</button>
+              </div>
+              <div class="status-msg" id="gabNtStatus"></div>
+            </div>
+          </details>
+        </div>
+
         <div id="gabListe" class="loading">Lade …</div>
       </div>
 
@@ -960,7 +989,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.34</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.35</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1149,6 +1178,8 @@ function initGab(){
   ["svBereitBetreff","svBereitText","svErinnBetreff","svErinnText","svMonateMin","svMonateErinn","svFahrten"]
     .forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", svVorschau); });
   $("btnGabNeueFrage").addEventListener("click", gabNeueFrage);
+  $("btnGabNachtragen").addEventListener("click", ()=>gabNachtragen(false,false));
+  $("gabNtKuerzel").addEventListener("keydown", e=>{ if(e.key==="Enter") gabNachtragen(false,false); });
   $("gabFragenSuche").addEventListener("input", ()=>gabRenderFragen(GAB_FRAGEN));
   $("btnGabParamSpeichern").addEventListener("click", gabSpeichereParameter);
   $("btnGabParamReset").addEventListener("click", gabParameterReset);
@@ -1160,6 +1191,45 @@ function initGab(){
 }
 
 let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.35";
+
+async function gabNachtragen(kuerzelBestaetigt, ueberschreiben){
+  const st=$("gabNtStatus"), btn=$("btnGabNachtragen");
+  const kuerzel=$("gabNtKuerzel").value.trim().toUpperCase();
+  const datum=$("gabNtDatum").value;
+  st.className="status-msg"; st.style.display="block";
+  if(!kuerzel){ st.className="status-msg err-msg"; st.textContent="Bitte ein Kürzel eingeben."; return; }
+  if(!datum){ st.className="status-msg err-msg"; st.textContent="Bitte ein Datum wählen."; return; }
+  btn.disabled=true; st.textContent="Wird eingetragen…";
+  try{
+    const r=await ftCallAdmin({type:"admin_ga_b_nachtragen",password:PASS,
+      kuerzel,datum,kuerzelBestaetigt:!!kuerzelBestaetigt,ueberschreiben:!!ueberschreiben});
+    if(r.ok){
+      st.className="status-msg ok-msg";
+      st.textContent=`${r.kuerzel}${r.name?" ("+r.name+")":""} – Grundausbildung B am ${r.datum} eingetragen.`;
+      $("gabNtKuerzel").value=""; $("gabNtDatum").value="";
+      gabLadeResultate();
+    } else if(r.error==="KUERZEL_UNBEKANNT"){
+      btn.disabled=false;
+      if(confirm(`Das Kürzel „${kuerzel}" ist nicht in der Mitgliederliste.\n\nTrotzdem eintragen?`)){
+        gabNachtragen(true,ueberschreiben); return;
+      }
+      st.style.display="none";
+    } else if(r.error==="BEREITS_VORHANDEN"){
+      btn.disabled=false;
+      if(confirm(`Für ${kuerzel} ist bereits ein bestandener B-Test vom ${r.datum} erfasst.\n\nTrotzdem einen weiteren Eintrag anlegen?\n\nHinweis: Für die SoSi-Vorbereitung zählt weiterhin das früheste Datum.`)){
+        gabNachtragen(kuerzelBestaetigt,true); return;
+      }
+      st.style.display="none";
+    } else if(r.error==="DATUM_ZUKUNFT"){
+      st.className="status-msg err-msg"; st.textContent="Das Datum darf nicht in der Zukunft liegen.";
+    } else if(r.error==="DATUM_UNGUELTIG"){
+      st.className="status-msg err-msg"; st.textContent="Das Datum konnte nicht gelesen werden.";
+    } else {
+      st.className="status-msg err-msg"; st.textContent="Fehler beim Eintragen.";
+    }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+  finally{ if(btn) btn.disabled=false; }
+}
 
 /* ── SoSi-Vorbereitung ── */
 function svBeispiel(){
@@ -1478,7 +1548,8 @@ function gabRendern(){
     <thead><tr><th>Datum</th><th>Kürzel</th><th>Name</th><th>Punkte</th><th>Dauer</th><th>Resultat</th></tr></thead>
     <tbody>`+liste.map(e=>{
       let badge;
-      if(e.bestanden==="Ja") badge='<span class="badge" style="background:#2d6a1f">Bestanden</span>';
+      if(e.punkte==="–"&&e.bestanden==="Ja") badge='<span class="badge" style="background:#4a7ba7">Nachtrag</span>';
+      else if(e.bestanden==="Ja") badge='<span class="badge" style="background:#2d6a1f">Bestanden</span>';
       else if(e.bestanden==="Nein: Zeit") badge='<span class="badge" style="background:#cc7700">Zeitlimit</span>';
       else badge='<span class="badge" style="background:#CC0000">Nicht bestanden</span>';
       return `<tr>
@@ -1889,7 +1960,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.34";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.35";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -2174,7 +2245,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.34", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.35", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -2910,13 +2981,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.34`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.35`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.34";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.35";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
