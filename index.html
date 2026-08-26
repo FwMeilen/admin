@@ -449,16 +449,16 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           <details style="margin-top:0.5rem">
             <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Bestätigungsmail &amp; Vorschau</summary>
             <div style="margin-top:0.75rem">
-              <p class="hinw" style="margin-bottom:1rem">Wird versendet, wenn im Reservationsformular «Kalendereintrag senden» gedrückt wird. Der Kalendereintrag hängt automatisch als .ics-Datei an.</p>
+              <p class="hinw" style="margin-bottom:1rem">Wird versendet, wenn im Reservationsformular «Kalendereintrag senden» gedrückt wird. Jede Person erhält eine <b>eigene, persönlich adressierte</b> Mail. Der Kalendereintrag hängt automatisch als .ics-Datei an.</p>
               <label for="ftResMailBetreff">Betreff</label>
               <input id="ftResMailBetreff" type="text">
               <label for="ftResMailText">Mailtext</label>
               <textarea id="ftResMailText" rows="12"></textarea>
               <div class="hinw" style="margin-top:8px">
-                Platzhalter: <code>{typ}</code> <code>{fahrzeug}</code> <code>{datum}</code> <code>{vonZeit}</code> <code>{bisZeit}</code> <code>{personen}</code> <code>{bemerkungZeile}</code> <code>{version}</code>. Leerst du ein Feld, greift wieder der Standard.
+                Platzhalter: <code>{vorname}</code> <code>{name}</code> <code>{kuerzel}</code> <code>{typ}</code> <code>{fahrzeug}</code> <code>{datum}</code> <code>{vonZeit}</code> <code>{bisZeit}</code> <code>{personen}</code> <code>{bemerkungZeile}</code> <code>{version}</code>. Leerst du ein Feld, greift wieder der Standard.
               </div>
               <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem">
-                <div class="hinw" style="margin-bottom:6px">An: Fahrer und Beifahrer · Anhang: .ics</div>
+                <div class="hinw" style="margin-bottom:6px">An: jede Person einzeln · Anhang: .ics</div>
                 <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="ftPvResBetreff" style="font-weight:400"></span></div>
                 <div id="ftPvResBody" style="font-size:13px;line-height:1.6"></div>
               </div>
@@ -655,7 +655,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.19</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.20</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -920,17 +920,19 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.19";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.20";
 
 function ftResMailVorschau(){
   const heute=new Date();
   const d={typ:"Fahrtraining",fahrzeug:"TLF",datum:heute.toLocaleDateString("de-CH"),
     vonZeit:"18:30",bisZeit:"20:30",personen:"MUS / BSP",
+    vorname:"Max",name:"Muster",kuerzel:"MUS",
     bemerkungZeile:"",version:FT_RES_MAIL_VERSION};
   const fuelle=v=>String(v)
     .replace(/\{typ\}/g,d.typ).replace(/\{fahrzeug\}/g,d.fahrzeug).replace(/\{datum\}/g,d.datum)
     .replace(/\{vonZeit\}/g,d.vonZeit).replace(/\{bisZeit\}/g,d.bisZeit)
     .replace(/\{personen\}/g,d.personen).replace(/\{bemerkungZeile\}/g,d.bemerkungZeile)
+    .replace(/\{vorname\}/g,d.vorname).replace(/\{name\}/g,d.name).replace(/\{kuerzel\}/g,d.kuerzel)
     .replace(/\{version\}/g,d.version);
   const b=$("ftResMailBetreff"), t=$("ftResMailText");
   if(!b||!t) return;
@@ -1111,7 +1113,7 @@ function ftFahrzeugeReset(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.19", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.20", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -1822,13 +1824,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.19`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.20`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.19";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.20";
 
 async function soApi(payload){
   try{
