@@ -61,6 +61,15 @@ select{appearance:none;-webkit-appearance:none;padding-right:28px;background-ima
 
 /* Zeilen-Listen (Fahrer, Fragen, Hilfe) */
 .frage-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--gray-mid);font-size:13px;}
+.ampel-leiste{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1.25rem;}
+.ampel{display:flex;align-items:center;gap:9px;border:1px solid var(--gray-mid);padding:10px 14px;background:var(--bg);flex:1;min-width:200px;}
+.ampel-punkt{width:13px;height:13px;border-radius:50%;flex-shrink:0;background:var(--gray-mid);}
+.ampel-punkt.gruen{background:var(--green);box-shadow:0 0 0 3px rgba(45,106,31,.15);}
+.ampel-punkt.rot{background:var(--red);box-shadow:0 0 0 3px rgba(204,0,0,.15);}
+.ampel-punkt.pruefe{background:var(--orange);animation:pulsieren 1s ease-in-out infinite;}
+@keyframes pulsieren{0%,100%{opacity:1}50%{opacity:.35}}
+.ampel-text{font-size:12px;line-height:1.35;}
+.ampel-text b{display:block;font-size:13px;}
 .frage-row:last-child{border-bottom:none;}
 .frage-pct{font-size:12px;font-weight:700;min-width:38px;text-align:right;flex-shrink:0;}
 .frage-bar-bg{flex:1;height:6px;background:var(--gray-mid);min-width:40px;}
@@ -493,6 +502,16 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
               Alle Bestandteile des Systems auf einen Blick – damit jemand anderes im Notfall
               weiterarbeiten kann. Alle Einträge sind direkt verlinkt.
             </p>
+            <div class="ampel-leiste">
+              <div class="ampel">
+                <span class="ampel-punkt pruefe" id="ampelFt"></span>
+                <span class="ampel-text"><b>Fahrtraining-Backend</b><span id="ampelFtText" class="hinw">wird geprüft …</span></span>
+              </div>
+              <div class="ampel">
+                <span class="ampel-punkt pruefe" id="ampelSo"></span>
+                <span class="ampel-text"><b>SoSi-Backend</b><span id="ampelSoText" class="hinw">wird geprüft …</span></span>
+              </div>
+            </div>
             <div id="grInhalt" class="loading">Lade …</div>
           </div>
         </details>
@@ -731,7 +750,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.27</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.28</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -874,17 +893,40 @@ function initFt(){
 /* ══════════════════ GRUNDLAGEN ══════════════════ */
 let GR_GELADEN=false;
 
+function grSetzeAmpel(welche,zustand,text){
+  const punkt=$("ampel"+welche), label=$("ampel"+welche+"Text");
+  if(!punkt) return;
+  punkt.className="ampel-punkt "+zustand;
+  if(label) label.textContent=text;
+}
+
 async function grLadeGrundlagen(){
   const el=$("grInhalt");
   el.innerHTML='<div class="loading">Lade …</div>';
+  grSetzeAmpel("Ft","pruefe","wird geprüft …");
+  grSetzeAmpel("So","pruefe","wird geprüft …");
   try{
+    const start=Date.now();
     const [ft,so]=await Promise.all([
       ftCallAdmin({type:"admin_grundlagen",password:PASS}).catch(e=>({ok:false,detail:e.message})),
       soApi({action:"adminGrundlagen",pass:PASS}).catch(e=>({ok:false,detail:e.message}))
     ]);
+    const dauer=Date.now()-start;
+
+    grSetzeAmpel("Ft", ft&&ft.ok?"gruen":"rot",
+      ft&&ft.ok ? `Erreichbar · ${ft.version||""} · ${dauer} ms`
+                : "Nicht erreichbar"+(ft&&ft.detail?" – "+ft.detail.slice(0,40):""));
+    grSetzeAmpel("So", so&&so.ok?"gruen":"rot",
+      so&&so.ok ? `Erreichbar · ${so.version||""} · ${dauer} ms`
+                : "Nicht erreichbar"+(so&&so.detail?" – "+so.detail.slice(0,40):""));
+
     GR_GELADEN=true;
     el.innerHTML=grBaueHtml(ft,so);
-  }catch(e){ el.innerHTML=`<div class="empty">Fehler beim Laden: ${escHtml(e.message)}</div>`; }
+  }catch(e){
+    grSetzeAmpel("Ft","rot","Prüfung fehlgeschlagen");
+    grSetzeAmpel("So","rot","Prüfung fehlgeschlagen");
+    el.innerHTML=`<div class="empty">Fehler beim Laden: ${escHtml(e.message)}</div>`;
+  }
 }
 
 function grZeile(bez,name,url,zusatz){
@@ -992,7 +1034,7 @@ function initBackup(){
     if($("bkDetails").open && BK_LISTE.length===0) bkLadeListe();
   });
   $("grDetails").addEventListener("toggle", ()=>{
-    if($("grDetails").open && !GR_GELADEN) grLadeGrundlagen();
+    if($("grDetails").open) grLadeGrundlagen();
   });
 }
 
@@ -1222,7 +1264,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.27";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.28";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -1507,7 +1549,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.27", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.28", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -2218,13 +2260,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.27`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.28`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.27";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.28";
 
 async function soApi(payload){
   try{
