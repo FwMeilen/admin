@@ -182,6 +182,8 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         <option value="ft">Fahrtraining</option>
         <option value="so">SoSi-Prüfung</option>
         <option value="res">Fahrzeugreservationen</option>
+        <option value="gab">B Grundausbildung</option>
+        <option value="gatlf">TLF Grundausbildung</option>
         <option value="backup">Admin</option>
       </select>
     </div>
@@ -496,6 +498,104 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
               <div class="status-msg" id="ftResMailStatus"></div>
             </div>
           </details>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ B GRUNDAUSBILDUNG ═══════════ -->
+    <div id="toolGab" style="display:none">
+      <div class="tabs">
+        <button class="tab aktiv" data-gabtab="resultate">Resultate</button>
+        <button class="tab" data-gabtab="fragen">Fragen</button>
+        <button class="tab" data-gabtab="einstellungen">Einstellungen</button>
+      </div>
+
+      <div id="gabTabResultate">
+        <div class="card">
+          <h2>Schlusstest-Resultate</h2>
+          <div class="entry-row2">
+            <div>
+              <label for="gabSuche">Suche (Kürzel oder Name)</label>
+              <input id="gabSuche" type="text" placeholder="z. B. LOL oder Loepfe">
+            </div>
+            <div>
+              <label for="gabFilter">Anzeigen</label>
+              <select id="gabFilter">
+                <option value="">Alle</option>
+                <option value="ja">Nur bestanden</option>
+                <option value="nein">Nur nicht bestanden</option>
+              </select>
+            </div>
+          </div>
+          <div class="hinw" style="margin-top:10px" id="gabInfo"></div>
+          <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+            <button class="btn btn-red btn-klein" id="btnGabLaden">Aktualisieren</button>
+          </div>
+        </div>
+        <div id="gabListe" class="loading">Lade …</div>
+      </div>
+
+      <div id="gabTabFragen" style="display:none">
+        <div class="card">
+          <h2>Fragenkatalog</h2>
+          <p class="hinw">
+            Die Fragen für den Schlusstest werden im Fragen-Sheet im Reiter
+            <b>«Grundausbildung B»</b> gepflegt. Pro Test werden daraus 10 Fragen zufällig gezogen.
+          </p>
+          <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+            <a class="btn btn-klein" id="gabSheetLink" href="#" target="_blank" rel="noopener">Fragen-Sheet öffnen</a>
+          </div>
+          <div class="hinw" style="margin-top:1rem;line-height:1.7">
+            <b>Spalten:</b> ID · Frage · Antwort 1–4 · Korrekt (1–4) · Erklärung<br>
+            Die Erklärung erscheint bei falscher Antwort in der Auswertung und im PDF.
+          </div>
+        </div>
+      </div>
+
+      <div id="gabTabEinstellungen" style="display:none">
+        <div class="card">
+          <h2>Einstellungen</h2>
+          <details>
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Testparameter</summary>
+            <div style="margin-top:0.75rem">
+              <div class="hinw" style="line-height:1.9">
+                Diese Werte sind im Apps Script hinterlegt und gelten für alle Tests:<br>
+                • Fragen pro Test: <b id="gabPAnzahl">10</b><br>
+                • Nötige richtige Antworten: <b id="gabPGrenze">8</b><br>
+                • Zeitlimit: <b id="gabPMinuten">15</b> Minuten
+              </div>
+              <div class="warnung" style="margin-top:12px">
+                Zum Ändern im Fahrtraining-Apps-Script die Konstanten
+                <code>GA_B_ANZAHL</code>, <code>GA_B_GRENZE</code> und <code>GA_B_MINUTEN</code> anpassen und neu deployen.
+              </div>
+            </div>
+          </details>
+          <details style="margin-top:0.5rem">
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Adressen &amp; Ablage</summary>
+            <div style="margin-top:0.75rem" class="hinw" style="line-height:1.9">
+              <div style="line-height:1.9">
+                • Schlusstest: <a href="https://grundausbildung.feuerwehrmeilen.ch/BTest/" target="_blank" rel="noopener" style="color:var(--red);font-weight:600">grundausbildung.feuerwehrmeilen.ch/BTest</a><br>
+                • Ausbildungsinhalte: <a href="https://grundausbildung.feuerwehrmeilen.ch/BGrund/" target="_blank" rel="noopener" style="color:var(--red);font-weight:600">grundausbildung.feuerwehrmeilen.ch/BGrund</a><br>
+                • PDFs: Drive-Ordner «Grundausbildung B» im Fahrtraining-PDF-Ordner<br>
+                • Protokoll: Auswertungs-Sheet, Reiter «Grundausbildung B Log»
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ TLF GRUNDAUSBILDUNG ═══════════ -->
+    <div id="toolGatlf" style="display:none">
+      <div class="card">
+        <h2>TLF Grundausbildung</h2>
+        <p class="hinw" style="line-height:1.8">
+          Dieser Bereich ist vorbereitet, aber noch nicht befüllt.
+          Sobald die Ausbildungsunterlagen vorliegen, werden hier Resultate,
+          Fragenkatalog und Einstellungen verwaltet – analog zur B-Grundausbildung.
+        </p>
+        <div class="warnung" style="margin-top:1rem">
+          Die Seite <b>grundausbildung.feuerwehrmeilen.ch/TLF</b> ist noch nicht aktiv.
         </div>
       </div>
     </div>
@@ -821,11 +921,14 @@ function switchTool(){
   $("toolSo").style.display = tool==="so" ? "block" : "none";
   $("toolRes").style.display = tool==="res" ? "block" : "none";
   $("toolBackup").style.display = tool==="backup" ? "block" : "none";
+  $("toolGab").style.display = tool==="gab" ? "block" : "none";
+  $("toolGatlf").style.display = tool==="gatlf" ? "block" : "none";
   if(tool==="ft" && !FT_OK) alert("Fahrtraining-Backend ist nicht angemeldet (Passwort nicht synchron).");
   if(tool==="so" && !SO_OK) alert("SoSi-Backend ist nicht angemeldet (Passwort nicht synchron).");
   if(tool==="so" && SO_OK && !SO_INIT) initSo();
   if(tool==="res" && FT_OK && !RES_INIT) initRes();
   if(tool==="backup" && FT_OK && !BACKUP_INIT) initBackup();
+  if(tool==="gab" && FT_OK && !GAB_INIT) initGab();
 }
 
 /* ══════════════════ FAHRTRAINING ══════════════════ */
@@ -920,6 +1023,78 @@ function initFt(){
   $("ftArchivIntervall").addEventListener("change", ftArchivVorschau);
 }
 
+/* ══════════════════ B GRUNDAUSBILDUNG ══════════════════ */
+let GAB_INIT=false, GAB_EINTRAEGE=[];
+const GAB_FRAGEN_SHEET="1EVK63S1UzguuIxlYgkSLT3_Aw9yZpb_YxuUjTC7fEdU";
+
+function initGab(){
+  GAB_INIT=true;
+  document.querySelectorAll("[data-gabtab]").forEach(t=>{
+    t.addEventListener("click", ()=>{
+      document.querySelectorAll("[data-gabtab]").forEach(x=>x.classList.remove("aktiv"));
+      t.classList.add("aktiv");
+      const tab=t.dataset.gabtab;
+      $("gabTabResultate").style.display=tab==="resultate"?"block":"none";
+      $("gabTabFragen").style.display=tab==="fragen"?"block":"none";
+      $("gabTabEinstellungen").style.display=tab==="einstellungen"?"block":"none";
+    });
+  });
+  $("btnGabLaden").addEventListener("click", gabLadeResultate);
+  $("gabSuche").addEventListener("input", gabRendern);
+  $("gabFilter").addEventListener("change", gabRendern);
+  $("gabSheetLink").href="https://docs.google.com/spreadsheets/d/"+GAB_FRAGEN_SHEET+"/edit";
+  gabLadeResultate();
+}
+
+async function gabLadeResultate(){
+  const el=$("gabListe");
+  el.innerHTML='<div class="loading">Lade …</div>';
+  try{
+    const res=await ftCallAdmin({type:"admin_ga_b_log",password:PASS});
+    if(res.error==="auth"){ el.innerHTML='<div class="empty">Zugriff verweigert.</div>'; return; }
+    if(!res.ok){ el.innerHTML='<div class="empty">Fehler beim Laden.</div>'; return; }
+    GAB_EINTRAEGE=res.eintraege||[];
+    gabRendern();
+  }catch(e){ el.innerHTML=`<div class="empty">Fehler beim Laden: ${escHtml(e.message)}</div>`; }
+}
+
+function gabRendern(){
+  const el=$("gabListe");
+  const q=$("gabSuche").value.trim().toLowerCase();
+  const filter=$("gabFilter").value;
+  let liste=GAB_EINTRAEGE.slice();
+  if(q) liste=liste.filter(e=>`${e.kuerzel} ${e.vorname} ${e.name}`.toLowerCase().includes(q));
+  if(filter==="ja") liste=liste.filter(e=>e.bestanden==="Ja");
+  else if(filter==="nein") liste=liste.filter(e=>e.bestanden!=="Ja");
+
+  const gesamt=GAB_EINTRAEGE.length;
+  const bestanden=GAB_EINTRAEGE.filter(e=>e.bestanden==="Ja").length;
+  $("gabInfo").textContent = gesamt===0
+    ? "Noch keine Tests absolviert."
+    : `${gesamt} Test${gesamt!==1?"s":""} · ${bestanden} bestanden · ${gesamt-bestanden} nicht bestanden`;
+
+  if(liste.length===0){
+    el.innerHTML=`<div class="empty">${q||filter?"Keine Treffer für diese Auswahl.":"Noch keine Resultate."}</div>`;
+    return;
+  }
+  el.innerHTML=`<div class="card" style="padding:0"><div class="tblwrap"><table class="l5">
+    <thead><tr><th>Datum</th><th>Kürzel</th><th>Name</th><th>Punkte</th><th>Dauer</th><th>Resultat</th></tr></thead>
+    <tbody>`+liste.map(e=>{
+      let badge;
+      if(e.bestanden==="Ja") badge='<span class="badge" style="background:#2d6a1f">Bestanden</span>';
+      else if(e.bestanden==="Nein: Zeit") badge='<span class="badge" style="background:#cc7700">Zeitlimit</span>';
+      else badge='<span class="badge" style="background:#CC0000">Nicht bestanden</span>';
+      return `<tr>
+        <td>${escHtml(e.zeitstempel)}</td>
+        <td><b>${escHtml(e.kuerzel)}</b></td>
+        <td>${escHtml((e.name+" "+e.vorname).trim())}</td>
+        <td>${escHtml(e.punkte)}</td>
+        <td>${escHtml(e.dauer)}</td>
+        <td>${badge}</td>
+      </tr>`;
+    }).join("")+`</tbody></table></div></div>`;
+}
+
 /* ══════════════════ GRUNDLAGEN ══════════════════ */
 let GR_GELADEN=false;
 
@@ -983,13 +1158,17 @@ function grBaueHtml(ft,so){
     +grZeile("Auswertung / Screenanzeige","fahrtraining.feuerwehrmeilen.ch/dashboard.html","https://fahrtraining.feuerwehrmeilen.ch/dashboard.html")
     +grZeile("Zufahrts-Rückmeldungen","fahrtraining.feuerwehrmeilen.ch/rueckmeldungen.html","https://fahrtraining.feuerwehrmeilen.ch/rueckmeldungen.html")
     +grZeile("SoSi-Prüfung (öffentlich)","sosi.feuerwehrmeilen.ch","https://sosi.feuerwehrmeilen.ch")
+    +grZeile("Grundausbildung (Startseite)","grundausbildung.feuerwehrmeilen.ch","https://grundausbildung.feuerwehrmeilen.ch")
+    +grZeile("Schlusstest Kategorie B","grundausbildung.feuerwehrmeilen.ch/BTest","https://grundausbildung.feuerwehrmeilen.ch/BTest/")
+    +grZeile("Ausbildungsinhalte Kategorie B","grundausbildung.feuerwehrmeilen.ch/BGrund","https://grundausbildung.feuerwehrmeilen.ch/BGrund/")
     +grZeile("Dieses Admin-Panel","mwd.feuerwehrmeilen.ch","https://mwd.feuerwehrmeilen.ch"));
 
   // Quellcode
   html+=grAbschnitt("Quellcode (GitHub, Organisation FwMeilen)",
     grZeile("Fahrtraining + Dashboard + Rückmeldungen","FwMeilen/Uebungsfahrten","https://github.com/FwMeilen/Uebungsfahrten")
     +grZeile("SoSi-Prüfungstool","FwMeilen/sosi","https://github.com/FwMeilen/sosi")
-    +grZeile("Admin-Panel","FwMeilen/admin","https://github.com/FwMeilen/admin"));
+    +grZeile("Admin-Panel","FwMeilen/admin","https://github.com/FwMeilen/admin")
+    +grZeile("Grundausbildung","FwMeilen/grundausbildung","https://github.com/FwMeilen/grundausbildung"));
 
   // Apps Scripts
   let scripts="";
