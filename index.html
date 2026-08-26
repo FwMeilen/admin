@@ -322,6 +322,33 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           </details>
         </div>
         <div class="card">
+          <h2>Fahrzeuge</h2>
+          <details>
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Fahrzeugliste bearbeiten</summary>
+            <div style="margin-top:0.75rem">
+              <p class="hinw" style="margin-bottom:1rem">Mehrere Fahrzeuge mit Komma trennen. Die Reihenfolge bestimmt die Anzeige im Auswahlfeld.</p>
+              <label for="ftFzgB">Kategorie B</label>
+              <input id="ftFzgB" type="text" placeholder="PTF 1/6, VA, PTF 4/7, PTF 2/3, OW">
+              <label for="ftFzgC">Kategorie C</label>
+              <input id="ftFzgC" type="text" placeholder="TLF, ADL, PIF, ULF, OC, SVF, MTF">
+              <label for="ftFzgStuetz">Stützpunkt-Fahrzeuge (Gebietsabfrage)</label>
+              <input id="ftFzgStuetz" type="text" placeholder="PIF, ULF, OC, SVF, PTF 2/3">
+              <div class="hinw" style="margin-top:8px">
+                Bei diesen Fahrzeugen wird im Fahrtraining zusätzlich nach dem Gebiet gefragt. Sie müssen in Kategorie B oder C vorkommen.
+              </div>
+              <div class="warnung" style="margin-top:12px">
+                ⚠ Beim <b>Umbenennen</b> eines Fahrzeugs muss der gleichnamige Reiter im Fragen-Sheet ebenfalls umbenannt werden. Bereits gespeicherte Fahrten behalten den alten Namen.
+              </div>
+              <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+                <button class="btn btn-green btn-klein" id="btnFtFzgSpeichern">Speichern</button>
+                <button class="btn btn-klein" id="btnFtFzgReset">Auf Standard</button>
+              </div>
+              <div class="status-msg" id="ftFzgStatus"></div>
+            </div>
+          </details>
+        </div>
+
+        <div class="card">
           <h2>Hinweise</h2>
           <div class="hinw" style="line-height:1.8">
             • PDFs werden nach <b>1 Jahr</b> automatisch aus dem Archiv gelöscht.<br>
@@ -597,7 +624,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.17</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.18</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -664,9 +691,9 @@ function switchTool(){
 }
 
 /* ══════════════════ FAHRTRAINING ══════════════════ */
-const FT_FAHRZEUGE_B=["PTF 1/6","VA","PTF 4/7","PTF 2/3","OW"];
-const FT_FAHRZEUGE_C=["TLF","ADL","PIF","ULF","OC","SVF","MTF"];
-const FT_FAHRZEUGE=[...FT_FAHRZEUGE_B,...FT_FAHRZEUGE_C,"Allgemeine Fragen"];
+let FT_FAHRZEUGE_B=["PTF 1/6","VA","PTF 4/7","PTF 2/3","OW"];
+let FT_FAHRZEUGE_C=["TLF","ADL","PIF","ULF","OC","SVF","MTF"];
+let FT_FAHRZEUGE=[...FT_FAHRZEUGE_B,...FT_FAHRZEUGE_C,"Allgemeine Fragen"];
 let FT_LETZTE_FRAGEN=[], FT_LETZTE_MELDUNGEN=[], FT_MITGLIEDER={}, FT_LOOKUP_ERGEBNISSE=[];
 let FT_AUSW_FRAGEN=[], FT_AUSW_TAETIGKEITEN=[];
 let DATA={fahrten:[],fragen:[],rueckmeldungen:[]};
@@ -684,9 +711,21 @@ async function ftCallAdmin(payload){
   return JSON.parse(text);
 }
 
+async function ftHoleFahrzeuge(){
+  try{
+    const res=await ftCallAdmin({type:"lade_fahrzeuge"});
+    if(res.ok){
+      if(res.b&&res.b.length) FT_FAHRZEUGE_B=res.b;
+      if(res.c&&res.c.length) FT_FAHRZEUGE_C=res.c;
+      FT_FAHRZEUGE=[...FT_FAHRZEUGE_B,...FT_FAHRZEUGE_C,"Allgemeine Fragen"];
+      ftPopulateFahrzeugSelect();
+    }
+  }catch(e){console.warn("Fahrzeuge:",e);}
+}
+
 function initFt(){
   ftPopulateFahrzeugSelect();
-  if(FT_OK){ ftLadeStatistik(); ftLadeFragenAdmin(); }
+  if(FT_OK){ ftHoleFahrzeuge().then(()=>ftLadeFragenAdmin()); ftLadeStatistik(); }
   document.querySelectorAll("[data-fttab]").forEach(t=>{
     t.addEventListener("click", ()=>{
       document.querySelectorAll("[data-fttab]").forEach(x=>x.classList.remove("aktiv"));
@@ -698,7 +737,7 @@ function initFt(){
       $("ftTabLookup").style.display = tab==="lookup"?"block":"none";
       $("ftTabArchiv").style.display = tab==="archiv"?"block":"none";
       if(tab==="meldungen") ftLadeMeldungenAdmin();
-      if(tab==="archiv") ftLadeArchivEinstellungen();
+      if(tab==="archiv"){ ftLadeArchivEinstellungen(); ftLadeFahrzeuge(); }
     });
   });
   $("ftFahrzeug").addEventListener("change", ftLadeFragenAdmin);
@@ -712,6 +751,8 @@ function initFt(){
   $("btnFtArchivJetzt").addEventListener("click", ftArchivJetztSenden);
   $("btnFtArchivReset").addEventListener("click", ftArchivReset);
   $("btnFtArchivStandard").addEventListener("click", ftArchivAlsStandard);
+  $("btnFtFzgSpeichern").addEventListener("click", ftSpeichereFahrzeuge);
+  $("btnFtFzgReset").addEventListener("click", ftFahrzeugeReset);
   ["ftArchivBetreff","ftArchivText","ftArchivIntervall"].forEach(id=>{
     const el=$(id); if(el) el.addEventListener("input", ftArchivVorschau);
   });
@@ -936,8 +977,59 @@ function ftResTypenReset(){
   st.textContent='Standard eingesetzt – zum Übernehmen "Speichern" klicken.';
 }
 
+/* ── Fahrzeugverwaltung ── */
+let FT_FZG_DEFAULTS=null;
+
+async function ftLadeFahrzeuge(){
+  const st=$("ftFzgStatus");
+  st.className="status-msg"; st.style.display="none";
+  try{
+    const res=await ftCallAdmin({type:"admin_get_fahrzeuge",password:PASS});
+    if(res.error){ st.className="status-msg err-msg"; st.textContent="Zugriff verweigert."; return; }
+    $("ftFzgB").value=res.b||"";
+    $("ftFzgC").value=res.c||"";
+    $("ftFzgStuetz").value=res.stuetzpunkt||"";
+    FT_FZG_DEFAULTS=res.defaults||null;
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler beim Laden: "+e.message; }
+}
+
+async function ftSpeichereFahrzeuge(){
+  const st=$("ftFzgStatus"), btn=$("btnFtFzgSpeichern");
+  btn.disabled=true;
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
+  try{
+    const res=await ftCallAdmin({type:"admin_set_fahrzeuge",password:PASS,
+      b:$("ftFzgB").value, c:$("ftFzgC").value, stuetzpunkt:$("ftFzgStuetz").value});
+    if(res.ok){
+      st.className="status-msg ok-msg";
+      st.textContent=`Gespeichert – ${res.b.length} Fahrzeuge Kat. B, ${res.c.length} Kat. C.`;
+      FT_FAHRZEUGE_B=res.b; FT_FAHRZEUGE_C=res.c;
+      FT_FAHRZEUGE=[...FT_FAHRZEUGE_B,...FT_FAHRZEUGE_C,"Allgemeine Fragen"];
+      ftPopulateFahrzeugSelect();
+    } else if(res.error==="STUETZPUNKT_UNBEKANNT"){
+      st.className="status-msg err-msg";
+      st.textContent="Nicht in Kategorie B oder C gefunden: "+(res.unbekannt||[]).join(", ");
+    } else if(res.error==="LEER"){
+      st.className="status-msg err-msg"; st.textContent="Mindestens ein Fahrzeug nötig.";
+    } else {
+      st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern.";
+    }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+  finally{ btn.disabled=false; }
+}
+
+function ftFahrzeugeReset(){
+  if(!FT_FZG_DEFAULTS) return;
+  $("ftFzgB").value=FT_FZG_DEFAULTS.b||"";
+  $("ftFzgC").value=FT_FZG_DEFAULTS.c||"";
+  $("ftFzgStuetz").value=FT_FZG_DEFAULTS.stuetzpunkt||"";
+  const st=$("ftFzgStatus");
+  st.className="status-msg"; st.style.display="block";
+  st.textContent='Standard eingesetzt – zum Übernehmen "Speichern" klicken.';
+}
+
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.17", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.18", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -1622,13 +1714,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.17`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.18`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.17";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.18";
 
 async function soApi(payload){
   try{
