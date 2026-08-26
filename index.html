@@ -711,7 +711,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.22</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.23</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1085,7 +1085,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.22";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.23";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -1194,6 +1194,8 @@ async function ftLadeFahrzeuge(){
   }catch(e){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler beim Laden: "+e.message; }
 }
 
+let FT_FZG_EDIT=null;
+
 function ftRenderFahrzeuge(){
   const el=$("ftFzgTabelle");
   const kat=$("ftFzgFilter").value;
@@ -1206,6 +1208,8 @@ function ftRenderFahrzeuge(){
   el.innerHTML=`<div class="tblwrap"><table class="l5">
     <thead><tr><th>Fahrzeug</th><th>Kat.</th><th>Stützpunkt</th><th>Status</th><th style="text-align:right">Aktion</th></tr></thead>
     <tbody>`+liste.map(f=>{
+      const sicher=f.name.replace(/'/g,"\\'");
+      if(FT_FZG_EDIT===f.name) return ftFzgZeileEdit(f,sicher);
       const archiviert=f.aktiv===false;
       const badge=archiviert
         ? '<span class="badge" style="background:#888">Archiviert</span>'
@@ -1216,35 +1220,57 @@ function ftRenderFahrzeuge(){
         <td>${f.stuetzpunkt?"✓":"–"}</td>
         <td>${badge}</td>
         <td style="text-align:right;white-space:nowrap">
-          <button class="btn btn-klein" onclick="ftFzgBearbeiten('${escHtml(f.name).replace(/'/g,"\\'")}')">Bearbeiten</button>
+          <button class="btn btn-klein" onclick="ftFzgEditStart('${sicher}')">Bearbeiten</button>
           ${archiviert
-            ? `<button class="btn btn-klein btn-green" onclick="ftFzgArchiv('${escHtml(f.name).replace(/'/g,"\\'")}',true)">Reaktivieren</button>`
-            : `<button class="btn btn-klein" onclick="ftFzgArchiv('${escHtml(f.name).replace(/'/g,"\\'")}',false)">Archivieren</button>
-               <button class="btn btn-klein" onclick="ftFzgMove('${escHtml(f.name).replace(/'/g,"\\'")}','up')" title="nach oben">↑</button>
-               <button class="btn btn-klein" onclick="ftFzgMove('${escHtml(f.name).replace(/'/g,"\\'")}','down')" title="nach unten">↓</button>`}
+            ? `<button class="btn btn-klein btn-green" onclick="ftFzgArchiv('${sicher}',true)">Reaktivieren</button>`
+            : `<button class="btn btn-klein" onclick="ftFzgArchiv('${sicher}',false)">Archivieren</button>
+               <button class="btn btn-klein" onclick="ftFzgMove('${sicher}','up')" title="nach oben">↑</button>
+               <button class="btn btn-klein" onclick="ftFzgMove('${sicher}','down')" title="nach unten">↓</button>`}
         </td>
       </tr>`;
     }).join("")+`</tbody></table></div>`;
+
+  if(FT_FZG_EDIT){
+    const feld=$("ftFzgEditName");
+    if(feld){ feld.focus(); feld.select(); }
+  }
 }
 
-function ftFzgBearbeiten(name){
-  const f=FT_FZG_LISTE.find(x=>x.name===name);
-  if(!f) return;
-  const neuName=prompt(`Bezeichnung für "${f.name}":\n\nBeim Umbenennen werden der Reiter im Fragen-Sheet und alle bisherigen Einträge automatisch angepasst.`, f.name);
-  if(neuName===null) return;
-  const name2=neuName.trim();
-  if(!name2){ alert("Die Bezeichnung darf nicht leer sein."); return; }
+function ftFzgZeileEdit(f,sicher){
+  return `<tr style="background:var(--bg2)">
+    <td><input type="text" id="ftFzgEditName" value="${escHtml(f.name)}" style="min-width:120px"
+      onkeydown="if(event.key==='Enter')ftFzgEditSpeichern('${sicher}');if(event.key==='Escape')ftFzgEditAbbrechen()"></td>
+    <td><select id="ftFzgEditKat" style="min-width:70px">
+      <option value="B"${f.kat==="B"?" selected":""}>B</option>
+      <option value="C"${f.kat==="C"?" selected":""}>C</option>
+    </select></td>
+    <td style="text-align:center"><input type="checkbox" id="ftFzgEditStuetz" style="width:auto"${f.stuetzpunkt?" checked":""}></td>
+    <td>${f.aktiv===false?'<span class="badge" style="background:#888">Archiviert</span>':'<span class="badge" style="background:#2d6a1f">Aktiv</span>'}</td>
+    <td style="text-align:right;white-space:nowrap">
+      <button class="btn btn-klein" onclick="ftFzgEditAbbrechen()">Abbrechen</button>
+      <button class="btn btn-klein btn-green" onclick="ftFzgEditSpeichern('${sicher}')">Speichern</button>
+    </td>
+  </tr>`;
+}
 
-  let kat=prompt(`Kategorie für "${name2}" (B oder C):`, f.kat);
-  if(kat===null) return;
-  kat=kat.trim().toUpperCase();
-  if(kat!=="B"&&kat!=="C"){ alert("Bitte B oder C eingeben."); return; }
+function ftFzgEditStart(name){
+  FT_FZG_EDIT=name;
+  ftRenderFahrzeuge();
+}
 
-  const stuetz=confirm(`Ist "${name2}" ein Stützpunkt-Fahrzeug?\n\n(Bei diesen wird im Fahrtraining zusätzlich nach dem Gebiet gefragt.)\n\nOK = Ja   ·   Abbrechen = Nein`);
+function ftFzgEditAbbrechen(){
+  FT_FZG_EDIT=null;
+  ftRenderFahrzeuge();
+}
 
-  if(name2!==f.name && !confirm(`"${f.name}" wirklich in "${name2}" umbenennen?\n\nBetrifft: Fahrzeugliste, Reiter im Fragen-Sheet und alle bisherigen Einträge in Fahrten, Fragen und Tätigkeiten.`)) return;
-
-  ftFzgUpdate(f.name,name2,kat,stuetz);
+function ftFzgEditSpeichern(alt){
+  const name=$("ftFzgEditName").value.trim();
+  const kat=$("ftFzgEditKat").value;
+  const stuetz=$("ftFzgEditStuetz").checked;
+  if(!name){ alert("Die Bezeichnung darf nicht leer sein."); return; }
+  if(name!==alt && !confirm(`"${alt}" wirklich in "${name}" umbenennen?\n\nBetrifft: Fahrzeugliste, Reiter im Fragen-Sheet und alle bisherigen Einträge in Fahrten, Fragen und Tätigkeiten.`)) return;
+  FT_FZG_EDIT=null;
+  ftFzgUpdate(alt,name,kat,stuetz);
 }
 
 async function ftFzgUpdate(alt,name,kat,stuetzpunkt){
@@ -1254,6 +1280,7 @@ async function ftFzgUpdate(alt,name,kat,stuetzpunkt){
     const res=await ftCallAdmin({type:"admin_fahrzeug_update",password:PASS,alt,name,kat,stuetzpunkt});
     if(res.ok){
       FT_FZG_LISTE=res.liste||[];
+      FT_FZG_EDIT=null;
       ftRenderFahrzeuge();
       st.className="status-msg ok-msg";
       let txt=`"${name}" gespeichert.`;
@@ -1271,6 +1298,12 @@ async function ftFzgUpdate(alt,name,kat,stuetzpunkt){
       st.textContent="Fehler beim Speichern."+(res.detail?" ("+res.detail+")":"");
     }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+function ftFzgFehlertext(res){
+  if(!res) return "Unbekannter Fehler.";
+  if(res.detail) return res.detail;
+  return res.error||"Unbekannter Fehler.";
 }
 
 async function ftFzgArchiv(name,aktiv){
@@ -1329,14 +1362,15 @@ async function ftFzgHinzufuegen(){
     } else if(res.error==="NAME_LEER"){
       st.className="status-msg err-msg"; st.textContent="Bitte eine Bezeichnung eingeben.";
     } else {
-      st.className="status-msg err-msg"; st.textContent="Fehler beim Anlegen.";
+      st.className="status-msg err-msg";
+      st.textContent="Fehler beim Anlegen: "+ftFzgFehlertext(res);
     }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
   finally{ btn.disabled=false; }
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.22", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.23", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -2047,13 +2081,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.22`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.23`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.22";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.23";
 
 async function soApi(payload){
   try{
