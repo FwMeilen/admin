@@ -507,6 +507,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       <div class="tabs">
         <button class="tab aktiv" data-gabtab="resultate">Resultate</button>
         <button class="tab" data-gabtab="fragen">Fragen</button>
+        <button class="tab" data-gabtab="sosi">SoSi-Vorbereitung</button>
         <button class="tab" data-gabtab="einstellungen">Einstellungen</button>
       </div>
 
@@ -547,6 +548,92 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           <button class="btn btn-green btn-klein" id="btnGabNeueFrage">+ Neue Frage</button>
         </div>
         <div id="gabFragenListe"></div>
+      </div>
+
+      <div id="gabTabSosi" style="display:none">
+        <div class="card">
+          <h2>Übersicht</h2>
+          <p class="hinw" style="margin-bottom:1rem">
+            Nach dem B-Test darf sich jemand für die Sondersignal-Ausbildung melden, sobald
+            <b id="svRegelMonate">6</b> Monate vergangen sind <b>und</b> mindestens
+            <b id="svRegelFahrten">2</b> Fahrtrainings als Fahrer absolviert wurden –
+            beides gerechnet ab dem B-Test.
+          </p>
+          <div class="entry-actions" style="justify-content:flex-start">
+            <button class="btn btn-red btn-klein" id="btnSvStatus">Aktualisieren</button>
+          </div>
+          <div class="status-msg" id="svStatusMsg"></div>
+        </div>
+        <div id="svListe" class="loading">Lade …</div>
+
+        <div class="card">
+          <h2>Automatische Mails</h2>
+          <details>
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Regeln &amp; Empfänger</summary>
+            <div style="margin-top:0.75rem">
+              <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:13px;letter-spacing:0;color:var(--text)">
+                <input type="checkbox" id="svAktiv" style="width:auto;margin:0"> Automatische Mails aktiv
+              </label>
+              <div class="entry-row2" style="margin-top:1rem">
+                <div>
+                  <label for="svMonateMin">Wartefrist nach B-Test (Monate)</label>
+                  <input id="svMonateMin" type="number" min="0" max="60" step="1" style="max-width:120px">
+                </div>
+                <div>
+                  <label for="svMonateErinn">Erinnerung nach (Monaten)</label>
+                  <input id="svMonateErinn" type="number" min="0" max="60" step="1" style="max-width:120px">
+                </div>
+              </div>
+              <label for="svFahrten" style="margin-top:0.75rem">Nötige Fahrtrainings als Fahrer</label>
+              <input id="svFahrten" type="number" min="1" max="50" step="1" style="max-width:120px">
+              <label for="svCc" style="margin-top:0.75rem">CC-Empfänger (optional, mehrere mit Komma)</label>
+              <input id="svCc" type="text" placeholder="z. B. mwd@feuerwehrmeilen.ch">
+              <div class="hinw" style="margin-top:8px">
+                Die Mail geht immer an die betroffene Person. Wer bereits die SoSi-Prüfung
+                bestanden hat, erhält keine Mails mehr. Jede Mail wird pro Person nur einmal versendet.
+              </div>
+            </div>
+          </details>
+
+          <details style="margin-top:0.5rem">
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Mail «Voraussetzungen erfüllt» &amp; Vorschau</summary>
+            <div style="margin-top:0.75rem">
+              <label for="svBereitBetreff">Betreff</label>
+              <input id="svBereitBetreff" type="text">
+              <label for="svBereitText">Mailtext</label>
+              <textarea id="svBereitText" rows="12"></textarea>
+              <div class="hinw" style="margin-top:8px" id="svPlatzhalter"></div>
+              <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem">
+                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="svPvBereitBetreff" style="font-weight:400"></span></div>
+                <div id="svPvBereitBody" style="font-size:13px;line-height:1.6"></div>
+              </div>
+            </div>
+          </details>
+
+          <details style="margin-top:0.5rem">
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Mail «Fahrtrainings fehlen» &amp; Vorschau</summary>
+            <div style="margin-top:0.75rem">
+              <label for="svErinnBetreff">Betreff</label>
+              <input id="svErinnBetreff" type="text">
+              <label for="svErinnText">Mailtext</label>
+              <textarea id="svErinnText" rows="12"></textarea>
+              <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem">
+                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="svPvErinnBetreff" style="font-weight:400"></span></div>
+                <div id="svPvErinnBody" style="font-size:13px;line-height:1.6"></div>
+              </div>
+            </div>
+          </details>
+
+          <div class="entry-actions" style="justify-content:flex-start;margin-top:1.25rem">
+            <button class="btn btn-green btn-klein" id="btnSvSpeichern">Speichern</button>
+            <button class="btn btn-klein" id="btnSvReset">Texte auf Standard</button>
+          </div>
+          <div class="status-msg" id="svSpeichernStatus"></div>
+          <div class="hinw" style="margin-top:1rem">
+            Der Versand benötigt einen <b>Zeit-Auslöser</b> im Fahrtraining-Apps-Script
+            (Funktion <code>taeglicherSosiVorbereitungsCheck</code>, täglich).
+          </div>
+        </div>
       </div>
 
       <div id="gabTabEinstellungen" style="display:none">
@@ -873,7 +960,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.33</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.34</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1052,8 +1139,15 @@ function initGab(){
       $("gabTabEinstellungen").style.display=tab==="einstellungen"?"block":"none";
       if(tab==="einstellungen") gabLadeParameter();
       if(tab==="fragen") gabLadeFragen();
+      $("gabTabSosi").style.display=tab==="sosi"?"block":"none";
+      if(tab==="sosi"){ svLadeConfig(); svLadeStatus(); }
     });
   });
+  $("btnSvStatus").addEventListener("click", svLadeStatus);
+  $("btnSvSpeichern").addEventListener("click", svSpeichern);
+  $("btnSvReset").addEventListener("click", svReset);
+  ["svBereitBetreff","svBereitText","svErinnBetreff","svErinnText","svMonateMin","svMonateErinn","svFahrten"]
+    .forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", svVorschau); });
   $("btnGabNeueFrage").addEventListener("click", gabNeueFrage);
   $("gabFragenSuche").addEventListener("input", ()=>gabRenderFragen(GAB_FRAGEN));
   $("btnGabParamSpeichern").addEventListener("click", gabSpeichereParameter);
@@ -1065,7 +1159,130 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[];
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.35";
+
+/* ── SoSi-Vorbereitung ── */
+function svBeispiel(){
+  const mMin=parseInt($("svMonateMin").value,10)||6;
+  const noetig=parseInt($("svFahrten").value,10)||2;
+  const d=new Date(); d.setMonth(d.getMonth()-mMin-1);
+  return {vorname:"Max",name:"Muster",kuerzel:"MUS",
+    datumBTest:d.toLocaleDateString("de-CH"),
+    monateSeit:String(mMin+1), monateMin:String(mMin),
+    anzahlFahrten:String(noetig), noetigeFahrten:String(noetig),
+    fehlendeFahrten:"1", linkFahrtraining:"https://fahrtraining.feuerwehrmeilen.ch",
+    version:SV_VERSION};
+}
+function svFuelle(v,d){
+  return String(v)
+    .replace(/\{vorname\}/g,d.vorname).replace(/\{name\}/g,d.name).replace(/\{kuerzel\}/g,d.kuerzel)
+    .replace(/\{datumBTest\}/g,d.datumBTest).replace(/\{monateSeit\}/g,d.monateSeit)
+    .replace(/\{monateMin\}/g,d.monateMin).replace(/\{anzahlFahrten\}/g,d.anzahlFahrten)
+    .replace(/\{noetigeFahrten\}/g,d.noetigeFahrten).replace(/\{fehlendeFahrten\}/g,d.fehlendeFahrten)
+    .replace(/\{linkFahrtraining\}/g,d.linkFahrtraining).replace(/\{version\}/g,d.version);
+}
+function svVorschau(){
+  const d=svBeispiel();
+  $("svPvBereitBetreff").textContent=svFuelle($("svBereitBetreff").value,d);
+  $("svPvBereitBody").innerHTML=escHtml(svFuelle($("svBereitText").value,d)).replace(/\n/g,"<br>");
+  const e={...d, anzahlFahrten:"1", fehlendeFahrten:"1", monateSeit:$("svMonateErinn").value||"9"};
+  $("svPvErinnBetreff").textContent=svFuelle($("svErinnBetreff").value,e);
+  $("svPvErinnBody").innerHTML=escHtml(svFuelle($("svErinnText").value,e)).replace(/\n/g,"<br>");
+  const ph=$("svPlatzhalter");
+  if(ph) ph.innerHTML="Platzhalter: <code>{vorname}</code> <code>{name}</code> <code>{kuerzel}</code> "
+    +"<code>{datumBTest}</code> <code>{monateSeit}</code> <code>{monateMin}</code> "
+    +"<code>{anzahlFahrten}</code> <code>{noetigeFahrten}</code> <code>{fehlendeFahrten}</code> "
+    +"<code>{linkFahrtraining}</code> <code>{version}</code>";
+}
+
+async function svLadeConfig(){
+  const st=$("svSpeichernStatus");
+  st.className="status-msg"; st.style.display="none";
+  try{
+    const r=await ftCallAdmin({type:"admin_sv_get",password:PASS});
+    if(r.error){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Zugriff verweigert."; return; }
+    $("svAktiv").checked=r.aktiv!==false;
+    $("svMonateMin").value=r.monateMin;
+    $("svMonateErinn").value=r.monateErinn;
+    $("svFahrten").value=r.noetigeFahrten;
+    $("svCc").value=r.cc||"";
+    $("svBereitBetreff").value=r.bereitBetreff||"";
+    $("svBereitText").value=r.bereitText||"";
+    $("svErinnBetreff").value=r.erinnBetreff||"";
+    $("svErinnText").value=r.erinnText||"";
+    SV_STANDARD=r.standard||null;
+    if(r.version) SV_VERSION=r.version;
+    $("svRegelMonate").textContent=r.monateMin;
+    $("svRegelFahrten").textContent=r.noetigeFahrten;
+    svVorschau();
+  }catch(e){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+e.message; }
+}
+
+async function svSpeichern(){
+  const st=$("svSpeichernStatus"), btn=$("btnSvSpeichern");
+  btn.disabled=true;
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
+  try{
+    const r=await ftCallAdmin({type:"admin_sv_set",password:PASS,
+      aktiv:$("svAktiv").checked, monateMin:$("svMonateMin").value,
+      monateErinn:$("svMonateErinn").value, noetigeFahrten:$("svFahrten").value,
+      cc:$("svCc").value,
+      bereitBetreff:$("svBereitBetreff").value, bereitText:$("svBereitText").value,
+      erinnBetreff:$("svErinnBetreff").value, erinnText:$("svErinnText").value});
+    if(r.ok){ st.className="status-msg ok-msg"; st.textContent="Gespeichert."; svLadeStatus(); }
+    else if(r.error==="MONATE_REIHENFOLGE"){ st.className="status-msg err-msg"; st.textContent="Die Erinnerung muss später liegen als die Wartefrist."; }
+    else if(r.error==="EMAIL_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Ungültige Adresse(n): "+((r.ungueltig||[]).join(", ")); }
+    else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+  finally{ btn.disabled=false; }
+}
+
+function svReset(){
+  if(!SV_STANDARD) return;
+  $("svMonateMin").value=SV_STANDARD.monateMin;
+  $("svMonateErinn").value=SV_STANDARD.monateErinn;
+  $("svFahrten").value=SV_STANDARD.noetigeFahrten;
+  $("svBereitBetreff").value=SV_STANDARD.bereitBetreff||"";
+  $("svBereitText").value=SV_STANDARD.bereitText||"";
+  $("svErinnBetreff").value=SV_STANDARD.erinnBetreff||"";
+  $("svErinnText").value=SV_STANDARD.erinnText||"";
+  svVorschau();
+  const st=$("svSpeichernStatus");
+  st.className="status-msg"; st.style.display="block";
+  st.textContent='Standard eingesetzt – zum Übernehmen "Speichern" klicken.';
+}
+
+async function svLadeStatus(){
+  const el=$("svListe");
+  el.innerHTML='<div class="loading">Lade …</div>';
+  try{
+    const r=await ftCallAdmin({type:"admin_sv_status",password:PASS});
+    if(r.error){ el.innerHTML='<div class="empty">Zugriff verweigert.</div>'; return; }
+    if(!r.ok){ el.innerHTML='<div class="empty">Fehler beim Laden.</div>'; return; }
+    const liste=r.liste||[];
+    if(liste.length===0){ el.innerHTML='<div class="empty">Noch niemand hat den B-Test bestanden.</div>'; return; }
+    el.innerHTML=`<div class="card" style="padding:0"><div class="tblwrap"><table class="l5">
+      <thead><tr><th>Kürzel</th><th>Name</th><th>B-Test</th><th>Monate</th><th>Fahrten</th><th>Stand</th></tr></thead>
+      <tbody>`+liste.map(p=>{
+        let badge;
+        if(p.stand==="SoSi bestanden") badge='<span class="badge" style="background:#888">SoSi bestanden</span>';
+        else if(p.stand==="Bereit-Mail gesendet") badge='<span class="badge" style="background:#2d6a1f">Gemeldet</span>';
+        else if(p.stand==="Bereit") badge='<span class="badge" style="background:#2d6a1f">Bereit</span>';
+        else if(p.stand==="Wartefrist") badge='<span class="badge" style="background:#888">Wartefrist</span>';
+        else badge='<span class="badge" style="background:#cc7700">Fahrten fehlen</span>';
+        const warn=p.hatEmail?"":' <span class="hinw">(keine E-Mail)</span>';
+        return `<tr>
+          <td><b>${escHtml(p.kuerzel)}</b></td>
+          <td>${escHtml((p.name+" "+p.vorname).trim())}${warn}</td>
+          <td>${escHtml(p.bTest)}</td>
+          <td>${p.monate}</td>
+          <td>${p.fahrten} / ${r.noetigeFahrten}</td>
+          <td>${badge}</td>
+        </tr>`;
+      }).join("")+`</tbody></table></div></div>`;
+  }catch(e){ el.innerHTML=`<div class="empty">Fehler: ${escHtml(e.message)}</div>`; }
+}
+
 
 function gabToggle(id){ const el=$(id); if(el) el.classList.toggle("open"); }
 
@@ -1672,7 +1889,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.33";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.34";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -1957,7 +2174,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.33", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.34", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -2693,13 +2910,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.33`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.34`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.33";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.34";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
