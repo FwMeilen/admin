@@ -181,9 +181,9 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
     <div id="toolFt">
       <div class="tabs">
         <button class="tab aktiv" data-fttab="statistik">Statistik</button>
+        <button class="tab" data-fttab="lookup">Fahrer-Lookup</button>
         <button class="tab" data-fttab="fragen">Fahrzeugfragen</button>
         <button class="tab" data-fttab="meldungen">Einsatzmeldungen</button>
-        <button class="tab" data-fttab="lookup">Fahrer-Lookup</button>
         <button class="tab" data-fttab="archiv">Einstellungen</button>
       </div>
 
@@ -264,10 +264,23 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       <div id="ftTabLookup" style="display:none">
         <div class="card">
           <h2>Fahrer-Lookup</h2>
-          <label for="ftLookupSuche">Kürzel oder Name</label>
-          <div class="such-row">
-            <input id="ftLookupSuche" type="text" placeholder="z. B. LOL oder Loepfe">
-            <button class="btn btn-red" id="btnFtLookupSuche">Suchen</button>
+          <div class="entry-row2">
+            <div>
+              <label for="ftLookupSuche">Suche (Kürzel oder Name)</label>
+              <input id="ftLookupSuche" type="text" placeholder="z. B. LOL oder Loepfe">
+            </div>
+            <div>
+              <label for="ftLookupSort">Sortieren nach</label>
+              <select id="ftLookupSort">
+                <option value="datum">Datum (neuste zuerst)</option>
+                <option value="fahrer">Fahrer</option>
+                <option value="fahrzeug">Fahrzeug</option>
+              </select>
+            </div>
+          </div>
+          <div class="hinw" style="margin-top:10px" id="ftLookupInfo"></div>
+          <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+            <button class="btn btn-red btn-klein" id="btnFtLookupLaden">Fahrten laden</button>
           </div>
         </div>
         <div id="ftLookupErgebnisse"></div>
@@ -464,10 +477,10 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
     <div id="toolSo" style="display:none">
       <div class="tabs">
         <button class="tab aktiv" data-sotab="stat">Statistik</button>
-        <button class="tab" data-sotab="fragen">Fragen</button>
         <button class="tab" data-sotab="pdf">Prüfungsliste</button>
-        <button class="tab" data-sotab="mail">Einstellungen</button>
+        <button class="tab" data-sotab="fragen">Fragen</button>
         <button class="tab" data-sotab="erinnerung">Erinnerungsmails</button>
+        <button class="tab" data-sotab="mail">Einstellungen</button>
       </div>
 
       <div id="soTabStat"><div id="soStatInhalt" class="loading">Lade …</div></div>
@@ -755,6 +768,7 @@ function initFt(){
       $("ftTabLookup").style.display = tab==="lookup"?"block":"none";
       $("ftTabArchiv").style.display = tab==="archiv"?"block":"none";
       if(tab==="meldungen") ftLadeMeldungenAdmin();
+      if(tab==="lookup"&&FT_ALLE_FAHRTEN.length===0) ftLadeFahrten();
       if(tab==="archiv"){ ftLadeArchivEinstellungen(); ftLadeFahrzeuge(); }
     });
   });
@@ -763,8 +777,9 @@ function initFt(){
   $("ftMeldungSort").addEventListener("change", ()=>ftRenderMeldungenListe(FT_LETZTE_MELDUNGEN));
   $("btnFtNeueFrage").addEventListener("click", ftNeueFrage);
   $("btnFtNeueMeldung").addEventListener("click", ftNeueMeldung);
-  $("btnFtLookupSuche").addEventListener("click", ftSucheLookup);
-  $("ftLookupSuche").addEventListener("keydown", e=>{ if(e.key==="Enter") ftSucheLookup(); });
+  $("btnFtLookupLaden").addEventListener("click", ftLadeFahrten);
+  $("ftLookupSuche").addEventListener("input", ftRenderLookupErgebnisse);
+  $("ftLookupSort").addEventListener("change", ftRenderLookupErgebnisse);
   $("btnFtArchivSpeichern").addEventListener("click", ftSpeichereArchiv);
   $("btnFtArchivJetzt").addEventListener("click", ftArchivJetztSenden);
   $("btnFtArchivReset").addEventListener("click", ftArchivReset);
@@ -1625,58 +1640,84 @@ async function ftLoescheMeldung(row,id){
 }
 
 /* ── Fahrer-Lookup ── */
-async function ftSucheLookup(){
-  const input=$("ftLookupSuche").value.trim();
+let FT_ALLE_FAHRTEN=[];
+
+async function ftLadeFahrten(){
   const el=$("ftLookupErgebnisse");
-  if(!input){el.innerHTML="";return;}
-  el.innerHTML='<div class="loading">Wird gesucht…</div>';
+  el.innerHTML='<div class="loading">Wird geladen…</div>';
   try{
-    if(Object.keys(FT_MITGLIEDER).length===0) await ftLadeStatistik();
-    const inputUpper=input.toUpperCase();
-    let kuerzelSet=new Set();
-    if(FT_MITGLIEDER[inputUpper]) kuerzelSet.add(inputUpper);
-    Object.entries(FT_MITGLIEDER).forEach(([k,m])=>{ if(m.vollerName.toLowerCase().includes(input.toLowerCase())) kuerzelSet.add(k); });
-    if(kuerzelSet.size===0){ el.innerHTML='<div class="empty">Keine Person gefunden.</div>'; return; }
+    if(Object.keys(FT_MITGLIEDER).length===0) await ftLadeMitglieder();
     const res=await ftCallAdmin({type:"admin_lade_auswertung",password:PASS});
     if(res.error){ el.innerHTML='<div class="empty">Zugriff verweigert.</div>'; return; }
     FT_AUSW_FRAGEN=res.fragen||[];
     FT_AUSW_TAETIGKEITEN=res.taetigkeiten||[];
-    const treffer=(res.fahrten||[]).map(row=>({
-      datum:String(row["Datum"]||""),fahrer:String(row["Fahrer"]||""),beifahrer:String(row["Beifahrer"]||""),fahrzeug:String(row["Fahrzeug"]||""),
-      gebiet:String(row["Gebiet"]||""),abfahrt:String(row["Abfahrt"]||""),rueckkehr:String(row["Rückkehr"]||""),
+    FT_ALLE_FAHRTEN=(res.fahrten||[]).map(row=>({
+      datum:String(row["Datum"]||""),fahrer:String(row["Fahrer"]||""),beifahrer:String(row["Beifahrer"]||""),
+      fahrzeug:String(row["Fahrzeug"]||""),gebiet:String(row["Gebiet"]||""),
+      abfahrt:String(row["Abfahrt"]||""),rueckkehr:String(row["Rückkehr"]||""),
       anzahlEinsaetze:String(row["Anzahl Einsätze"]||""),einsatzadressen:String(row["Einsatzadressen"]||""),
-      quizRichtig:String(row["Quiz Richtig"]||""),quizTotal:String(row["Quiz Total"]||""),pct:String(row["%"]||""),hilfe:String(row["Hilfe"]||"")
-    })).filter(r=>kuerzelSet.has(r.fahrer.toUpperCase())||kuerzelSet.has(r.beifahrer.toUpperCase()));
-    treffer.sort((a,b)=>b.datum.localeCompare(a.datum));
-    FT_LOOKUP_ERGEBNISSE=treffer;
-    ftRenderLookupErgebnisse(treffer);
-  }catch(e){ el.innerHTML=`<div class="empty">Fehler bei der Suche: ${escHtml(e.message)}</div>`; }
+      quizRichtig:String(row["Quiz Richtig"]||""),quizTotal:String(row["Quiz Total"]||""),
+      pct:String(row["%"]||""),hilfe:String(row["Hilfe"]||"")
+    }));
+    $("ftLookupInfo").textContent=`${FT_ALLE_FAHRTEN.length} Fahrt${FT_ALLE_FAHRTEN.length!==1?"en":""} insgesamt`;
+    ftRenderLookupErgebnisse();
+  }catch(e){ el.innerHTML=`<div class="empty">Fehler beim Laden: ${escHtml(e.message)}</div>`; }
 }
-function ftRenderLookupErgebnisse(treffer){
+
+async function ftLadeMitglieder(){
+  try{
+    const res=await fetch(FT_EXEC_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({type:"lade_dashboard_daten"})});
+    const daten=await res.json();
+    const m={};
+    Object.entries(daten.mitglieder||{}).forEach(([k,v])=>{ m[k]={vollerName:v}; });
+    FT_MITGLIEDER=m;
+  }catch(e){console.warn("Mitglieder:",e);}
+}
+
+function ftRenderLookupErgebnisse(){
   const el=$("ftLookupErgebnisse");
-  if(treffer.length===0){el.innerHTML='<div class="empty">Keine Fahrten gefunden.</div>';return;}
-  el.innerHTML=`<div class="hinw" style="margin-bottom:0.75rem">${treffer.length} Fahrt${treffer.length!==1?"en":""} gefunden</div>`+
-    treffer.map((r,i)=>{
-      const quizStr=r.quizTotal&&r.quizTotal!=="–"?`${r.quizRichtig}/${r.quizTotal} (${r.pct})`:"–";
-      return `<div class="entry-card" style="border-left-color:var(--red)">
-        <div style="font-weight:700;font-size:13px;margin-bottom:6px;">${escHtml(r.datum)} · ${escHtml(r.fahrzeug)}</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.7;">
-          Fahrer: ${escHtml(vollerName(r.fahrer))}<br>
-          Beifahrer: ${escHtml(vollerName(r.beifahrer))}<br>
-          Fahrzeit: ${escHtml(r.abfahrt)} – ${escHtml(r.rueckkehr)}<br>
-          Fragen: ${escHtml(quizStr)}
-        </div>
-        <div class="entry-actions" style="justify-content:flex-start;">
-          <button class="btn btn-green btn-klein" onclick="ftReprintPDF(${i})">PDF drucken</button>
-        </div>
-        <div class="status-msg" id="ft-lookup-status-${i}"></div>
-      </div>`;
-    }).join("");
+  const q=$("ftLookupSuche").value.trim().toLowerCase();
+  const sort=$("ftLookupSort").value;
+  let liste=FT_ALLE_FAHRTEN.slice();
+  if(q){
+    liste=liste.filter(r=>{
+      const text=`${r.fahrer} ${r.beifahrer} ${vollerName(r.fahrer)} ${vollerName(r.beifahrer)} ${r.fahrzeug}`.toLowerCase();
+      return text.includes(q);
+    });
+  }
+  if(sort==="fahrer") liste.sort((a,b)=>vollerName(a.fahrer).localeCompare(vollerName(b.fahrer),"de"));
+  else if(sort==="fahrzeug") liste.sort((a,b)=>a.fahrzeug.localeCompare(b.fahrzeug,"de")||b.datum.localeCompare(a.datum));
+  else liste.sort((a,b)=>b.datum.localeCompare(a.datum));
+  FT_LOOKUP_ERGEBNISSE=liste;
+
+  if(liste.length===0){ el.innerHTML='<div class="empty">Keine Fahrten gefunden.</div>'; return; }
+  el.innerHTML=`<div class="card" style="padding:0"><div class="tblwrap"><table class="l5">
+    <thead><tr><th>Datum</th><th>Fahrer</th><th>Beifahrer</th><th>Fahrzeug</th><th>Zeit</th><th>Fragen</th><th></th></tr></thead>
+    <tbody>`+liste.map((r,i)=>{
+      const quiz=r.quizTotal&&r.quizTotal!=="–"?`${r.quizRichtig}/${r.quizTotal}`:"–";
+      return `<tr>
+        <td>${escHtml(ftDatumKurz(r.datum))}</td>
+        <td>${escHtml(vollerName(r.fahrer))}</td>
+        <td>${escHtml(r.beifahrer?vollerName(r.beifahrer):"–")}</td>
+        <td>${escHtml(r.fahrzeug)}</td>
+        <td>${escHtml(r.abfahrt)}–${escHtml(r.rueckkehr)}</td>
+        <td>${escHtml(quiz)}</td>
+        <td><button class="btn btn-klein" onclick="ftReprintPDF(${i})">PDF</button></td>
+      </tr>`;
+    }).join("")+`</tbody></table></div></div>
+    <div class="status-msg" id="ft-lookup-status-sammel"></div>`;
 }
+
+function ftDatumKurz(iso){
+  const m=String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m?`${m[3]}.${m[2]}.${m[1]}`:iso;
+}
+
 async function ftReprintPDF(idx){
   const r=FT_LOOKUP_ERGEBNISSE[idx];
   if(!r) return;
-  const st=$(`ft-lookup-status-${idx}`);
+  const st=$("ft-lookup-status-sammel");
   st.style.display="block"; st.className="status-msg"; st.textContent="PDF wird erstellt…";
   try{
     const fragenDetail=FT_AUSW_FRAGEN.map(row=>({
