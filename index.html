@@ -558,27 +558,24 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           <details>
             <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Testparameter</summary>
             <div style="margin-top:0.75rem">
-              <div class="hinw" style="line-height:1.9">
-                Diese Werte sind im Apps Script hinterlegt und gelten für alle Tests:<br>
-                • Fragen pro Test: <b id="gabPAnzahl">10</b><br>
-                • Nötige richtige Antworten: <b id="gabPGrenze">8</b><br>
-                • Zeitlimit: <b id="gabPMinuten">15</b> Minuten
+              <p class="hinw" style="margin-bottom:1rem" id="gabParamInfo"></p>
+              <div class="entry-row2">
+                <div>
+                  <label for="gabAnzahl">Fragen pro Test</label>
+                  <input id="gabAnzahl" type="number" min="1" max="100" step="1" style="max-width:120px">
+                </div>
+                <div>
+                  <label for="gabGrenze">Nötige richtige Antworten</label>
+                  <input id="gabGrenze" type="number" min="1" max="100" step="1" style="max-width:120px">
+                </div>
               </div>
-              <div class="warnung" style="margin-top:12px">
-                Zum Ändern im Fahrtraining-Apps-Script die Konstanten
-                <code>GA_B_ANZAHL</code>, <code>GA_B_GRENZE</code> und <code>GA_B_MINUTEN</code> anpassen und neu deployen.
+              <label for="gabMinuten" style="margin-top:0.75rem">Zeitlimit (Minuten)</label>
+              <input id="gabMinuten" type="number" min="1" max="180" step="1" style="max-width:120px">
+              <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+                <button class="btn btn-green btn-klein" id="btnGabParamSpeichern">Speichern</button>
+                <button class="btn btn-klein" id="btnGabParamReset">Auf Standard</button>
               </div>
-            </div>
-          </details>
-          <details style="margin-top:0.5rem">
-            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Adressen &amp; Ablage</summary>
-            <div style="margin-top:0.75rem" class="hinw" style="line-height:1.9">
-              <div style="line-height:1.9">
-                • Schlusstest: <a href="https://grundausbildung.feuerwehrmeilen.ch/BTest/" target="_blank" rel="noopener" style="color:var(--red);font-weight:600">grundausbildung.feuerwehrmeilen.ch/BTest</a><br>
-                • Ausbildungsinhalte: <a href="https://grundausbildung.feuerwehrmeilen.ch/BGrund/" target="_blank" rel="noopener" style="color:var(--red);font-weight:600">grundausbildung.feuerwehrmeilen.ch/BGrund</a><br>
-                • PDFs: Drive-Ordner «Grundausbildung B» im Fahrtraining-PDF-Ordner<br>
-                • Protokoll: Auswertungs-Sheet, Reiter «Grundausbildung B Log»
-              </div>
+              <div class="status-msg" id="gabParamStatus"></div>
             </div>
           </details>
         </div>
@@ -879,7 +876,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.31</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.32</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1056,13 +1053,63 @@ function initGab(){
       $("gabTabResultate").style.display=tab==="resultate"?"block":"none";
       $("gabTabFragen").style.display=tab==="fragen"?"block":"none";
       $("gabTabEinstellungen").style.display=tab==="einstellungen"?"block":"none";
+      if(tab==="einstellungen") gabLadeParameter();
     });
   });
+  $("btnGabParamSpeichern").addEventListener("click", gabSpeichereParameter);
+  $("btnGabParamReset").addEventListener("click", gabParameterReset);
   $("btnGabLaden").addEventListener("click", gabLadeResultate);
   $("gabSuche").addEventListener("input", gabRendern);
   $("gabFilter").addEventListener("change", gabRendern);
   $("gabSheetLink").href="https://docs.google.com/spreadsheets/d/"+GAB_FRAGEN_SHEET+"/edit";
   gabLadeResultate();
+}
+
+let GAB_PARAM_STANDARD=null;
+
+async function gabLadeParameter(){
+  const st=$("gabParamStatus");
+  st.className="status-msg"; st.style.display="none";
+  try{
+    const r=await ftCallAdmin({type:"admin_ga_b_param_get",password:PASS});
+    if(r.error){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Zugriff verweigert."; return; }
+    $("gabAnzahl").value=r.anzahl;
+    $("gabGrenze").value=r.grenze;
+    $("gabMinuten").value=r.minuten;
+    GAB_PARAM_STANDARD=r.standard||null;
+    $("gabParamInfo").innerHTML=`Im Fragenkatalog sind aktuell <b>${r.vorhandeneFragen}</b> Fragen hinterlegt. `
+      +`Pro Test werden daraus zufällig ausgewählt.`;
+  }catch(e){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler beim Laden: "+e.message; }
+}
+
+async function gabSpeichereParameter(){
+  const st=$("gabParamStatus"), btn=$("btnGabParamSpeichern");
+  btn.disabled=true;
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
+  try{
+    const r=await ftCallAdmin({type:"admin_ga_b_param_set",password:PASS,
+      anzahl:$("gabAnzahl").value, grenze:$("gabGrenze").value, minuten:$("gabMinuten").value});
+    if(r.ok){
+      st.className="status-msg ok-msg";
+      st.textContent=`Gespeichert – ${r.anzahl} Fragen, ${r.grenze} nötig, ${r.minuten} Minuten.`;
+    }
+    else if(r.error==="GRENZE_UNGUELTIG") { st.className="status-msg err-msg"; st.textContent="Die nötigen Antworten dürfen die Anzahl Fragen nicht übersteigen."; }
+    else if(r.error==="ZU_WENIG_FRAGEN") { st.className="status-msg err-msg"; st.textContent=`Es sind nur ${r.vorhanden} Fragen hinterlegt.`; }
+    else if(r.error==="ANZAHL_UNGUELTIG") { st.className="status-msg err-msg"; st.textContent="Anzahl Fragen muss zwischen 1 und 100 liegen."; }
+    else if(r.error==="MINUTEN_UNGUELTIG") { st.className="status-msg err-msg"; st.textContent="Zeitlimit muss zwischen 1 und 180 Minuten liegen."; }
+    else { st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+  finally{ btn.disabled=false; }
+}
+
+function gabParameterReset(){
+  if(!GAB_PARAM_STANDARD) return;
+  $("gabAnzahl").value=GAB_PARAM_STANDARD.anzahl;
+  $("gabGrenze").value=GAB_PARAM_STANDARD.grenze;
+  $("gabMinuten").value=GAB_PARAM_STANDARD.minuten;
+  const st=$("gabParamStatus");
+  st.className="status-msg"; st.style.display="block";
+  st.textContent='Standard eingesetzt – zum Übernehmen "Speichern" klicken.';
 }
 
 async function gabLadeResultate(){
@@ -1216,6 +1263,12 @@ function grBaueHtml(ft,so){
     scripts+=grZeile("SoSi-Backend","– nicht erreichbar –",null,so&&so.detail?escHtml(so.detail):"");
   }
   html+=grAbschnitt("Apps Scripts",scripts);
+
+  // Ablage Grundausbildung
+  html+=grAbschnitt("Grundausbildung B – Ablage",
+    grZeile("PDF-Bestätigungen","Drive-Ordner «Grundausbildung B»",null,"Unterordner im Fahrtraining-PDF-Ordner")
+    +grZeile("Testprotokoll","Auswertungs-Sheet, Reiter «Grundausbildung B Log»",null,"Alle Versuche mit Punkten und Resultat")
+    +grZeile("Fragenkatalog","Fragen-Sheet, Reiter «Grundausbildung B»",null,"Spalten: ID · Frage · Antwort 1–4 · Korrekt · Erklärung"));
 
   // Sheets
   if(ft&&ft.ok&&ft.sheets){
@@ -1505,7 +1558,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.31";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.32";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -1790,7 +1843,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.31", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.32", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -2526,13 +2579,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.31`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.32`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.31";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.32";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
