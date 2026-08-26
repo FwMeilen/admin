@@ -337,44 +337,51 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         <div class="card">
           <h2>Fahrzeuge</h2>
           <details>
-            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Fahrzeugliste bearbeiten</summary>
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Fahrzeuge verwalten</summary>
             <div style="margin-top:0.75rem">
-              <p class="hinw" style="margin-bottom:1rem">Mehrere Fahrzeuge mit Komma trennen. Die Reihenfolge bestimmt die Anzeige im Auswahlfeld.</p>
-              <label for="ftFzgB">Kategorie B</label>
-              <input id="ftFzgB" type="text" placeholder="PTF 1/6, VA, PTF 4/7, PTF 2/3, OW">
-              <label for="ftFzgC">Kategorie C</label>
-              <input id="ftFzgC" type="text" placeholder="TLF, ADL, PIF, ULF, OC, SVF, MTF">
-              <label for="ftFzgStuetz">Stützpunkt-Fahrzeuge (Gebietsabfrage)</label>
-              <input id="ftFzgStuetz" type="text" placeholder="PIF, ULF, OC, SVF, PTF 2/3">
-              <div class="hinw" style="margin-top:8px">
-                Bei diesen Fahrzeugen wird im Fahrtraining zusätzlich nach dem Gebiet gefragt. Sie müssen in Kategorie B oder C vorkommen.
-              </div>
-              <div class="hinw" style="margin-top:12px">
-                Neue Fahrzeuge werden automatisch als Reiter im Fragen-Sheet angelegt. Zum <b>Umbenennen</b> bitte den Bereich unten nutzen – dort werden Reiter und Historie mit angepasst.
-              </div>
-              <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
-                <button class="btn btn-green btn-klein" id="btnFtFzgSpeichern">Speichern</button>
-                <button class="btn btn-klein" id="btnFtFzgReset">Auf Standard</button>
-              </div>
-              <div class="status-msg" id="ftFzgStatus"></div>
-            </div>
-          </details>
 
-          <details style="margin-top:0.5rem">
-            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Fahrzeug umbenennen</summary>
-            <div style="margin-top:0.75rem">
-              <p class="hinw" style="margin-bottom:1rem">Benennt das Fahrzeug überall um: in der Fahrzeugliste, im Fragen-Sheet (Reiter) und in allen bereits gespeicherten Fahrten, Fragen und Tätigkeiten.</p>
               <div class="entry-row2">
-                <div><label for="ftFzgAlt">Bisheriger Name</label><select id="ftFzgAlt"></select></div>
-                <div><label for="ftFzgNeu">Neuer Name</label><input id="ftFzgNeu" type="text" placeholder="z. B. TLF 2"></div>
+                <div>
+                  <label for="ftFzgFilter">Anzeigen</label>
+                  <select id="ftFzgFilter">
+                    <option value="B">Kategorie B</option>
+                    <option value="C">Kategorie C</option>
+                    <option value="alle">Alle</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="ftFzgArchivZeigen">Archivierte</label>
+                  <select id="ftFzgArchivZeigen">
+                    <option value="nein">Ausblenden</option>
+                    <option value="ja">Anzeigen</option>
+                  </select>
+                </div>
               </div>
-              <div class="warnung" style="margin-top:12px">
-                ⚠ Diese Änderung lässt sich nicht automatisch rückgängig machen.
+
+              <div id="ftFzgTabelle" style="margin-top:1rem"></div>
+              <div class="status-msg" id="ftFzgStatus"></div>
+
+              <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--gray-mid)">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray);margin-bottom:0.75rem">Neues Fahrzeug</div>
+                <div class="entry-row2">
+                  <div><label for="ftFzgNeuName">Bezeichnung</label><input id="ftFzgNeuName" type="text" placeholder="z. B. TLF 2"></div>
+                  <div><label for="ftFzgNeuKat">Kategorie</label>
+                    <select id="ftFzgNeuKat"><option value="B">B</option><option value="C" selected>C</option></select>
+                  </div>
+                </div>
+                <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:13px;letter-spacing:0;color:var(--text);margin-top:0.75rem">
+                  <input type="checkbox" id="ftFzgNeuStuetz" style="width:auto;margin:0"> Stützpunkt-Fahrzeug (Gebietsabfrage im Fahrtraining)
+                </label>
+                <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+                  <button class="btn btn-green btn-klein" id="btnFtFzgAdd">Hinzufügen</button>
+                </div>
+                <div class="hinw" style="margin-top:8px">Der zugehörige Reiter im Fragen-Sheet wird automatisch angelegt.</div>
               </div>
-              <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
-                <button class="btn btn-red btn-klein" id="btnFtFzgUmbenennen">Umbenennen</button>
+
+              <div class="hinw" style="margin-top:1.25rem;line-height:1.7">
+                <b>Archivieren</b> blendet ein Fahrzeug in allen Formularen aus – Fragen und Historie bleiben erhalten und es kann jederzeit reaktiviert werden.<br>
+                <b>Umbenennen</b> passt automatisch den Reiter im Fragen-Sheet und alle bisherigen Einträge an.
               </div>
-              <div class="status-msg" id="ftFzgRenameStatus"></div>
             </div>
           </details>
         </div>
@@ -655,7 +662,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.20</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.21</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -784,9 +791,9 @@ function initFt(){
   $("btnFtArchivJetzt").addEventListener("click", ftArchivJetztSenden);
   $("btnFtArchivReset").addEventListener("click", ftArchivReset);
   $("btnFtArchivStandard").addEventListener("click", ftArchivAlsStandard);
-  $("btnFtFzgSpeichern").addEventListener("click", ftSpeichereFahrzeuge);
-  $("btnFtFzgReset").addEventListener("click", ftFahrzeugeReset);
-  $("btnFtFzgUmbenennen").addEventListener("click", ftFahrzeugUmbenennen);
+  $("btnFtFzgAdd").addEventListener("click", ftFzgHinzufuegen);
+  $("ftFzgFilter").addEventListener("change", ftRenderFahrzeuge);
+  $("ftFzgArchivZeigen").addEventListener("change", ftRenderFahrzeuge);
   ["ftArchivBetreff","ftArchivText","ftArchivIntervall"].forEach(id=>{
     const el=$(id); if(el) el.addEventListener("input", ftArchivVorschau);
   });
@@ -920,7 +927,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.20";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.21";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -1016,104 +1023,162 @@ function ftResTypenReset(){
 /* ── Fahrzeugverwaltung ── */
 let FT_FZG_DEFAULTS=null;
 
+let FT_FZG_LISTE=[];
+
 async function ftLadeFahrzeuge(){
   const st=$("ftFzgStatus");
   st.className="status-msg"; st.style.display="none";
   try{
     const res=await ftCallAdmin({type:"admin_get_fahrzeuge",password:PASS});
-    if(res.error){ st.className="status-msg err-msg"; st.textContent="Zugriff verweigert."; return; }
-    $("ftFzgB").value=res.b||"";
-    $("ftFzgC").value=res.c||"";
-    $("ftFzgStuetz").value=res.stuetzpunkt||"";
-    FT_FZG_DEFAULTS=res.defaults||null;
-    ftFuelleUmbenennenAuswahl(res.b,res.c);
-  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler beim Laden: "+e.message; }
+    if(res.error){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Zugriff verweigert."; return; }
+    FT_FZG_LISTE=res.liste||[];
+    ftRenderFahrzeuge();
+  }catch(e){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler beim Laden: "+e.message; }
 }
 
-async function ftSpeichereFahrzeuge(){
-  const st=$("ftFzgStatus"), btn=$("btnFtFzgSpeichern");
-  btn.disabled=true;
+function ftRenderFahrzeuge(){
+  const el=$("ftFzgTabelle");
+  const kat=$("ftFzgFilter").value;
+  const zeigeArchiv=$("ftFzgArchivZeigen").value==="ja";
+  let liste=FT_FZG_LISTE.map((f,i)=>({...f,idx:i}));
+  if(kat!=="alle") liste=liste.filter(f=>f.kat===kat);
+  if(!zeigeArchiv) liste=liste.filter(f=>f.aktiv!==false);
+  if(liste.length===0){ el.innerHTML='<div class="empty">Keine Fahrzeuge in dieser Auswahl.</div>'; return; }
+
+  el.innerHTML=`<div class="tblwrap"><table class="l5">
+    <thead><tr><th>Fahrzeug</th><th>Kat.</th><th>Stützpunkt</th><th>Status</th><th style="text-align:right">Aktion</th></tr></thead>
+    <tbody>`+liste.map(f=>{
+      const archiviert=f.aktiv===false;
+      const badge=archiviert
+        ? '<span class="badge" style="background:#888">Archiviert</span>'
+        : '<span class="badge" style="background:#2d6a1f">Aktiv</span>';
+      return `<tr${archiviert?' style="opacity:.55"':''}>
+        <td><b>${escHtml(f.name)}</b></td>
+        <td>${escHtml(f.kat)}</td>
+        <td>${f.stuetzpunkt?"✓":"–"}</td>
+        <td>${badge}</td>
+        <td style="text-align:right;white-space:nowrap">
+          <button class="btn btn-klein" onclick="ftFzgBearbeiten('${escHtml(f.name).replace(/'/g,"\\'")}')">Bearbeiten</button>
+          ${archiviert
+            ? `<button class="btn btn-klein btn-green" onclick="ftFzgArchiv('${escHtml(f.name).replace(/'/g,"\\'")}',true)">Reaktivieren</button>`
+            : `<button class="btn btn-klein" onclick="ftFzgArchiv('${escHtml(f.name).replace(/'/g,"\\'")}',false)">Archivieren</button>
+               <button class="btn btn-klein" onclick="ftFzgMove('${escHtml(f.name).replace(/'/g,"\\'")}','up')" title="nach oben">↑</button>
+               <button class="btn btn-klein" onclick="ftFzgMove('${escHtml(f.name).replace(/'/g,"\\'")}','down')" title="nach unten">↓</button>`}
+        </td>
+      </tr>`;
+    }).join("")+`</tbody></table></div>`;
+}
+
+function ftFzgBearbeiten(name){
+  const f=FT_FZG_LISTE.find(x=>x.name===name);
+  if(!f) return;
+  const neuName=prompt(`Bezeichnung für "${f.name}":\n\nBeim Umbenennen werden der Reiter im Fragen-Sheet und alle bisherigen Einträge automatisch angepasst.`, f.name);
+  if(neuName===null) return;
+  const name2=neuName.trim();
+  if(!name2){ alert("Die Bezeichnung darf nicht leer sein."); return; }
+
+  let kat=prompt(`Kategorie für "${name2}" (B oder C):`, f.kat);
+  if(kat===null) return;
+  kat=kat.trim().toUpperCase();
+  if(kat!=="B"&&kat!=="C"){ alert("Bitte B oder C eingeben."); return; }
+
+  const stuetz=confirm(`Ist "${name2}" ein Stützpunkt-Fahrzeug?\n\n(Bei diesen wird im Fahrtraining zusätzlich nach dem Gebiet gefragt.)\n\nOK = Ja   ·   Abbrechen = Nein`);
+
+  if(name2!==f.name && !confirm(`"${f.name}" wirklich in "${name2}" umbenennen?\n\nBetrifft: Fahrzeugliste, Reiter im Fragen-Sheet und alle bisherigen Einträge in Fahrten, Fragen und Tätigkeiten.`)) return;
+
+  ftFzgUpdate(f.name,name2,kat,stuetz);
+}
+
+async function ftFzgUpdate(alt,name,kat,stuetzpunkt){
+  const st=$("ftFzgStatus");
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
   try{
-    const res=await ftCallAdmin({type:"admin_set_fahrzeuge",password:PASS,
-      b:$("ftFzgB").value, c:$("ftFzgC").value, stuetzpunkt:$("ftFzgStuetz").value});
+    const res=await ftCallAdmin({type:"admin_fahrzeug_update",password:PASS,alt,name,kat,stuetzpunkt});
     if(res.ok){
+      FT_FZG_LISTE=res.liste||[];
+      ftRenderFahrzeuge();
       st.className="status-msg ok-msg";
-      let txt=`Gespeichert – ${res.b.length} Fahrzeuge Kat. B, ${res.c.length} Kat. C.`;
-      if(res.angelegt&&res.angelegt.length) txt+=` Neue Reiter im Fragen-Sheet: ${res.angelegt.join(", ")}.`;
-      if(res.warnung) txt+=" "+res.warnung;
-      st.textContent=txt;
-      FT_FAHRZEUGE_B=res.b; FT_FAHRZEUGE_C=res.c;
-      FT_FAHRZEUGE=[...FT_FAHRZEUGE_B,...FT_FAHRZEUGE_C,"Allgemeine Fragen"];
-      ftPopulateFahrzeugSelect();
-      ftFuelleUmbenennenAuswahl(res.b.join(","),res.c.join(","));
-    } else if(res.error==="STUETZPUNKT_UNBEKANNT"){
-      st.className="status-msg err-msg";
-      st.textContent="Nicht in Kategorie B oder C gefunden: "+(res.unbekannt||[]).join(", ");
-    } else if(res.error==="LEER"){
-      st.className="status-msg err-msg"; st.textContent="Mindestens ein Fahrzeug nötig.";
-    } else {
-      st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern.";
-    }
-  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
-  finally{ btn.disabled=false; }
-}
-
-function ftFuelleUmbenennenAuswahl(b,c){
-  const liste=[...String(b||"").split(","),...String(c||"").split(",")]
-    .map(x=>x.trim()).filter(x=>x);
-  const sel=$("ftFzgAlt");
-  if(sel) sel.innerHTML=liste.map(f=>`<option>${escHtml(f)}</option>`).join("");
-}
-
-async function ftFahrzeugUmbenennen(){
-  const alt=$("ftFzgAlt").value;
-  const neu=$("ftFzgNeu").value.trim();
-  const st=$("ftFzgRenameStatus"), btn=$("btnFtFzgUmbenennen");
-  st.className="status-msg"; st.style.display="block";
-  if(!alt||!neu){ st.className="status-msg err-msg"; st.textContent="Bitte beide Felder ausfüllen."; return; }
-  if(!confirm(`"${alt}" überall in "${neu}" umbenennen?\n\nBetrifft: Fahrzeugliste, Reiter im Fragen-Sheet und alle bisherigen Einträge in Fahrten, Fragen und Tätigkeiten.`)) return;
-  btn.disabled=true;
-  st.textContent="Wird umbenannt…";
-  try{
-    const res=await ftCallAdmin({type:"admin_rename_fahrzeug",password:PASS,alt,neu});
-    if(res.ok){
-      st.className="status-msg ok-msg";
-      let txt=`"${res.alt}" wurde zu "${res.neu}" umbenannt.`;
-      if(res.bericht){
+      let txt=`"${name}" gespeichert.`;
+      if(res.umbenannt&&res.bericht){
+        txt=`"${alt}" wurde zu "${name}" umbenannt.`;
         txt+=res.bericht.reiter?" Reiter im Fragen-Sheet angepasst.":" Kein Reiter gefunden.";
         txt+=` ${res.bericht.zeilen} historische Einträge aktualisiert.`;
       }
       st.textContent=txt;
-      $("ftFzgNeu").value="";
-      ftLadeFahrzeuge();
       ftHoleFahrzeuge();
     } else if(res.error==="NAME_VERGEBEN"){
-      st.className="status-msg err-msg"; st.textContent="Dieser Name ist bereits vergeben.";
-    } else if(res.error==="NICHT_GEFUNDEN"){
-      st.className="status-msg err-msg"; st.textContent="Fahrzeug nicht in der Liste gefunden.";
-    } else if(res.error==="IDENTISCH"){
-      st.className="status-msg err-msg"; st.textContent="Alter und neuer Name sind identisch.";
+      st.className="status-msg err-msg"; st.textContent="Diese Bezeichnung ist bereits vergeben.";
     } else {
       st.className="status-msg err-msg";
-      st.textContent="Fehler beim Umbenennen."+(res.detail?" ("+res.detail+")":"");
+      st.textContent="Fehler beim Speichern."+(res.detail?" ("+res.detail+")":"");
+    }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+async function ftFzgArchiv(name,aktiv){
+  const frage=aktiv
+    ? `"${name}" wieder aktivieren?`
+    : `"${name}" archivieren?\n\nDas Fahrzeug verschwindet aus allen Formularen. Fragen und Historie bleiben erhalten.`;
+  if(!confirm(frage)) return;
+  const st=$("ftFzgStatus");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
+  try{
+    const res=await ftCallAdmin({type:"admin_fahrzeug_archiv",password:PASS,name,aktiv});
+    if(res.ok){
+      FT_FZG_LISTE=res.liste||[];
+      ftRenderFahrzeuge();
+      st.className="status-msg ok-msg";
+      st.textContent=aktiv?`"${name}" ist wieder aktiv.`:`"${name}" wurde archiviert.`;
+      ftHoleFahrzeuge();
+    } else { st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+async function ftFzgMove(name,richtung){
+  try{
+    const res=await ftCallAdmin({type:"admin_fahrzeug_move",password:PASS,name,richtung});
+    if(res.ok){ FT_FZG_LISTE=res.liste||[]; ftRenderFahrzeuge(); ftHoleFahrzeuge(); }
+  }catch(e){
+    const st=$("ftFzgStatus");
+    st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+e.message;
+  }
+}
+
+async function ftFzgHinzufuegen(){
+  const st=$("ftFzgStatus"), btn=$("btnFtFzgAdd");
+  const name=$("ftFzgNeuName").value.trim();
+  const kat=$("ftFzgNeuKat").value;
+  const stuetzpunkt=$("ftFzgNeuStuetz").checked;
+  st.className="status-msg"; st.style.display="block";
+  if(!name){ st.className="status-msg err-msg"; st.textContent="Bitte eine Bezeichnung eingeben."; return; }
+  btn.disabled=true;
+  st.textContent="Wird angelegt…";
+  try{
+    const res=await ftCallAdmin({type:"admin_fahrzeug_add",password:PASS,name,kat,stuetzpunkt});
+    if(res.ok){
+      FT_FZG_LISTE=res.liste||[];
+      $("ftFzgFilter").value=kat;
+      ftRenderFahrzeuge();
+      st.className="status-msg ok-msg";
+      let txt=`"${name}" hinzugefügt.`;
+      if(res.reiterAngelegt) txt+=" Reiter im Fragen-Sheet angelegt.";
+      if(res.warnung) txt+=" ⚠ "+res.warnung;
+      st.textContent=txt;
+      $("ftFzgNeuName").value=""; $("ftFzgNeuStuetz").checked=false;
+      ftHoleFahrzeuge();
+    } else if(res.error==="NAME_VERGEBEN"){
+      st.className="status-msg err-msg"; st.textContent="Diese Bezeichnung ist bereits vergeben.";
+    } else if(res.error==="NAME_LEER"){
+      st.className="status-msg err-msg"; st.textContent="Bitte eine Bezeichnung eingeben.";
+    } else {
+      st.className="status-msg err-msg"; st.textContent="Fehler beim Anlegen.";
     }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
   finally{ btn.disabled=false; }
 }
 
-function ftFahrzeugeReset(){
-  if(!FT_FZG_DEFAULTS) return;
-  $("ftFzgB").value=FT_FZG_DEFAULTS.b||"";
-  $("ftFzgC").value=FT_FZG_DEFAULTS.c||"";
-  $("ftFzgStuetz").value=FT_FZG_DEFAULTS.stuetzpunkt||"";
-  const st=$("ftFzgStatus");
-  st.className="status-msg"; st.style.display="block";
-  st.textContent='Standard eingesetzt – zum Übernehmen "Speichern" klicken.';
-}
-
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.20", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.21", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -1824,13 +1889,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.20`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.21`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.20";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.21";
 
 async function soApi(payload){
   try{
