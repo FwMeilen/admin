@@ -538,18 +538,15 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       <div id="gabTabFragen" style="display:none">
         <div class="card">
           <h2>Fragenkatalog</h2>
-          <p class="hinw">
-            Die Fragen für den Schlusstest werden im Fragen-Sheet im Reiter
-            <b>«Grundausbildung B»</b> gepflegt. Pro Test werden daraus 10 Fragen zufällig gezogen.
-          </p>
-          <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
-            <a class="btn btn-klein" id="gabSheetLink" href="#" target="_blank" rel="noopener">Fragen-Sheet öffnen</a>
-          </div>
-          <div class="hinw" style="margin-top:1rem;line-height:1.7">
-            <b>Spalten:</b> ID · Frage · Antwort 1–4 · Korrekt (1–4) · Erklärung<br>
-            Die Erklärung erscheint bei falscher Antwort in der Auswertung und im PDF.
-          </div>
+          <label for="gabFragenSuche">Suche</label>
+          <input id="gabFragenSuche" type="text" placeholder="Frage oder Antwort …">
+          <div class="hinw" style="margin-top:10px" id="gabFragenCount"></div>
         </div>
+        <div class="top-actions">
+          <span class="hinw">Pro Test werden zufällig Fragen aus diesem Katalog gezogen.</span>
+          <button class="btn btn-green btn-klein" id="btnGabNeueFrage">+ Neue Frage</button>
+        </div>
+        <div id="gabFragenListe"></div>
       </div>
 
       <div id="gabTabEinstellungen" style="display:none">
@@ -876,7 +873,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.32</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.33</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1054,8 +1051,11 @@ function initGab(){
       $("gabTabFragen").style.display=tab==="fragen"?"block":"none";
       $("gabTabEinstellungen").style.display=tab==="einstellungen"?"block":"none";
       if(tab==="einstellungen") gabLadeParameter();
+      if(tab==="fragen") gabLadeFragen();
     });
   });
+  $("btnGabNeueFrage").addEventListener("click", gabNeueFrage);
+  $("gabFragenSuche").addEventListener("input", ()=>gabRenderFragen(GAB_FRAGEN));
   $("btnGabParamSpeichern").addEventListener("click", gabSpeichereParameter);
   $("btnGabParamReset").addEventListener("click", gabParameterReset);
   $("btnGabLaden").addEventListener("click", gabLadeResultate);
@@ -1065,7 +1065,121 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null;
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[];
+
+function gabToggle(id){ const el=$(id); if(el) el.classList.toggle("open"); }
+
+async function gabLadeFragen(){
+  const el=$("gabFragenListe");
+  el.innerHTML='<div class="loading">Wird geladen…</div>';
+  try{
+    const res=await ftCallAdmin({type:"admin_ga_b_fragen_list",password:PASS});
+    if(res.error){ el.innerHTML='<div class="empty">Zugriff verweigert.</div>'; return; }
+    GAB_FRAGEN=res.rows||[];
+    gabRenderFragen(GAB_FRAGEN);
+  }catch(e){ el.innerHTML=`<div class="empty">Fehler beim Laden: ${escHtml(e.message)}</div>`; }
+}
+
+function gabRenderFragen(rows){
+  const el=$("gabFragenListe");
+  const q=$("gabFragenSuche").value.trim().toLowerCase();
+  let liste=rows;
+  if(q) liste=rows.filter(r=>`${r.frage} ${r.a1} ${r.a2} ${r.a3} ${r.a4}`.toLowerCase().includes(q));
+  $("gabFragenCount").textContent = q
+    ? `${liste.length} von ${rows.length} Fragen`
+    : `${rows.length} Frage${rows.length!==1?"n":""} im Katalog`;
+  if(liste.length===0){
+    el.innerHTML=`<div class="empty">${q?"Keine Treffer.":"Noch keine Fragen erfasst."}</div>`;
+    return;
+  }
+  el.innerHTML=liste.map(r=>gabFrageCard(r)).join("");
+}
+
+function gabFrageCard(r){
+  const id=`gab-f-${r.row}`;
+  const antw=[r.a1,r.a2,r.a3,r.a4];
+  const k=parseInt(r.korrekt,10)||1;
+  return `<div class="entry-card" id="${id}">
+    <div class="entry-num">${escHtml(r.id)}</div>
+    <div class="entry-header" onclick="gabToggle('${id}')">
+      <span class="entry-arrow">▶</span>
+      <span class="entry-summary">${escHtml(r.frage)}</span>
+    </div>
+    <div class="entry-body">
+      <label>Frage</label>
+      <textarea id="${id}-frage">${escHtml(r.frage)}</textarea>
+      ${[1,2,3,4].map(n=>`
+        <label>Antwort ${n}${n>2?" (optional)":""}${n===k?" · als korrekt markiert":""}</label>
+        <input type="text" id="${id}-a${n}" value="${escHtml(antw[n-1])}">
+      `).join("")}
+      <label>Korrekte Antwort</label>
+      <select id="${id}-korrekt" style="max-width:200px">
+        ${[1,2,3,4].map(n=>`<option value="${n}"${n===k?" selected":""}>Antwort ${n}</option>`).join("")}
+      </select>
+      <label>Erklärung (erscheint bei falscher Antwort)</label>
+      <textarea id="${id}-erklaerung">${escHtml(r.erklaerung)}</textarea>
+      <div class="entry-actions">
+        <button class="btn btn-red btn-klein" onclick="gabLoescheFrage(${r.row},'${id}')">Löschen</button>
+        <button class="btn btn-green btn-klein" onclick="gabSpeichereFrage(${r.row},'${id}')">Speichern</button>
+      </div>
+      <div class="status-msg" id="${id}-status"></div>
+    </div>
+  </div>`;
+}
+
+function gabNeueFrage(){
+  const id="gab-f-neu-"+Date.now();
+  $("gabFragenListe").insertAdjacentHTML("afterbegin",
+  `<div class="entry-card new open" id="${id}">
+    <div class="entry-header" onclick="gabToggle('${id}')">
+      <span class="entry-arrow">▶</span><span class="entry-summary">Neue Frage</span>
+    </div>
+    <div class="entry-body">
+      <label>Frage</label><textarea id="${id}-frage"></textarea>
+      ${[1,2,3,4].map(n=>`
+        <label>Antwort ${n}${n>2?" (optional)":""}</label>
+        <input type="text" id="${id}-a${n}">
+      `).join("")}
+      <label>Korrekte Antwort</label>
+      <select id="${id}-korrekt" style="max-width:200px">
+        ${[1,2,3,4].map(n=>`<option value="${n}">Antwort ${n}</option>`).join("")}
+      </select>
+      <label>Erklärung (erscheint bei falscher Antwort)</label>
+      <textarea id="${id}-erklaerung"></textarea>
+      <div class="entry-actions">
+        <button class="btn btn-green btn-klein" onclick="gabSpeichereFrage(null,'${id}')">Anlegen</button>
+      </div>
+      <div class="status-msg" id="${id}-status"></div>
+    </div>
+  </div>`);
+}
+
+async function gabSpeichereFrage(row,id){
+  const v=x=>{const el=$(id+x); return el?el.value.trim():"";};
+  const st=$(id+"-status");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
+  try{
+    const res=await ftCallAdmin({type:"admin_ga_b_frage_save",password:PASS,row:row||null,
+      frage:v("-frage"),a1:v("-a1"),a2:v("-a2"),a3:v("-a3"),a4:v("-a4"),
+      korrekt:v("-korrekt"),erklaerung:v("-erklaerung")});
+    if(res.ok){ st.className="status-msg ok-msg"; st.textContent="Gespeichert."; setTimeout(gabLadeFragen,600); }
+    else if(res.error==="FRAGE_LEER"){ st.className="status-msg err-msg"; st.textContent="Die Frage darf nicht leer sein."; }
+    else if(res.error==="ZU_WENIG_ANTWORTEN"){ st.className="status-msg err-msg"; st.textContent="Mindestens zwei Antworten nötig."; }
+    else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+async function gabLoescheFrage(row,id){
+  if(!confirm("Diese Frage wirklich löschen?")) return;
+  const st=$(id+"-status");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gelöscht…";
+  try{
+    const res=await ftCallAdmin({type:"admin_ga_b_frage_delete",password:PASS,row});
+    if(res.ok) gabLadeFragen();
+    else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Löschen."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
 
 async function gabLadeParameter(){
   const st=$("gabParamStatus");
@@ -1558,7 +1672,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.32";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.33";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -1843,7 +1957,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.32", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.33", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -2579,13 +2693,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.32`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.33`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.32";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.33";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
