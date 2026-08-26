@@ -486,8 +486,9 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       <div class="card">
         <h2>Backup &amp; Wiederherstellung</h2>
         <p class="hinw" style="margin-bottom:1rem">
-          Einmal wöchentlich wird automatisch ein vollständiges Backup aller Daten erstellt –
+          Einmal wöchentlich wird automatisch ein vollständiges Backup erstellt –
           Fahrtraining, SoSi und alle Einstellungen. Backups werden <b id="bkAufbewahrung">6 Monate</b> aufbewahrt.
+          <br><span style="color:var(--text3)">Die Übungsadressen sind nicht enthalten (sehr umfangreich und jederzeit neu befüllbar).</span>
         </p>
         <div class="entry-actions" style="justify-content:flex-start">
           <button class="btn btn-red btn-klein" id="btnBkLaden">Liste aktualisieren</button>
@@ -695,7 +696,6 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px"><input type="checkbox" class="bk-bereich" value="auswertung" style="width:auto;margin:0"> Fahrten, Fragen, Tätigkeiten &amp; Rückmeldungen</label>
       <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px"><input type="checkbox" class="bk-bereich" value="fahrzeugfragen" style="width:auto;margin:0"> Fahrzeugfragen</label>
       <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px"><input type="checkbox" class="bk-bereich" value="einsatzmeldungen" style="width:auto;margin:0"> Einsatzmeldungen</label>
-      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px"><input type="checkbox" class="bk-bereich" value="adressen" style="width:auto;margin:0"> Übungsadressen</label>
       <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px"><input type="checkbox" class="bk-bereich" value="mitglieder" style="width:auto;margin:0"> Mitgliederliste</label>
       <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px"><input type="checkbox" class="bk-bereich" value="sosiFragen" style="width:auto;margin:0"> SoSi-Fragen</label>
       <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px"><input type="checkbox" class="bk-bereich" value="sosiLog" style="width:auto;margin:0"> SoSi-Prüfungslog</label>
@@ -711,7 +711,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.23</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.24</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -897,7 +897,12 @@ async function bkJetztErstellen(){
     const res=await ftCallAdmin({type:"admin_backup_jetzt",password:PASS});
     if(res.ok){
       st.className="status-msg ok-msg";
-      st.textContent=`Backup erstellt: ${res.name} (${res.groesseKb} KB)`;
+      let txt=`Backup erstellt: ${res.name} (${res.groesseKb} KB)`;
+      if(res.probleme&&res.probleme.length){
+        st.className="status-msg err-msg";
+        txt+=` ⚠ Teilweise unvollständig – ${res.probleme.join(" · ")}`;
+      }
+      st.textContent=txt;
       bkLadeListe();
     } else {
       st.className="status-msg err-msg";
@@ -1085,7 +1090,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.23";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.24";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -1370,7 +1375,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.23", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.24", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -2081,13 +2086,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.23`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.24`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.23";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.24";
 
 async function soApi(payload){
   try{
