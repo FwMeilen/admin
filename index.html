@@ -336,14 +336,32 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
               <div class="hinw" style="margin-top:8px">
                 Bei diesen Fahrzeugen wird im Fahrtraining zusätzlich nach dem Gebiet gefragt. Sie müssen in Kategorie B oder C vorkommen.
               </div>
-              <div class="warnung" style="margin-top:12px">
-                ⚠ Beim <b>Umbenennen</b> eines Fahrzeugs muss der gleichnamige Reiter im Fragen-Sheet ebenfalls umbenannt werden. Bereits gespeicherte Fahrten behalten den alten Namen.
+              <div class="hinw" style="margin-top:12px">
+                Neue Fahrzeuge werden automatisch als Reiter im Fragen-Sheet angelegt. Zum <b>Umbenennen</b> bitte den Bereich unten nutzen – dort werden Reiter und Historie mit angepasst.
               </div>
               <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
                 <button class="btn btn-green btn-klein" id="btnFtFzgSpeichern">Speichern</button>
                 <button class="btn btn-klein" id="btnFtFzgReset">Auf Standard</button>
               </div>
               <div class="status-msg" id="ftFzgStatus"></div>
+            </div>
+          </details>
+
+          <details style="margin-top:0.5rem">
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Fahrzeug umbenennen</summary>
+            <div style="margin-top:0.75rem">
+              <p class="hinw" style="margin-bottom:1rem">Benennt das Fahrzeug überall um: in der Fahrzeugliste, im Fragen-Sheet (Reiter) und in allen bereits gespeicherten Fahrten, Fragen und Tätigkeiten.</p>
+              <div class="entry-row2">
+                <div><label for="ftFzgAlt">Bisheriger Name</label><select id="ftFzgAlt"></select></div>
+                <div><label for="ftFzgNeu">Neuer Name</label><input id="ftFzgNeu" type="text" placeholder="z. B. TLF 2"></div>
+              </div>
+              <div class="warnung" style="margin-top:12px">
+                ⚠ Diese Änderung lässt sich nicht automatisch rückgängig machen.
+              </div>
+              <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+                <button class="btn btn-red btn-klein" id="btnFtFzgUmbenennen">Umbenennen</button>
+              </div>
+              <div class="status-msg" id="ftFzgRenameStatus"></div>
             </div>
           </details>
         </div>
@@ -624,7 +642,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.18</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.19</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -753,6 +771,7 @@ function initFt(){
   $("btnFtArchivStandard").addEventListener("click", ftArchivAlsStandard);
   $("btnFtFzgSpeichern").addEventListener("click", ftSpeichereFahrzeuge);
   $("btnFtFzgReset").addEventListener("click", ftFahrzeugeReset);
+  $("btnFtFzgUmbenennen").addEventListener("click", ftFahrzeugUmbenennen);
   ["ftArchivBetreff","ftArchivText","ftArchivIntervall"].forEach(id=>{
     const el=$(id); if(el) el.addEventListener("input", ftArchivVorschau);
   });
@@ -886,7 +905,7 @@ function resExportAuswahl(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.18";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.19";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -990,6 +1009,7 @@ async function ftLadeFahrzeuge(){
     $("ftFzgC").value=res.c||"";
     $("ftFzgStuetz").value=res.stuetzpunkt||"";
     FT_FZG_DEFAULTS=res.defaults||null;
+    ftFuelleUmbenennenAuswahl(res.b,res.c);
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler beim Laden: "+e.message; }
 }
 
@@ -1002,10 +1022,14 @@ async function ftSpeichereFahrzeuge(){
       b:$("ftFzgB").value, c:$("ftFzgC").value, stuetzpunkt:$("ftFzgStuetz").value});
     if(res.ok){
       st.className="status-msg ok-msg";
-      st.textContent=`Gespeichert – ${res.b.length} Fahrzeuge Kat. B, ${res.c.length} Kat. C.`;
+      let txt=`Gespeichert – ${res.b.length} Fahrzeuge Kat. B, ${res.c.length} Kat. C.`;
+      if(res.angelegt&&res.angelegt.length) txt+=` Neue Reiter im Fragen-Sheet: ${res.angelegt.join(", ")}.`;
+      if(res.warnung) txt+=" "+res.warnung;
+      st.textContent=txt;
       FT_FAHRZEUGE_B=res.b; FT_FAHRZEUGE_C=res.c;
       FT_FAHRZEUGE=[...FT_FAHRZEUGE_B,...FT_FAHRZEUGE_C,"Allgemeine Fragen"];
       ftPopulateFahrzeugSelect();
+      ftFuelleUmbenennenAuswahl(res.b.join(","),res.c.join(","));
     } else if(res.error==="STUETZPUNKT_UNBEKANNT"){
       st.className="status-msg err-msg";
       st.textContent="Nicht in Kategorie B oder C gefunden: "+(res.unbekannt||[]).join(", ");
@@ -1013,6 +1037,49 @@ async function ftSpeichereFahrzeuge(){
       st.className="status-msg err-msg"; st.textContent="Mindestens ein Fahrzeug nötig.";
     } else {
       st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern.";
+    }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+  finally{ btn.disabled=false; }
+}
+
+function ftFuelleUmbenennenAuswahl(b,c){
+  const liste=[...String(b||"").split(","),...String(c||"").split(",")]
+    .map(x=>x.trim()).filter(x=>x);
+  const sel=$("ftFzgAlt");
+  if(sel) sel.innerHTML=liste.map(f=>`<option>${escHtml(f)}</option>`).join("");
+}
+
+async function ftFahrzeugUmbenennen(){
+  const alt=$("ftFzgAlt").value;
+  const neu=$("ftFzgNeu").value.trim();
+  const st=$("ftFzgRenameStatus"), btn=$("btnFtFzgUmbenennen");
+  st.className="status-msg"; st.style.display="block";
+  if(!alt||!neu){ st.className="status-msg err-msg"; st.textContent="Bitte beide Felder ausfüllen."; return; }
+  if(!confirm(`"${alt}" überall in "${neu}" umbenennen?\n\nBetrifft: Fahrzeugliste, Reiter im Fragen-Sheet und alle bisherigen Einträge in Fahrten, Fragen und Tätigkeiten.`)) return;
+  btn.disabled=true;
+  st.textContent="Wird umbenannt…";
+  try{
+    const res=await ftCallAdmin({type:"admin_rename_fahrzeug",password:PASS,alt,neu});
+    if(res.ok){
+      st.className="status-msg ok-msg";
+      let txt=`"${res.alt}" wurde zu "${res.neu}" umbenannt.`;
+      if(res.bericht){
+        txt+=res.bericht.reiter?" Reiter im Fragen-Sheet angepasst.":" Kein Reiter gefunden.";
+        txt+=` ${res.bericht.zeilen} historische Einträge aktualisiert.`;
+      }
+      st.textContent=txt;
+      $("ftFzgNeu").value="";
+      ftLadeFahrzeuge();
+      ftHoleFahrzeuge();
+    } else if(res.error==="NAME_VERGEBEN"){
+      st.className="status-msg err-msg"; st.textContent="Dieser Name ist bereits vergeben.";
+    } else if(res.error==="NICHT_GEFUNDEN"){
+      st.className="status-msg err-msg"; st.textContent="Fahrzeug nicht in der Liste gefunden.";
+    } else if(res.error==="IDENTISCH"){
+      st.className="status-msg err-msg"; st.textContent="Alter und neuer Name sind identisch.";
+    } else {
+      st.className="status-msg err-msg";
+      st.textContent="Fehler beim Umbenennen."+(res.detail?" ("+res.detail+")":"");
     }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
   finally{ btn.disabled=false; }
@@ -1029,7 +1096,7 @@ function ftFahrzeugeReset(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.18", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.19", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -1714,13 +1781,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.18`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.19`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.18";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.19";
 
 async function soApi(payload){
   try{
