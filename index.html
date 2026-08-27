@@ -473,6 +473,25 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
             <div><label for="resExpVon">Von</label><input type="date" id="resExpVon"></div>
             <div><label for="resExpBis">Bis</label><input type="date" id="resExpBis"></div>
           </div>
+          <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:0.85rem 1rem;margin-top:1rem">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin-bottom:6px">Kalenderabo</div>
+            <p class="hinw" style="margin-bottom:8px">
+              Diese Adresse in Outlook, Apple Kalender oder Google Kalender als Abo hinzufügen –
+              die Reservationen erscheinen dann laufend im eigenen Kalender.
+            </p>
+            <input id="resAboUrl" type="text" readonly
+              value="https://calendar.google.com/calendar/ical/62b1941e2e5dbdd33420a9e65da917d307323bf984b1713a2b60b1f1009c9a69%40group.calendar.google.com/public/basic.ics"
+              style="font-size:12px;background:var(--bg)" onclick="this.select()">
+            <div class="entry-actions" style="justify-content:flex-start;margin-top:0.6rem">
+              <button class="btn btn-klein" id="btnResAboKopieren">Adresse kopieren</button>
+              <a class="btn btn-klein" href="https://calendar.google.com/calendar/u/0/r?cid=62b1941e2e5dbdd33420a9e65da917d307323bf984b1713a2b60b1f1009c9a69@group.calendar.google.com" target="_blank" rel="noopener">In Google Kalender öffnen</a>
+            </div>
+            <div class="status-msg" id="resAboStatus"></div>
+            <div class="hinw" style="margin-top:8px">
+              Damit das Abo für alle funktioniert, muss der Kalender öffentlich sichtbar sein.
+            </div>
+          </div>
+
           <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
             <button class="btn btn-red btn-klein" id="btnResLaden">Einträge laden</button>
             <button class="btn btn-green btn-klein" id="btnResExportAlle">Auswahl exportieren</button>
@@ -1065,7 +1084,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.45</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.46</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1266,7 +1285,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.45";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.46";
 
 let GAB_NT_ID=null;
 
@@ -2088,6 +2107,7 @@ function initRes(){
     const el=$(id); if(el) el.addEventListener("input", ftResMailVorschau);
   });
   $("btnResLaden").addEventListener("click", resLadeEvents);
+  $("btnResAboKopieren").addEventListener("click", resAboKopieren);
   $("btnResExportAlle").addEventListener("click", resExportAuswahl);
   $("btnResAlleWaehlen").addEventListener("click", ()=>resSetzeAuswahl(true));
   $("btnResKeineWaehlen").addEventListener("click", ()=>resSetzeAuswahl(false));
@@ -2097,6 +2117,20 @@ function initRes(){
   const bis=new Date(heute.getFullYear()+1,heute.getMonth(),1);
   $("resExpVon").value=von.toISOString().slice(0,10);
   $("resExpBis").value=bis.toISOString().slice(0,10);
+}
+
+function resAboKopieren(){
+  const feld=$("resAboUrl"), st=$("resAboStatus");
+  feld.select();
+  const fertig=()=>{ st.className="status-msg ok-msg"; st.textContent="Adresse kopiert."; };
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(feld.value).then(fertig).catch(()=>{
+      st.className="status-msg err-msg"; st.textContent="Kopieren nicht möglich – bitte von Hand markieren.";
+    });
+  } else {
+    try{ document.execCommand("copy"); fertig(); }
+    catch(e){ st.className="status-msg err-msg"; st.textContent="Kopieren nicht möglich – bitte von Hand markieren."; }
+  }
 }
 
 async function resLadeEvents(){
@@ -2237,7 +2271,7 @@ async function ftSpeichereUebung(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.45";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.46";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -2574,7 +2608,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.45", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.46", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -3310,13 +3344,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.45`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.46`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.45";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.46";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
