@@ -553,8 +553,15 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 
               <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
                 <button class="btn btn-green btn-klein" id="btnFtUebungSpeichern">Speichern &amp; prüfen</button>
+                <button class="btn btn-klein" id="btnFtUebungSync">In Kalender übernehmen</button>
               </div>
               <div class="status-msg" id="ftUebungStatus"></div>
+              <div class="hinw" style="margin-top:8px">
+                Die Übungen werden grau im Reservationskalender eingetragen, damit alle sehen,
+                wann Übungsbetrieb läuft. Sie blockieren keine Reservationen.
+                Die Übernahme läuft täglich automatisch
+                (Auslöser <code>taeglicheUebungsSynchronisation</code>).
+              </div>
               <div id="ftUebungVorschau" style="margin-top:1rem"></div>
             </div>
           </details>
@@ -1093,7 +1100,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.47</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.48</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1294,7 +1301,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.47";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.48";
 
 let GAB_NT_ID=null;
 
@@ -2110,6 +2117,7 @@ function initRes(){
   $("btnFtResReset").addEventListener("click", ftResTypenReset);
   $("ftResTypen").addEventListener("input", ()=>ftResVorschau(null));
   $("btnFtUebungSpeichern").addEventListener("click", ftSpeichereUebung);
+  $("btnFtUebungSync").addEventListener("click", ftUebungSync);
   $("btnFtResMailSpeichern").addEventListener("click", ftSpeichereResMail);
   $("btnFtResMailReset").addEventListener("click", ftResMailReset);
   ["ftResMailBetreff","ftResMailText"].forEach(id=>{
@@ -2283,8 +2291,26 @@ async function ftSpeichereUebung(){
   finally{ btn.disabled=false; }
 }
 
+async function ftUebungSync(){
+  const st=$("ftUebungStatus"), btn=$("btnFtUebungSync");
+  btn.disabled=true;
+  st.className="status-msg"; st.style.display="block";
+  st.textContent="Übungen werden in den Kalender übernommen – das kann einen Moment dauern…";
+  try{
+    const r=await ftCallAdmin({type:"admin_uebung_sync",password:PASS});
+    if(r.ok){
+      st.className="status-msg ok-msg";
+      st.textContent=`Kalender aktualisiert – ${r.neu} neu, ${r.entfernt} entfernt, ${r.unveraendert} unverändert.`;
+    } else {
+      st.className="status-msg err-msg";
+      st.textContent="Fehler: "+(r.detail||r.error||"unbekannt");
+    }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+  finally{ btn.disabled=false; }
+}
+
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.47";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.48";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -2621,7 +2647,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.47", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.48", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -3357,13 +3383,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.47`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.48`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.47";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.48";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
