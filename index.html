@@ -542,6 +542,15 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
               <label for="ftUebungUrl">Adresse des Kalenderabos (ICS)</label>
               <input id="ftUebungUrl" type="text" placeholder="https://lodur-zh.ch/meilen/tunnel.php?…">
               <div class="hinw" style="margin-top:8px">Leer lassen, um die im Script hinterlegte Standardadresse zu verwenden.</div>
+
+              <label for="ftUebungMax" style="margin-top:1rem">Termine ab dieser Dauer übergehen (Stunden)</label>
+              <input id="ftUebungMax" type="number" min="1" max="168" step="0.5" style="max-width:120px">
+              <div class="hinw" style="margin-top:8px">
+                Pikett- und Wochendienste werden in Lodur als 24-Stunden-Termine erfasst und
+                würden die Fahrzeuge dauerhaft sperren. Alles ab diesem Wert wird deshalb ignoriert.
+                Echte Übungen dauern in der Regel 1–3 Stunden.
+              </div>
+
               <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
                 <button class="btn btn-green btn-klein" id="btnFtUebungSpeichern">Speichern &amp; prüfen</button>
               </div>
@@ -1084,7 +1093,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.46</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.47</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1285,7 +1294,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.46";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.47";
 
 let GAB_NT_ID=null;
 
@@ -2232,6 +2241,7 @@ async function ftLadeUebung(){
     const r=await ftCallAdmin({type:"admin_get_uebung",password:PASS});
     if(r.error){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Zugriff verweigert."; return; }
     $("ftUebungUrl").value=r.url||"";
+    if(r.maxStunden!=null) $("ftUebungMax").value=r.maxStunden;
     ftZeigeUebung(r);
   }catch(e){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+e.message; }
 }
@@ -2256,22 +2266,25 @@ async function ftSpeichereUebung(){
   btn.disabled=true;
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert und geprüft…";
   try{
-    const r=await ftCallAdmin({type:"admin_set_uebung",password:PASS,url:$("ftUebungUrl").value});
+    const r=await ftCallAdmin({type:"admin_set_uebung",password:PASS,
+      url:$("ftUebungUrl").value, maxStunden:$("ftUebungMax").value});
     if(r.ok){
       st.className=r.anzahl?"status-msg ok-msg":"status-msg err-msg";
       st.textContent=r.anzahl
-        ? `Gespeichert – ${r.anzahl} Termine gefunden.`
+        ? `Gespeichert – ${r.anzahl} Termine übernommen (alles ab ${r.maxStunden} Stunden übergangen).`
         : "Gespeichert, aber es wurden keine Termine gefunden. Bitte Adresse prüfen.";
       ftLadeUebung();
     } else if(r.error==="URL_UNGUELTIG"){
       st.className="status-msg err-msg"; st.textContent="Die Adresse muss mit http:// oder https:// beginnen.";
+    } else if(r.error==="STUNDEN_UNGUELTIG"){
+      st.className="status-msg err-msg"; st.textContent="Die Dauer muss zwischen 1 und 168 Stunden liegen.";
     } else { st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
   finally{ btn.disabled=false; }
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.46";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.47";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -2608,7 +2621,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.46", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.47", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -3344,13 +3357,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.46`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.47`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.46";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.47";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
