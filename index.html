@@ -400,6 +400,19 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
                 <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:13px;letter-spacing:0;color:var(--text);margin-top:0.5rem">
                   <input type="checkbox" id="ftFzgNeuHand" style="width:auto;margin:0"> Handgeschaltet
                 </label>
+                <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:13px;letter-spacing:0;color:var(--text);margin-top:0.5rem">
+                  <input type="checkbox" id="ftFzgNeuUebung" style="width:auto;margin:0"> Bei Übungsbetrieb für Fahrtrainings sperren
+                </label>
+                <div class="entry-row2" style="margin-top:0.75rem">
+                  <div>
+                    <label for="ftFzgNeuGruppe">Exklusivgruppe (optional)</label>
+                    <input id="ftFzgNeuGruppe" type="text" placeholder="z. B. TLF">
+                  </div>
+                  <div>
+                    <label for="ftFzgNeuQuelle">Fragen von (optional)</label>
+                    <select id="ftFzgNeuQuelle"><option value="">eigener Katalog</option></select>
+                  </div>
+                </div>
                 <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
                   <button class="btn btn-green btn-klein" id="btnFtFzgAdd">Hinzufügen</button>
                 </div>
@@ -408,6 +421,13 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 
               <div class="hinw" style="margin-top:1.25rem;line-height:1.7">
                 <b>Handgeschaltet</b> ergänzt in allen Auswahlfeldern den Zusatz «(Handgeschaltet)».<br>
+                <b>Gruppe</b> – Fahrzeuge mit derselben Bezeichnung blockieren sich bei Reservationen
+                gegenseitig, damit immer eines einsatzbereit bleibt.<br>
+                <b>Fragen von</b> – nutzt den Fragenkatalog eines anderen Fahrzeugs mit.
+                Sinnvoll bei baugleichen Fahrzeugen, die getrennt reserviert werden müssen.
+                Die Fahrtrainings werden weiterhin auf das eigene Fahrzeug gebucht.<br>
+                <b>Übung</b> – sperrt das Fahrzeug für Fahrtrainings, solange gemäss Kalenderabo
+                Übungsbetrieb läuft.<br>
                 <b>Fahrtraining</b> steuert, ob mit dem Fahrzeug ein Fahrtraining erfasst werden kann.
                 Reservationen bleiben in jedem Fall möglich.<br>
                 <b>Archivieren</b> blendet ein Fahrzeug in allen Formularen aus – Fragen und Historie bleiben erhalten und es kann jederzeit reaktiviert werden.<br>
@@ -489,6 +509,25 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
                 <button class="btn btn-klein" id="btnFtResReset">Auf Standard</button>
               </div>
               <div class="status-msg" id="ftResStatus"></div>
+            </div>
+          </details>
+
+          <details style="margin-top:0.5rem">
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Übungsbetrieb (Kalenderabo)</summary>
+            <div style="margin-top:0.75rem">
+              <p class="hinw" style="margin-bottom:1rem">
+                Während der Termine aus diesem Kalender sind Fahrtrainings mit den entsprechend
+                markierten Fahrzeugen gesperrt. Welche Fahrzeuge betroffen sind, wird in der
+                Fahrzeugverwaltung je Fahrzeug festgelegt (Spalte «Übung»). Reservationen bleiben möglich.
+              </p>
+              <label for="ftUebungUrl">Adresse des Kalenderabos (ICS)</label>
+              <input id="ftUebungUrl" type="text" placeholder="https://lodur-zh.ch/meilen/tunnel.php?…">
+              <div class="hinw" style="margin-top:8px">Leer lassen, um die im Script hinterlegte Standardadresse zu verwenden.</div>
+              <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+                <button class="btn btn-green btn-klein" id="btnFtUebungSpeichern">Speichern &amp; prüfen</button>
+              </div>
+              <div class="status-msg" id="ftUebungStatus"></div>
+              <div id="ftUebungVorschau" style="margin-top:1rem"></div>
             </div>
           </details>
 
@@ -1026,7 +1065,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.44</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.45</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1227,7 +1266,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.44";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.45";
 
 let GAB_NT_ID=null;
 
@@ -2036,12 +2075,13 @@ function initRes(){
       $("resTabKalender").style.display=tab==="kalender"?"block":"none";
       $("resTabExport").style.display=tab==="export"?"block":"none";
       $("resTabEinstellungen").style.display=tab==="einstellungen"?"block":"none";
-      if(tab==="einstellungen"){ ftLadeResTypen(); ftLadeResMail(); }
+      if(tab==="einstellungen"){ ftLadeResTypen(); ftLadeResMail(); ftLadeUebung(); }
     });
   });
   $("btnFtResSpeichern").addEventListener("click", ftSpeichereResTypen);
   $("btnFtResReset").addEventListener("click", ftResTypenReset);
   $("ftResTypen").addEventListener("input", ()=>ftResVorschau(null));
+  $("btnFtUebungSpeichern").addEventListener("click", ftSpeichereUebung);
   $("btnFtResMailSpeichern").addEventListener("click", ftSpeichereResMail);
   $("btnFtResMailReset").addEventListener("click", ftResMailReset);
   ["ftResMailBetreff","ftResMailText"].forEach(id=>{
@@ -2150,8 +2190,54 @@ function resExportAuswahl(){
   st.textContent=`${gewaehlt.length} Eintrag${gewaehlt.length!==1?"e":""} exportiert.`;
 }
 
+/* ── Übungsbetrieb ── */
+async function ftLadeUebung(){
+  const st=$("ftUebungStatus");
+  st.className="status-msg"; st.style.display="none";
+  try{
+    const r=await ftCallAdmin({type:"admin_get_uebung",password:PASS});
+    if(r.error){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Zugriff verweigert."; return; }
+    $("ftUebungUrl").value=r.url||"";
+    ftZeigeUebung(r);
+  }catch(e){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+e.message; }
+}
+
+function ftZeigeUebung(r){
+  const el=$("ftUebungVorschau");
+  if(!r.anzahl){
+    el.innerHTML='<div class="empty">Keine Termine gefunden – Adresse prüfen.</div>';
+    return;
+  }
+  el.innerHTML=`<div class="hinw" style="margin-bottom:8px">${r.anzahl} Termine im Kalender · nächste:</div>`
+    +`<div class="tblwrap"><table class="l5"><tbody>`
+    +(r.naechste||[]).map(t=>`<tr>
+        <td>${escHtml(t.von)}</td><td>bis ${escHtml(t.bis)}</td>
+        <td class="hinw">${escHtml(t.titel||"Übungsbetrieb")}</td>
+      </tr>`).join("")
+    +`</tbody></table></div>`;
+}
+
+async function ftSpeichereUebung(){
+  const st=$("ftUebungStatus"), btn=$("btnFtUebungSpeichern");
+  btn.disabled=true;
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert und geprüft…";
+  try{
+    const r=await ftCallAdmin({type:"admin_set_uebung",password:PASS,url:$("ftUebungUrl").value});
+    if(r.ok){
+      st.className=r.anzahl?"status-msg ok-msg":"status-msg err-msg";
+      st.textContent=r.anzahl
+        ? `Gespeichert – ${r.anzahl} Termine gefunden.`
+        : "Gespeichert, aber es wurden keine Termine gefunden. Bitte Adresse prüfen.";
+      ftLadeUebung();
+    } else if(r.error==="URL_UNGUELTIG"){
+      st.className="status-msg err-msg"; st.textContent="Die Adresse muss mit http:// oder https:// beginnen.";
+    } else { st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+  finally{ btn.disabled=false; }
+}
+
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.44";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.45";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -2270,6 +2356,7 @@ async function ftLadeFahrzeuge(){
     const res=await ftCallAdmin({type:"admin_get_fahrzeuge",password:PASS});
     if(res.error){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Zugriff verweigert."; return; }
     FT_FZG_LISTE=res.liste||[];
+    ftFuelleQuelleAuswahl();
     ftRenderFahrzeuge();
   }catch(e){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler beim Laden: "+e.message; }
 }
@@ -2286,7 +2373,7 @@ function ftRenderFahrzeuge(){
   if(liste.length===0){ el.innerHTML='<div class="empty">Keine Fahrzeuge in dieser Auswahl.</div>'; return; }
 
   el.innerHTML=`<div class="tblwrap"><table class="l5">
-    <thead><tr><th>Fahrzeug</th><th>Kat.</th><th>Stützpunkt</th><th>Handgesch.</th><th>Fahrtraining</th><th>Status</th><th style="text-align:right">Aktion</th></tr></thead>
+    <thead><tr><th>Fahrzeug</th><th>Kat.</th><th>Stützpunkt</th><th>Handgesch.</th><th>Gruppe</th><th>Fragen von</th><th>Übung</th><th>Fahrtraining</th><th>Status</th><th style="text-align:right">Aktion</th></tr></thead>
     <tbody>`+liste.map(f=>{
       const sicher=f.name.replace(/'/g,"\\'");
       if(FT_FZG_EDIT===f.name) return ftFzgZeileEdit(f,sicher);
@@ -2302,6 +2389,9 @@ function ftRenderFahrzeuge(){
         <td>${escHtml(f.kat)}</td>
         <td>${f.stuetzpunkt?"✓":"–"}</td>
         <td>${f.hand?"✓":"–"}</td>
+        <td>${f.gruppe?escHtml(f.gruppe):"–"}</td>
+        <td>${f.fragenVon?escHtml(f.fragenVon):"–"}</td>
+        <td>${f.uebungGesperrt?'<span class="badge" style="background:#cc7700">gesperrt</span>':"–"}</td>
         <td>${ftZelle}</td>
         <td>${badge}</td>
         <td style="text-align:right;white-space:nowrap">
@@ -2331,6 +2421,13 @@ function ftFzgZeileEdit(f,sicher){
     </select></td>
     <td style="text-align:center"><input type="checkbox" id="ftFzgEditStuetz" style="width:auto"${f.stuetzpunkt?" checked":""}></td>
     <td style="text-align:center" title="Handgeschaltet"><input type="checkbox" id="ftFzgEditHand" style="width:auto"${f.hand?" checked":""}></td>
+    <td><input type="text" id="ftFzgEditGruppe" value="${escHtml(f.gruppe||"")}" placeholder="z. B. TLF" style="min-width:80px" title="Fahrzeuge derselben Gruppe blockieren sich bei Reservationen"></td>
+    <td><select id="ftFzgEditQuelle" style="min-width:110px" title="Fragenkatalog eines anderen Fahrzeugs mitbenutzen">
+      <option value="">eigener</option>
+      ${FT_FZG_LISTE.filter(x=>x.name!==f.name&&!x.fragenVon).map(x=>
+        `<option value="${escHtml(x.name)}"${f.fragenVon===x.name?" selected":""}>${escHtml(x.name)}</option>`).join("")}
+    </select></td>
+    <td style="text-align:center" title="Bei Übungsbetrieb für Fahrtrainings gesperrt"><input type="checkbox" id="ftFzgEditUebung" style="width:auto"${f.uebungGesperrt?" checked":""}></td>
     <td style="text-align:center" title="Für Fahrtrainings freigegeben"><input type="checkbox" id="ftFzgEditFt" style="width:auto"${f.keinFt?"":" checked"}></td>
     <td>${f.aktiv===false?'<span class="badge" style="background:#888">Archiviert</span>':'<span class="badge" style="background:#2d6a1f">Aktiv</span>'}</td>
     <td style="text-align:right;white-space:nowrap">
@@ -2338,6 +2435,14 @@ function ftFzgZeileEdit(f,sicher){
       <button class="btn btn-klein btn-green" onclick="ftFzgEditSpeichern('${sicher}')">Speichern</button>
     </td>
   </tr>`;
+}
+
+function ftFuelleQuelleAuswahl(){
+  const sel=$("ftFzgNeuQuelle");
+  if(!sel) return;
+  sel.innerHTML='<option value="">eigener Katalog</option>'
+    +FT_FZG_LISTE.filter(f=>!f.fragenVon)
+      .map(f=>`<option value="${escHtml(f.name)}">${escHtml(f.name)}</option>`).join("");
 }
 
 function ftFzgEditStart(name){
@@ -2356,17 +2461,21 @@ function ftFzgEditSpeichern(alt){
   const stuetz=$("ftFzgEditStuetz").checked;
   const keinFt=!$("ftFzgEditFt").checked;
   const hand=$("ftFzgEditHand").checked;
+  const gruppe=$("ftFzgEditGruppe").value.trim();
+  const fragenVon=$("ftFzgEditQuelle").value;
+  const uebungGesperrt=$("ftFzgEditUebung").checked;
   if(!name){ alert("Die Bezeichnung darf nicht leer sein."); return; }
   if(name!==alt && !confirm(`"${alt}" wirklich in "${name}" umbenennen?\n\nBetrifft: Fahrzeugliste, Reiter im Fragen-Sheet und alle bisherigen Einträge in Fahrten, Fragen und Tätigkeiten.`)) return;
   FT_FZG_EDIT=null;
-  ftFzgUpdate(alt,name,kat,stuetz,keinFt,hand);
+  ftFzgUpdate(alt,name,kat,stuetz,keinFt,hand,gruppe,fragenVon,uebungGesperrt);
 }
 
-async function ftFzgUpdate(alt,name,kat,stuetzpunkt,keinFt,hand){
+async function ftFzgUpdate(alt,name,kat,stuetzpunkt,keinFt,hand,gruppe,fragenVon,uebungGesperrt){
   const st=$("ftFzgStatus");
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
   try{
-    const res=await ftCallAdmin({type:"admin_fahrzeug_update",password:PASS,alt,name,kat,stuetzpunkt,keinFt:!!keinFt,hand:!!hand});
+    const res=await ftCallAdmin({type:"admin_fahrzeug_update",password:PASS,alt,name,kat,stuetzpunkt,keinFt:!!keinFt,hand:!!hand,
+      gruppe:gruppe||"",fragenVon:fragenVon||"",uebungGesperrt:!!uebungGesperrt});
     if(res.ok){
       FT_FZG_LISTE=res.liste||[];
       FT_FZG_EDIT=null;
@@ -2431,12 +2540,15 @@ async function ftFzgHinzufuegen(){
   const stuetzpunkt=$("ftFzgNeuStuetz").checked;
   const keinFt=$("ftFzgNeuKeinFt").checked;
   const hand=$("ftFzgNeuHand").checked;
+  const uebungGesperrt=$("ftFzgNeuUebung").checked;
+  const gruppe=$("ftFzgNeuGruppe").value.trim();
+  const fragenVon=$("ftFzgNeuQuelle").value;
   st.className="status-msg"; st.style.display="block";
   if(!name){ st.className="status-msg err-msg"; st.textContent="Bitte eine Bezeichnung eingeben."; return; }
   btn.disabled=true;
   st.textContent="Wird angelegt…";
   try{
-    const res=await ftCallAdmin({type:"admin_fahrzeug_add",password:PASS,name,kat,stuetzpunkt,keinFt,hand});
+    const res=await ftCallAdmin({type:"admin_fahrzeug_add",password:PASS,name,kat,stuetzpunkt,keinFt,hand,uebungGesperrt,gruppe,fragenVon});
     if(res.ok){
       FT_FZG_LISTE=res.liste||[];
       $("ftFzgFilter").value=kat;
@@ -2446,7 +2558,8 @@ async function ftFzgHinzufuegen(){
       if(res.reiterAngelegt) txt+=" Reiter im Fragen-Sheet angelegt.";
       if(res.warnung) txt+=" ⚠ "+res.warnung;
       st.textContent=txt;
-      $("ftFzgNeuName").value=""; $("ftFzgNeuStuetz").checked=false; $("ftFzgNeuKeinFt").checked=false; $("ftFzgNeuHand").checked=false;
+      $("ftFzgNeuName").value=""; $("ftFzgNeuStuetz").checked=false; $("ftFzgNeuKeinFt").checked=false; $("ftFzgNeuHand").checked=false; $("ftFzgNeuUebung").checked=false;
+      $("ftFzgNeuGruppe").value=""; $("ftFzgNeuQuelle").value="";
       ftHoleFahrzeuge();
     } else if(res.error==="NAME_VERGEBEN"){
       st.className="status-msg err-msg"; st.textContent="Diese Bezeichnung ist bereits vergeben.";
@@ -2461,7 +2574,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.44", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.45", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -3197,13 +3310,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.44`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.45`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.44";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.45";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
