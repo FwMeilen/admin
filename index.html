@@ -251,6 +251,20 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
             </div>
           </div>
         </div>
+        <div class="card">
+          <h2>Fragenbestand</h2>
+          <details id="ftBestandDetails">
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Übersicht aller Fahrzeuge</summary>
+            <div style="margin-top:0.75rem">
+              <p class="hinw" style="margin-bottom:1rem">
+                Zeigt, wie viele Fragen und Tätigkeiten je Fahrzeug hinterlegt sind.
+                Fahrzeuge ohne Fragen überspringen die Abfrage im Fahrtraining.
+              </p>
+              <div id="ftBestandInhalt" class="loading">Lade …</div>
+            </div>
+          </details>
+        </div>
+
         <div class="top-actions">
           <span id="ftFragenCount" class="hinw"></span>
           <button class="btn btn-green btn-klein" id="btnFtNeueFrage">+ Neue Frage</button>
@@ -1100,7 +1114,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.48</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.49</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1246,6 +1260,9 @@ function initFt(){
   $("ftMeldungSuche").addEventListener("input", ()=>ftRenderMeldungenListe(FT_LETZTE_MELDUNGEN));
   $("ftMeldungKatFilter").addEventListener("change", ()=>ftRenderMeldungenListe(FT_LETZTE_MELDUNGEN));
   $("btnFtNeueFrage").addEventListener("click", ftNeueFrage);
+  $("ftBestandDetails").addEventListener("toggle", ()=>{
+    if($("ftBestandDetails").open) ftLadeBestand();
+  });
   $("btnFtNeueMeldung").addEventListener("click", ftNeueMeldung);
   $("btnFtLookupLaden").addEventListener("click", ftLadeFahrten);
   $("ftLookupSuche").addEventListener("input", ftRenderLookupErgebnisse);
@@ -1301,7 +1318,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.48";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.49";
 
 let GAB_NT_ID=null;
 
@@ -2310,7 +2327,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.48";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.49";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -2415,6 +2432,38 @@ function ftResTypenReset(){
   const st=$("ftResStatus");
   st.className="status-msg"; st.style.display="block";
   st.textContent='Standard eingesetzt – zum Übernehmen "Speichern" klicken.';
+}
+
+async function ftLadeBestand(){
+  const el=$("ftBestandInhalt");
+  el.innerHTML='<div class="loading">Wird geprüft…</div>';
+  try{
+    const res=await ftCallAdmin({type:"admin_fragen_pruefen",password:PASS});
+    if(res.error){ el.innerHTML='<div class="empty">Zugriff verweigert.</div>'; return; }
+    const b=res.bericht||[];
+    const ohne=b.filter(x=>x.fragen===0&&!x.keinFt);
+    let kopf="";
+    if(ohne.length>0){
+      kopf=`<div class="warnung" style="margin-bottom:10px">⚠ ${ohne.length} Fahrzeug`
+        +`${ohne.length===1?"":"e"} ohne Fragen: <b>${ohne.map(x=>escHtml(x.name)).join(", ")}</b>. `
+        +`Bei diesen wird die Abfrage im Fahrtraining übersprungen.</div>`;
+    }
+    el.innerHTML=kopf+`<div class="tblwrap"><table class="l5">
+      <thead><tr><th>Fahrzeug</th><th>Kat.</th><th>Quelle</th><th style="text-align:right">Fragen</th><th style="text-align:right">Tätigkeiten</th></tr></thead>
+      <tbody>`+b.map(x=>{
+        const warn=(x.fragen===0&&!x.keinFt);
+        const quelle=x.aliasVon
+          ? `<span style="color:var(--red)">${escHtml(x.aliasVon)}</span>`
+          : (x.reiterVorhanden?"eigener":'<span style="color:var(--red)">kein Reiter</span>');
+        return `<tr${warn?' style="background:var(--red-light)"':''}>
+          <td><b>${escHtml(x.name)}</b>${x.keinFt?' <span class="hinw">(kein Fahrtraining)</span>':''}</td>
+          <td>${escHtml(x.kat)}</td>
+          <td>${quelle}</td>
+          <td style="text-align:right"${warn?' style="color:var(--red);font-weight:700"':''}>${x.fragen}</td>
+          <td style="text-align:right">${x.taetigkeiten}</td>
+        </tr>`;
+      }).join("")+`</tbody></table></div>`;
+  }catch(e){ el.innerHTML=`<div class="empty">Fehler: ${escHtml(e.message)}</div>`; }
 }
 
 /* ── Fahrzeugverwaltung ── */
@@ -2647,7 +2696,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.48", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.49", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -3383,13 +3432,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.48`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.49`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.48";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.49";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
