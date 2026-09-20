@@ -184,6 +184,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         <option value="res">Fahrzeugreservationen</option>
         <option value="gab">B Grundausbildung</option>
         <option value="gatlf">TLF Grundausbildung</option>
+        <option value="tf">Terminfindung</option>
         <option value="backup">Admin</option>
       </select>
     </div>
@@ -815,6 +816,37 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       </div>
     </div>
 
+    <!-- ═══════════ TERMINFINDUNG ═══════════ -->
+    <div id="toolTf" style="display:none">
+      <div class="card">
+        <h2>Ausbildungen</h2>
+        <p class="hinw" style="margin-bottom:1rem">
+          Für jede Ausbildung werden Termine erfasst. Teilnehmer und Ausbildner tragen sich unter
+          <a href="https://uebungsfindung.feuerwehrmeilen.ch" target="_blank" rel="noopener" style="color:var(--red);font-weight:600">uebungsfindung.feuerwehrmeilen.ch</a>
+          ein.
+        </p>
+        <div class="entry-actions" style="justify-content:flex-start">
+          <button class="btn btn-red btn-klein" id="btnTfLaden">Aktualisieren</button>
+          <button class="btn btn-green btn-klein" id="btnTfNeu">+ Neue Ausbildung</button>
+        </div>
+        <div class="status-msg" id="tfStatus"></div>
+      </div>
+      <div id="tfListe" class="loading">Lade …</div>
+
+      <div id="tfDetail" style="display:none">
+        <div class="card">
+          <h2 id="tfDetailTitel">Termine</h2>
+          <div class="entry-actions" style="justify-content:flex-start">
+            <button class="btn btn-klein" id="btnTfZurueck">← Übersicht</button>
+            <button class="btn btn-green btn-klein" id="btnTfTerminNeu">+ Einzelner Termin</button>
+            <button class="btn btn-klein" id="btnTfGenerieren">Termine vorschlagen</button>
+          </div>
+          <div class="status-msg" id="tfTerminStatus"></div>
+        </div>
+        <div id="tfTermine" class="loading">Lade …</div>
+      </div>
+    </div>
+
     <!-- ═══════════ ADMIN ═══════════ -->
     <div id="toolBackup" style="display:none">
 
@@ -1114,7 +1146,44 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.49</div>
+<div class="info-modal-bg" id="tfGenBg" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
+  <div style="background:#fff;max-width:520px;width:100%;border-top:5px solid var(--red);padding:1.5rem;max-height:92vh;overflow-y:auto">
+    <h3 style="font-size:15px;margin-bottom:.75rem">Termine vorschlagen</h3>
+    <p class="hinw" style="margin-bottom:1rem">
+      Erzeugt Terminvorschläge für einen Zeitraum. Du kannst die Auswahl danach prüfen
+      und nur die gewünschten übernehmen.
+    </p>
+    <div class="entry-row2">
+      <div><label for="tfGenVon">Von</label><input id="tfGenVon" type="date"></div>
+      <div><label for="tfGenBis">Bis</label><input id="tfGenBis" type="date"></div>
+    </div>
+    <label style="margin-top:.75rem">Wochentage</label>
+    <div id="tfGenTage" style="display:flex;flex-wrap:wrap;gap:8px">
+      <label style="display:flex;align-items:center;gap:5px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px"><input type="checkbox" class="tf-tag" value="1" checked style="width:auto;margin:0">Mo</label>
+      <label style="display:flex;align-items:center;gap:5px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px"><input type="checkbox" class="tf-tag" value="2" checked style="width:auto;margin:0">Di</label>
+      <label style="display:flex;align-items:center;gap:5px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px"><input type="checkbox" class="tf-tag" value="3" checked style="width:auto;margin:0">Mi</label>
+      <label style="display:flex;align-items:center;gap:5px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px"><input type="checkbox" class="tf-tag" value="4" checked style="width:auto;margin:0">Do</label>
+      <label style="display:flex;align-items:center;gap:5px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px"><input type="checkbox" class="tf-tag" value="5" checked style="width:auto;margin:0">Fr</label>
+      <label style="display:flex;align-items:center;gap:5px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px"><input type="checkbox" class="tf-tag" value="6" style="width:auto;margin:0">Sa</label>
+      <label style="display:flex;align-items:center;gap:5px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px"><input type="checkbox" class="tf-tag" value="0" style="width:auto;margin:0">So</label>
+    </div>
+    <div class="entry-row2" style="margin-top:.75rem">
+      <div><label for="tfGenZeitVon">Beginn</label><input id="tfGenZeitVon" type="time" value="19:00"></div>
+      <div><label for="tfGenZeitBis">Ende</label><input id="tfGenZeitBis" type="time" value="21:00"></div>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px;margin-top:.75rem">
+      <input type="checkbox" id="tfGenOhneUebung" checked style="width:auto;margin:0"> Tage mit Übungsbetrieb kennzeichnen
+    </label>
+    <div class="status-msg" id="tfGenStatus"></div>
+    <div id="tfGenErgebnis" style="margin-top:1rem"></div>
+    <div style="display:flex;gap:10px;margin-top:1.25rem">
+      <button class="btn" style="flex:1;justify-content:center" onclick="tfGenSchliessen()">Abbrechen</button>
+      <button class="btn btn-red" style="flex:1;justify-content:center" id="btnTfGenErzeugen">Vorschlagen</button>
+    </div>
+  </div>
+</div>
+
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.50</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1177,12 +1246,14 @@ function switchTool(){
   $("toolBackup").style.display = tool==="backup" ? "block" : "none";
   $("toolGab").style.display = tool==="gab" ? "block" : "none";
   $("toolGatlf").style.display = tool==="gatlf" ? "block" : "none";
+  $("toolTf").style.display = tool==="tf" ? "block" : "none";
   if(tool==="ft" && !FT_OK) alert("Fahrtraining-Backend ist nicht angemeldet (Passwort nicht synchron).");
   if(tool==="so" && !SO_OK) alert("SoSi-Backend ist nicht angemeldet (Passwort nicht synchron).");
   if(tool==="so" && SO_OK && !SO_INIT) initSo();
   if(tool==="res" && FT_OK && !RES_INIT) initRes();
   if(tool==="backup" && FT_OK && !BACKUP_INIT) initBackup();
   if(tool==="gab" && FT_OK && !GAB_INIT) initGab();
+  if(tool==="tf" && FT_OK && !TF_INIT) initTf();
 }
 
 /* ══════════════════ FAHRTRAINING ══════════════════ */
@@ -1318,7 +1389,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.49";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.50";
 
 let GAB_NT_ID=null;
 
@@ -1786,6 +1857,352 @@ async function cacheLeeren(){
   finally{ btn.disabled=false; }
 }
 
+/* ══════════════════ TERMINFINDUNG ══════════════════ */
+let TF_INIT=false, TF_LISTE=[], TF_AKTUELL=null, TF_TERMINE=[], TF_VORSCHLAEGE=[];
+
+function initTf(){
+  TF_INIT=true;
+  $("btnTfLaden").addEventListener("click", tfLade);
+  $("btnTfNeu").addEventListener("click", ()=>tfFormular(null));
+  $("btnTfZurueck").addEventListener("click", tfZurueck);
+  $("btnTfTerminNeu").addEventListener("click", tfTerminNeu);
+  $("btnTfGenerieren").addEventListener("click", tfGenOeffnen);
+  $("btnTfGenErzeugen").addEventListener("click", tfGenErzeugen);
+  tfLade();
+}
+
+async function tfLade(){
+  const el=$("tfListe");
+  el.innerHTML='<div class="loading">Lade …</div>';
+  $("tfDetail").style.display="none";
+  $("tfListe").style.display="block";
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_get",password:PASS});
+    if(r.error){ el.innerHTML='<div class="empty">Zugriff verweigert.</div>'; return; }
+    TF_LISTE=r.ausbildungen||[];
+    if(TF_LISTE.length===0){
+      el.innerHTML='<div class="empty">Noch keine Ausbildung erfasst. Mit «+ Neue Ausbildung» anlegen.</div>';
+      return;
+    }
+    el.innerHTML=TF_LISTE.map(tfKarte).join("");
+  }catch(e){ el.innerHTML=`<div class="empty">Fehler: ${escHtml(e.message)}</div>`; }
+}
+
+function tfKarte(a){
+  const offen=(a.status||"offen")==="offen";
+  const badge=offen
+    ? '<span class="badge" style="background:#2d6a1f">Offen</span>'
+    : '<span class="badge" style="background:#888">Abgeschlossen</span>';
+  return `<div class="card" style="border-top-color:${offen?"var(--green)":"var(--gray-mid)"}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px">
+        <div style="font-size:16px;font-weight:700">${escHtml(a.name)} ${badge}</div>
+        ${a.beschreibung?`<div class="hinw" style="margin-top:4px">${escHtml(a.beschreibung)}</div>`:""}
+        <div class="hinw" style="margin-top:6px">
+          ${a.anzahlTermine} Termin${a.anzahlTermine!==1?"e":""}
+          ${a.anzahlDefinitiv?` · ${a.anzahlDefinitiv} definitiv`:""}
+          · benötigt ${a.minTeilnehmer} Teilnehmer und ${a.minAusbildner} Ausbildner
+          ${a.fahrzeug?` · ${escHtml(a.fahrzeug)}`:""}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-klein" onclick="tfOeffnen('${escHtml(a.id)}')">Termine</button>
+        <button class="btn btn-klein" onclick='tfFormular(${JSON.stringify(a).replace(/'/g,"&#39;")})'>Bearbeiten</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function tfFormular(a){
+  const neu=!a;
+  const d=a||{id:"",name:"",beschreibung:"",status:"offen",aktiv:true,
+    minTeilnehmer:1,maxTeilnehmer:3,minAusbildner:1,maxAusbildner:5,fahrzeug:"",dauerMin:120};
+  const id="tf-form";
+  const html=`<div class="card" id="${id}" style="border-top-color:var(--green)">
+    <h2>${neu?"Neue Ausbildung":"Ausbildung bearbeiten"}</h2>
+    <label for="${id}-name">Bezeichnung</label>
+    <input id="${id}-name" type="text" value="${escHtml(d.name)}" placeholder="z. B. TLF-Ausbildung">
+    <label for="${id}-beschreibung" style="margin-top:.75rem">Beschreibung (optional)</label>
+    <input id="${id}-beschreibung" type="text" value="${escHtml(d.beschreibung||"")}">
+    <div class="entry-row2" style="margin-top:.75rem">
+      <div><label for="${id}-minT">Teilnehmer mindestens</label>
+        <input id="${id}-minT" type="number" min="1" max="50" value="${d.minTeilnehmer}"></div>
+      <div><label for="${id}-maxT">Teilnehmer Plätze</label>
+        <input id="${id}-maxT" type="number" min="1" max="50" value="${d.maxTeilnehmer}"></div>
+    </div>
+    <div class="entry-row2" style="margin-top:.75rem">
+      <div><label for="${id}-minA">Ausbildner mindestens</label>
+        <input id="${id}-minA" type="number" min="1" max="50" value="${d.minAusbildner}"></div>
+      <div><label for="${id}-maxA">Ausbildner Plätze</label>
+        <input id="${id}-maxA" type="number" min="1" max="50" value="${d.maxAusbildner}"></div>
+    </div>
+    <div class="entry-row2" style="margin-top:.75rem">
+      <div><label for="${id}-fahrzeug">Fahrzeug (optional)</label>
+        <select id="${id}-fahrzeug"><option value="">keines</option>${
+          FT_FZG_LISTE.filter(f=>f.aktiv!==false).map(f=>
+            `<option value="${escHtml(f.name)}"${d.fahrzeug===f.name?" selected":""}>${escHtml(f.name)}</option>`).join("")
+        }</select></div>
+      <div><label for="${id}-status">Status</label>
+        <select id="${id}-status">
+          <option value="offen"${d.status!=="geschlossen"?" selected":""}>Offen – Anmeldung läuft</option>
+          <option value="geschlossen"${d.status==="geschlossen"?" selected":""}>Abgeschlossen – nur definitive Termine</option>
+        </select></div>
+    </div>
+    <div class="entry-actions" style="margin-top:1rem">
+      ${neu?"":`<button class="btn btn-red btn-klein" onclick="tfLoeschen('${escHtml(d.id)}','${escHtml(d.name)}')">Löschen</button>`}
+      <button class="btn btn-klein" onclick="tfLade()">Abbrechen</button>
+      <button class="btn btn-green btn-klein" onclick="tfSpeichern('${escHtml(d.id)}')">Speichern</button>
+    </div>
+    <div class="status-msg" id="${id}-status-msg"></div>
+  </div>`;
+  $("tfListe").innerHTML=html;
+  $(id+"-name").focus();
+}
+
+async function tfSpeichern(id){
+  const f="tf-form";
+  const st=$(f+"-status-msg");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_save",password:PASS,id:id||"",
+      name:$(f+"-name").value, beschreibung:$(f+"-beschreibung").value,
+      minTeilnehmer:$(f+"-minT").value, maxTeilnehmer:$(f+"-maxT").value,
+      minAusbildner:$(f+"-minA").value, maxAusbildner:$(f+"-maxA").value,
+      fahrzeug:$(f+"-fahrzeug").value, status:$(f+"-status").value});
+    if(r.ok){ tfLade(); }
+    else if(r.error==="NAME_LEER"){ st.className="status-msg err-msg"; st.textContent="Bitte eine Bezeichnung eingeben."; }
+    else if(r.error==="TEILNEHMER_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Mindestzahl Teilnehmer darf die Plätze nicht übersteigen."; }
+    else if(r.error==="AUSBILDNER_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Mindestzahl Ausbildner darf die Plätze nicht übersteigen."; }
+    else { st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+async function tfLoeschen(id,name){
+  if(!confirm(`"${name}" wirklich löschen?\n\nAlle Termine und Anmeldungen dieser Ausbildung gehen verloren.`)) return;
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_delete",password:PASS,id});
+    if(r.ok) tfLade();
+  }catch(e){ alert("Fehler: "+e.message); }
+}
+
+/* ── Termine ── */
+async function tfOeffnen(id){
+  $("tfListe").style.display="none";
+  $("tfDetail").style.display="block";
+  $("tfTermine").innerHTML='<div class="loading">Lade …</div>';
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_termine",password:PASS,ausbildung:id});
+    if(!r.ok){ $("tfTermine").innerHTML='<div class="empty">Konnte nicht geladen werden.</div>'; return; }
+    TF_AKTUELL=r.ausbildung; TF_TERMINE=r.termine||[]; TF_VORSCHLAEGE=r.vorschlaege||[];
+    $("tfDetailTitel").textContent=TF_AKTUELL.name;
+    tfRenderTermine();
+  }catch(e){ $("tfTermine").innerHTML=`<div class="empty">Fehler: ${escHtml(e.message)}</div>`; }
+}
+
+function tfZurueck(){ TF_AKTUELL=null; tfLade(); }
+
+function tfRenderTermine(){
+  const el=$("tfTermine");
+  if(TF_TERMINE.length===0){
+    el.innerHTML='<div class="empty">Noch keine Termine erfasst.</div>';
+    return;
+  }
+  const geeignet=TF_TERMINE.filter(t=>t.erfuellt);
+  let html="";
+  if(geeignet.length>0){
+    html+=`<div class="card" style="border-top-color:var(--green)">
+      <h2>Geeignete Termine</h2>
+      <p class="hinw" style="margin-bottom:.75rem">
+        An diesen Tagen sind genug Teilnehmer und Ausbildner beisammen – nach Eignung sortiert.
+      </p>
+      <div class="tblwrap"><table class="l5">
+        <thead><tr><th>Datum</th><th>Teilnehmer</th><th>Ausbildner</th><th style="text-align:right">Aktion</th></tr></thead>
+        <tbody>${TF_VORSCHLAEGE.filter(t=>t.erfuellt).map(t=>`<tr>
+          <td><b>${escHtml(t.datumAnzeige)}</b> <span class="hinw">${escHtml(t.wochentag)}</span></td>
+          <td>${t.anzahlTeilnehmer} · ${escHtml(t.teilnehmer.join(", "))}</td>
+          <td>${t.anzahlAusbildner} · ${escHtml(t.ausbildner.join(", "))}</td>
+          <td style="text-align:right"><button class="btn btn-klein btn-green" onclick="tfDefinitivOeffnen('${escHtml(t.id)}')">Festlegen</button></td>
+        </tr>`).join("")}</tbody>
+      </table></div>
+    </div>`;
+  } else {
+    html+=`<div class="card" style="border-top-color:var(--orange)">
+      <h2>Noch kein geeigneter Termin</h2>
+      <p class="hinw">Es ist noch kein Tag dabei, an dem ${TF_AKTUELL.minTeilnehmer} Teilnehmer
+      und ${TF_AKTUELL.minAusbildner} Ausbildner zusammenkommen.</p>
+    </div>`;
+  }
+
+  html+=`<div class="card" style="padding:0"><div class="tblwrap"><table class="l5">
+    <thead><tr><th>Datum</th><th>Zeit</th><th>Teilnehmer</th><th>Ausbildner</th><th>Definitiv</th><th style="text-align:right">Aktion</th></tr></thead>
+    <tbody>`+TF_TERMINE.map(t=>{
+      const farbe=t.definitiv.length?"var(--red-light)":(t.erfuellt?"var(--green-light)":"");
+      return `<tr${farbe?` style="background:${farbe}"`:""}>
+        <td><b>${escHtml(t.datumAnzeige)}</b><br><span class="hinw">${escHtml(t.wochentag)}</span></td>
+        <td class="hinw">${escHtml(t.von||"–")}${t.bis?"–"+escHtml(t.bis):""}</td>
+        <td>${t.anzahlTeilnehmer}/${TF_AKTUELL.maxTeilnehmer}<br><span class="hinw">${escHtml(t.teilnehmer.join(", "))||"–"}</span></td>
+        <td>${t.anzahlAusbildner}/${TF_AKTUELL.maxAusbildner}<br><span class="hinw">${escHtml(t.ausbildner.join(", "))||"–"}</span></td>
+        <td>${t.definitiv.length?`<b>${escHtml(t.definitiv.join(", "))}</b>`:"–"}</td>
+        <td style="text-align:right;white-space:nowrap">
+          <button class="btn btn-klein" onclick="tfDefinitivOeffnen('${escHtml(t.id)}')">Festlegen</button>
+          <button class="btn btn-klein" onclick="tfTerminLoeschen('${escHtml(t.id)}','${escHtml(t.datumAnzeige)}')">Löschen</button>
+        </td>
+      </tr>`;
+    }).join("")+`</tbody></table></div></div>`;
+  el.innerHTML=html;
+}
+
+function tfTerminNeu(){
+  const datum=prompt("Datum des Termins (TT.MM.JJJJ):");
+  if(!datum) return;
+  const von=prompt("Beginn (HH:MM):","19:00");
+  if(von===null) return;
+  const bis=prompt("Ende (HH:MM):","21:00");
+  tfTermineAnlegen([{datum,von:von||"19:00",bis:bis||""}]);
+}
+
+async function tfTermineAnlegen(termine){
+  const st=$("tfTerminStatus");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird angelegt…";
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_termine_add",password:PASS,
+      ausbildung:TF_AKTUELL.id, termine});
+    if(r.ok){
+      st.className="status-msg ok-msg";
+      st.textContent=`${r.angelegt} Termin${r.angelegt!==1?"e":""} angelegt`
+        +(r.uebersprungen?`, ${r.uebersprungen} bereits vorhanden.`:".");
+      tfOeffnen(TF_AKTUELL.id);
+    } else { st.className="status-msg err-msg"; st.textContent="Fehler beim Anlegen."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+async function tfTerminLoeschen(terminId,datum){
+  if(!confirm(`Termin vom ${datum} löschen?\n\nAlle Anmeldungen dafür gehen verloren.`)) return;
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_termin_delete",password:PASS,terminId});
+    if(r.ok) tfOeffnen(TF_AKTUELL.id);
+  }catch(e){ alert("Fehler: "+e.message); }
+}
+
+/* ── Generator ── */
+function tfGenOeffnen(){
+  const heute=new Date();
+  const in60=new Date(Date.now()+60*86400000);
+  $("tfGenVon").value=heute.toISOString().slice(0,10);
+  $("tfGenBis").value=in60.toISOString().slice(0,10);
+  $("tfGenErgebnis").innerHTML="";
+  $("tfGenStatus").style.display="none";
+  $("tfGenBg").style.display="flex";
+}
+function tfGenSchliessen(){ $("tfGenBg").style.display="none"; }
+
+async function tfGenErzeugen(){
+  const st=$("tfGenStatus");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird erzeugt…";
+  const tage=[];
+  document.querySelectorAll(".tf-tag").forEach(c=>{ if(c.checked) tage.push(parseInt(c.value,10)); });
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_generieren",password:PASS,
+      von:$("tfGenVon").value, bis:$("tfGenBis").value, wochentage:tage,
+      zeitVon:$("tfGenZeitVon").value, zeitBis:$("tfGenZeitBis").value,
+      ohneUebung:$("tfGenOhneUebung").checked});
+    if(!r.ok){
+      st.className="status-msg err-msg";
+      st.textContent=r.error==="ZEITRAUM_UNGUELTIG"?"Bitte gültigen Zeitraum wählen."
+        :r.error==="ZEITRAUM_ZU_GROSS"?"Der Zeitraum darf höchstens ein Jahr umfassen.":"Fehler.";
+      return;
+    }
+    st.className="status-msg ok-msg";
+    st.textContent=`${r.anzahl} Vorschläge${r.mitKollision?` · ${r.mitKollision} mit Übungsbetrieb`:""}`;
+    $("tfGenErgebnis").innerHTML=`<div class="hinw" style="margin-bottom:8px">Auswahl prüfen, dann übernehmen:</div>
+      <div style="max-height:260px;overflow-y:auto;border:1px solid var(--gray-mid)">
+      ${r.vorschlaege.map((v,i)=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 10px;
+        border-bottom:1px solid var(--gray-mid);text-transform:none;letter-spacing:0;color:var(--text);font-size:13px;
+        ${v.kollision?"background:var(--red-light)":""}">
+        <input type="checkbox" class="tf-vor" data-i="${i}" ${v.kollision?"":"checked"} style="width:auto;margin:0">
+        <span style="flex:1"><b>${escHtml(v.datumAnzeige)}</b> ${escHtml(v.wochentag)} · ${escHtml(v.von)}–${escHtml(v.bis)}</span>
+        ${v.kollision?`<span class="hinw" style="color:var(--red)">${escHtml(v.kollision)}</span>`:""}
+      </label>`).join("")}</div>
+      <div class="entry-actions" style="justify-content:flex-start;margin-top:.75rem">
+        <button class="btn btn-green btn-klein" onclick='tfGenUebernehmen(${JSON.stringify(r.vorschlaege).replace(/'/g,"&#39;")})'>Ausgewählte übernehmen</button>
+      </div>`;
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+function tfGenUebernehmen(vorschlaege){
+  const gewaehlt=[];
+  document.querySelectorAll(".tf-vor").forEach(c=>{
+    if(c.checked) gewaehlt.push(vorschlaege[parseInt(c.dataset.i,10)]);
+  });
+  if(gewaehlt.length===0){
+    const st=$("tfGenStatus");
+    st.className="status-msg err-msg"; st.textContent="Bitte mindestens einen Termin auswählen.";
+    return;
+  }
+  tfGenSchliessen();
+  tfTermineAnlegen(gewaehlt);
+}
+
+/* ── Definitiv festlegen ── */
+function tfDefinitivOeffnen(terminId){
+  const t=TF_TERMINE.filter(x=>x.id===terminId)[0];
+  if(!t) return;
+  const kandidaten=t.ausbildner;
+  if(kandidaten.length===0){
+    alert("Für diesen Termin hat sich noch kein Ausbildner eingetragen.");
+    return;
+  }
+  const html=`<div class="card" style="border-top-color:var(--red)">
+    <h2>Termin festlegen – ${escHtml(t.datumAnzeige)}</h2>
+    <p class="hinw" style="margin-bottom:1rem">
+      ${escHtml(t.wochentag)}, ${escHtml(t.datumAnzeige)} · ${escHtml(t.von||"–")}${t.bis?"–"+escHtml(t.bis):""}<br>
+      Teilnehmer: ${escHtml(t.teilnehmer.join(", "))||"keine"}
+    </p>
+    <label>Welche Ausbildner sind definitiv dabei?</label>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:1rem">
+      ${kandidaten.map(k=>`<label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px">
+        <input type="checkbox" class="tf-def" value="${escHtml(k)}" ${t.definitiv.indexOf(k)>=0?"checked":""} style="width:auto;margin:0"> ${escHtml(k)}
+      </label>`).join("")}
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px">
+      <input type="checkbox" id="tfDefMail" checked style="width:auto;margin:0"> Alle Beteiligten per Mail informieren
+    </label>
+    ${TF_AKTUELL.fahrzeug?`<label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px;margin-top:.5rem">
+      <input type="checkbox" id="tfDefRes" checked style="width:auto;margin:0"> ${escHtml(TF_AKTUELL.fahrzeug)} im Kalender reservieren
+    </label>`:""}
+    <div class="entry-actions" style="margin-top:1rem">
+      <button class="btn btn-klein" onclick="tfOeffnen('${escHtml(TF_AKTUELL.id)}')">Abbrechen</button>
+      <button class="btn btn-red btn-klein" onclick="tfDefinitivSetzen('${escHtml(terminId)}')">Festlegen</button>
+    </div>
+    <div class="status-msg" id="tfDefStatus"></div>
+  </div>`;
+  $("tfTermine").innerHTML=html;
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+async function tfDefinitivSetzen(terminId){
+  const st=$("tfDefStatus");
+  const def=[];
+  document.querySelectorAll(".tf-def").forEach(c=>{ if(c.checked) def.push(c.value); });
+  if(def.length===0){ st.className="status-msg err-msg"; st.style.display="block";
+    st.textContent="Bitte mindestens einen Ausbildner auswählen."; return; }
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird festgelegt…";
+  try{
+    const resEl=$("tfDefRes");
+    const r=await ftCallAdmin({type:"admin_tf_definitiv",password:PASS,terminId,
+      definitiv:def, mailSenden:$("tfDefMail").checked, reservieren: resEl?resEl.checked:false});
+    if(r.ok){
+      const b=r.bericht||{};
+      let txt=`Termin festgelegt mit ${b.gesetzt} Ausbildner${b.gesetzt!==1?"n":""}.`;
+      if(b.mails) txt+=` ${b.mails} Mail${b.mails!==1?"s":""} versendet.`;
+      if(b.ohneMail&&b.ohneMail.length) txt+=` Ohne Mail: ${b.ohneMail.join(", ")}.`;
+      if(b.reservation) txt+=` Kalender: ${b.reservation}`;
+      st.className="status-msg ok-msg"; st.textContent=txt;
+      setTimeout(()=>tfOeffnen(TF_AKTUELL.id),2500);
+    } else { st.className="status-msg err-msg"; st.textContent="Fehler beim Festlegen."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
 /* ══════════════════ GRUNDLAGEN ══════════════════ */
 let GR_GELADEN=false;
 
@@ -1873,6 +2290,7 @@ function grBaueHtml(ft,so){
     +grZeile("Grundausbildung (Startseite)","grundausbildung.feuerwehrmeilen.ch","https://grundausbildung.feuerwehrmeilen.ch")
     +grZeile("Schlusstest Kategorie B","grundausbildung.feuerwehrmeilen.ch/BTest","https://grundausbildung.feuerwehrmeilen.ch/BTest/")
     +grZeile("Ausbildungsinhalte Kategorie B","grundausbildung.feuerwehrmeilen.ch/BGrund","https://grundausbildung.feuerwehrmeilen.ch/BGrund/")
+    +grZeile("Terminfindung Ausbildungen","uebungsfindung.feuerwehrmeilen.ch","https://uebungsfindung.feuerwehrmeilen.ch")
     +grZeile("Dieses Admin-Panel","mwd.feuerwehrmeilen.ch","https://mwd.feuerwehrmeilen.ch"));
 
   // Quellcode
@@ -1880,7 +2298,8 @@ function grBaueHtml(ft,so){
     grZeile("Fahrtraining + Dashboard + Rückmeldungen","FwMeilen/Uebungsfahrten","https://github.com/FwMeilen/Uebungsfahrten")
     +grZeile("SoSi-Prüfungstool","FwMeilen/sosi","https://github.com/FwMeilen/sosi")
     +grZeile("Admin-Panel","FwMeilen/admin","https://github.com/FwMeilen/admin")
-    +grZeile("Grundausbildung","FwMeilen/grundausbildung","https://github.com/FwMeilen/grundausbildung"));
+    +grZeile("Grundausbildung","FwMeilen/grundausbildung","https://github.com/FwMeilen/grundausbildung")
+    +grZeile("Terminfindung","FwMeilen/uebungsfindung","https://github.com/FwMeilen/uebungsfindung"));
 
   // Apps Scripts
   let scripts="";
@@ -2327,7 +2746,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.49";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.50";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -2696,7 +3115,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.49", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.50", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -3432,13 +3851,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.49`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.50`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.49";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.50";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
