@@ -742,6 +742,17 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         <button class="tab" data-gabtab="fragen">Fragen</button>
         <button class="tab" data-gabtab="sosi">SoSi-Vorbereitung</button>
         <button class="tab" data-gabtab="einstellungen">Einstellungen</button>
+        <button class="tab" data-gabtab="inhalte">Ausbildungsinhalte</button>
+      </div>
+
+      <div id="gabTabInhalte" style="display:none">
+        <div class="card">
+          <h2>Ausbildungsinhalte Kategorie B</h2>
+          <p class="hinw" style="margin-bottom:1rem">Inhalte der Seite
+            <a href="https://grundausbildung.feuerwehrmeilen.ch/BGrund/" target="_blank" rel="noopener" style="color:var(--red);font-weight:600">grundausbildung.feuerwehrmeilen.ch/BGrund</a>.
+            Änderungen erscheinen dort nach dem Speichern beim nächsten Öffnen.</p>
+          <div id="gaEdB"><div class="loading">Lade …</div></div>
+        </div>
       </div>
 
       <div id="gabTabResultate">
@@ -932,14 +943,17 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
     <div id="toolGatlf" style="display:none">
       <div class="card">
         <h2>TLF Grundausbildung</h2>
-        <p class="hinw" style="line-height:1.8">
-          Dieser Bereich ist vorbereitet, aber noch nicht befüllt.
-          Sobald die Ausbildungsunterlagen vorliegen, werden hier Resultate,
-          Fragenkatalog und Einstellungen verwaltet – analog zur B-Grundausbildung.
-        </p>
-        <div class="warnung" style="margin-top:1rem">
-          Die Seite <b>grundausbildung.feuerwehrmeilen.ch/TLF</b> ist noch nicht aktiv.
+        <div class="entry-actions" style="justify-content:flex-start;margin-bottom:.5rem">
+          <a class="btn btn-klein" href="https://grundausbildung.feuerwehrmeilen.ch/TLFGrund/" target="_blank" rel="noopener" style="text-decoration:none">Ausbildungsinhalte ansehen</a>
+          <a class="btn btn-klein" href="https://grundausbildung.feuerwehrmeilen.ch/TLF_Bedienungsanleitung.pdf" target="_blank" rel="noopener" style="text-decoration:none">Bedienungsanleitung (PDF)</a>
         </div>
+        <p class="hinw">Ein TLF-Schlusstest mit Resultaten und Fragen folgt, sobald die Unterlagen dafür vorliegen.</p>
+      </div>
+      <div class="card">
+        <h2>Ausbildungsinhalte TLF</h2>
+        <p class="hinw" style="margin-bottom:1rem">«Anleitung-Seite» ist die gedruckte Seitenzahl der Bedienungsanleitung –
+          auf der Seite erscheint dann ein Link, der das PDF direkt dort öffnet.</p>
+        <div id="gaEdTLF"><div class="loading">Lade …</div></div>
       </div>
     </div>
 
@@ -1611,7 +1625,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.66</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.67</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten ──
@@ -1751,7 +1765,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
 const FT_EXEC_URL="https://script.google.com/macros/s/AKfycbwvTL3yecdyTvSV5ZPgGslm5K-3UFjW9zc4A2qn_zUk50CcSIpXEaBE1hMiaU3GnNEQ/exec";
-// SoSi läuft im gemeinsamen Script (das alte SoSi-Script ist seit CLv1.66 stillgelegt)
+// SoSi läuft im gemeinsamen Script (das alte SoSi-Script ist seit CLv1.67 stillgelegt)
 const SO_EXEC_URL=FT_EXEC_URL;
 
 let PASS="";
@@ -1782,7 +1796,7 @@ $("pass").addEventListener("keydown", e=>{ if(e.key==="Enter") login(); });
 
 /* ── Anmeldung ──
  * Kürzel + Passwort → Sitzung "SITZUNG:<schlüssel>" ersetzt das Passwort in allen
- * Aufrufen. Das Sammelpasswort gibt es seit CLv1.66 nicht mehr.
+ * Aufrufen. Das Sammelpasswort gibt es seit CLv1.67 nicht mehr.
  */
 let ICH=null;
 const SITZUNG_SPEICHER="mwd_sitzung";
@@ -1837,13 +1851,15 @@ async function panelOeffnen(p, benutzer){
     .then(r=>{ if(r&&r.ok){ SC_LETZT=r; scWarnungSetzen(r); } }).catch(()=>{});
 }
 
-/* ── Rechte (seit CLv1.66) ──
+/* ── Rechte (seit CLv1.67) ──
  * Admins sehen alles. User sehen nur Tools, Reiter und Kacheln, für die sie ein
  * Recht haben. Durchgesetzt wird serverseitig – das Ausblenden ist nur Komfort.
  */
 const REITER_ATTR={ft:"fttab",so:"sotab",res:"restab",gab:"gabtab",tf:"tftab"};
 function istAdmin(){ return !!ICH && ICH.rolle==="voll"; }
-function darf(id){ return istAdmin() || (!!ICH && Array.isArray(ICH.rechte) && ICH.rechte.indexOf(id)>=0); }
+// Reiter ohne eigenes Recht im Katalog → welches Recht sie brauchen
+const REITER_RECHT={"gab.inhalte":"gab.einstellungen"};
+function darf(id){ id=REITER_RECHT[id]||id; return istAdmin() || (!!ICH && Array.isArray(ICH.rechte) && ICH.rechte.indexOf(id)>=0); }
 function darfTool(tool){
   if(tool==="start") return true;
   if(tool==="backup"||tool==="benutzer") return istAdmin();
@@ -2045,6 +2061,7 @@ function switchTool(){
   if(tool==="backup" && FT_OK && !BACKUP_INIT) initBackup();
   if(tool==="gab" && FT_OK && !GAB_INIT) initGab();
   if(tool==="tf" && FT_OK && !TF_INIT) initTf();
+  if(tool==="gatlf" && FT_OK && !GA_ED.TLF) gaEditorOeffnen("TLF");
   if(tool==="benutzer" && FT_OK && !BV_INIT) initBv();
   ersterErlaubterReiter(tool);
 }
@@ -2143,6 +2160,8 @@ function initGab(){
       $("gabTabResultate").style.display=tab==="resultate"?"block":"none";
       $("gabTabFragen").style.display=tab==="fragen"?"block":"none";
       $("gabTabEinstellungen").style.display=tab==="einstellungen"?"block":"none";
+      $("gabTabInhalte").style.display=tab==="inhalte"?"block":"none";
+      if(tab==="inhalte") gaEditorOeffnen("B");
       if(tab==="einstellungen"){ gabLadeParameter(); svLadeConfig(); }
       if(tab==="fragen") gabLadeFragen();
       $("gabTabSosi").style.display=tab==="sosi"?"block":"none";
@@ -2163,11 +2182,12 @@ function initGab(){
   $("btnGabLaden").addEventListener("click", gabLadeResultate);
   $("gabSuche").addEventListener("input", gabRendern);
   $("gabFilter").addEventListener("change", gabRendern);
-  $("gabSheetLink").href="https://docs.google.com/spreadsheets/d/"+GAB_FRAGEN_SHEET+"/edit";
-  gabLadeResultate();
+  // gabSheetLink gibt es im Panel nicht mehr – ohne Prüfung brach initGab hier ab (behoben CLv1.67)
+  if($("gabSheetLink")) $("gabSheetLink").href="https://docs.google.com/spreadsheets/d/"+GAB_FRAGEN_SHEET+"/edit";
+  if(darf("gab.resultate")) gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.66";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.67";
 
 let GAB_NT_ID=null;
 
@@ -2685,6 +2705,164 @@ async function cacheLeeren(){
 }
 
 /* ══════════════════ TERMINFINDUNG ══════════════════ */
+/* ══════════════════ AUSBILDUNGSINHALTE B / TLF (seit CLv1.67) ══════════════════
+ * Gemeinsamer Editor für die Seiten BGrund und TLFGrund. Gespeichert wird im Sheet
+ * «MWD Ausbildungsinhalte» (Server: ga_inhalte / admin_gab_inhalte_set / admin_gatlf_inhalte_set).
+ */
+const GA_ED={}, GA_SPEICHERN={B:"admin_gab_inhalte_set",TLF:"admin_gatlf_inhalte_set"};
+let GA_FOKUS=null;
+function gaNeueId(kat){ return (kat==="B"?"B":"T")+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function gaEl(kat){ return $(kat==="B"?"gaEdB":"gaEdTLF"); }
+
+async function gaEditorOeffnen(kat, neu){
+  if(GA_ED[kat] && !neu) return;
+  const el=gaEl(kat);
+  el.innerHTML='<div class="loading">Lade …</div>';
+  try{
+    const r=await ftCallAdmin({type:"ga_inhalte",kategorie:kat});
+    if(!r.ok){
+      el.innerHTML=r.error==="KEIN_SHEET"
+        ? '<div class="warnung">Das Sheet für die Ausbildungsinhalte ist noch nicht eingerichtet. Im Apps-Script-Editor einmal die Funktion <b>ausbildungsinhalteEinrichten</b> ausführen, danach hier neu laden.</div>'
+        : r.error==="UNBEKANNTER_AUFRUF" ? '<div class="warnung">Erst nach dem Deployen von Code.gs CLv1.67 verfügbar.</div>'
+        : `<div class="error" style="display:block">Laden fehlgeschlagen (${escHtml(r.error||"")}${r.detail?": "+escHtml(r.detail):""}).</div>`;
+      el.innerHTML+=`<div style="margin-top:.75rem"><button class="btn btn-klein" onclick="gaEditorOeffnen('${kat}',true)">Neu laden</button></div>`;
+      return;
+    }
+    GA_ED[kat]={lektionen:r.lektionen||[], stand:r.stand||0, dirty:false, offen:{}};
+    gaRendern(kat);
+  }catch(e){ el.innerHTML=`<div class="error" style="display:block">Fehler: ${escHtml(e.message)}</div>
+    <div style="margin-top:.75rem"><button class="btn btn-klein" onclick="gaEditorOeffnen('${kat}',true)">Neu laden</button></div>`; }
+}
+
+function gaRendern(kat){
+  const ed=GA_ED[kat], el=gaEl(kat), tlf=kat==="TLF";
+  // offene Lektionen merken
+  el.querySelectorAll("details[data-lek]").forEach(d=>{ ed.offen[d.dataset.lek]=d.open; });
+  const feld=(li,pi,f,wert,attr)=>`data-kat="${kat}" data-li="${li}" data-pi="${pi}" data-f="${f}" oninput="gaFeld(this)" ${attr||""}`;
+  const knopf=(t,fn,titel)=>`<button class="btn btn-klein" style="min-width:32px;padding:0 8px" title="${titel}" onclick="${fn}">${t}</button>`;
+  const n=ed.lektionen.reduce((s,l)=>s+l.punkte.length,0);
+  el.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:1rem;position:sticky;top:0;background:var(--bg);padding:6px 0;z-index:5">
+      <button class="btn btn-red btn-klein" onclick="gaSpeichern('${kat}')" ${ed.dirty?"":"disabled"}>Speichern</button>
+      <button class="btn btn-klein" onclick="gaVerwerfen('${kat}')" ${ed.dirty?"":"disabled"}>Verwerfen</button>
+      <button class="btn btn-klein" onmousedown="event.preventDefault()" onclick="gaRSymbol()" title="Setzt [R] an der Cursorposition – erscheint auf der Seite als Rusterholz-Logo">R-Symbol einfügen</button>
+      <button class="btn btn-green btn-klein" onclick="gaLektionNeu('${kat}')">+ Lektion</button>
+      <span class="hinw" id="gaStatus${kat}" style="font-size:12px">${ed.dirty?'<b style="color:var(--red)">Ungespeicherte Änderungen</b>':
+        `${ed.lektionen.length} Lektionen · ${n} Punkte${ed.stand?" · gespeichert "+new Date(ed.stand).toLocaleString("de-CH",{dateStyle:"short",timeStyle:"short"}):""}`}</span>
+    </div>`+ed.lektionen.map((l,li)=>`
+    <details data-lek="${escHtml(l.id)}" ${ed.offen[l.id]?"open":""} style="border:1px solid var(--gray-mid);border-top:3px solid var(--red);margin-bottom:.75rem;background:var(--bg)">
+      <summary style="cursor:pointer;padding:.7rem 1rem;font-weight:700;display:flex;gap:8px;align-items:center">
+        <span style="flex:1">${escHtml(l.titel||"(ohne Titel)")} <span class="hinw" style="font-weight:400">· ${l.punkte.length} Punkte${l.info?" · "+escHtml(l.info):""}</span></span>
+        ${knopf("↑",`event.preventDefault();gaLektionSchieben('${kat}',${li},-1)`,"Lektion nach oben")}
+        ${knopf("↓",`event.preventDefault();gaLektionSchieben('${kat}',${li},1)`,"Lektion nach unten")}
+        ${knopf("✕",`event.preventDefault();gaLektionLoeschen('${kat}',${li})`,"Lektion löschen")}
+      </summary>
+      <div style="padding:0 1rem 1rem">
+        <div class="entry-row2">
+          <div><label>Titel</label><input type="text" value="${escHtml(l.titel)}" ${feld(li,-1,"titel")}></div>
+          <div><label>${tlf?"Besetzung":"Dauer"}</label><input type="text" value="${escHtml(l.info)}" ${feld(li,-1,"info")}></div>
+        </div>
+        ${l.punkte.map((p,pi)=>`
+        <div style="border-top:1px solid var(--gray-mid);margin-top:.75rem;padding-top:.75rem">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+            <div style="flex:1;min-width:160px"><label>Abschnitt</label><input type="text" value="${escHtml(p.abschnitt)}" placeholder="optional" ${feld(li,pi,"abschnitt")}></div>
+            <div style="width:90px"><label>Dauer</label><input type="text" value="${escHtml(p.dauer)}" placeholder="optional" ${feld(li,pi,"dauer")}></div>
+            ${tlf?`<div style="width:110px"><label>Anleitung-Seite</label><input type="text" inputmode="numeric" value="${escHtml(p.seite)}" ${feld(li,pi,"seite")}></div>`:""}
+            <div style="display:flex;gap:4px">
+              ${knopf("↑",`gaPunktSchieben('${kat}',${li},${pi},-1)`,"Punkt nach oben")}
+              ${knopf("↓",`gaPunktSchieben('${kat}',${li},${pi},1)`,"Punkt nach unten")}
+              ${knopf("✕",`gaPunktLoeschen('${kat}',${li},${pi})`,"Punkt löschen")}
+            </div>
+          </div>
+          <label style="margin-top:.5rem">Thema</label><input type="text" value="${escHtml(p.thema)}" ${feld(li,pi,"thema")}>
+          <label style="margin-top:.5rem">Inhalt</label><textarea rows="${Math.min(8,Math.max(2,String(p.inhalt||"").split("\n").length+1))}" ${feld(li,pi,"inhalt")}>${escHtml(p.inhalt)}</textarea>
+        </div>`).join("")}
+        <div style="margin-top:.75rem"><button class="btn btn-green btn-klein" onclick="gaPunktNeu('${kat}',${li})">+ Punkt</button></div>
+      </div>
+    </details>`).join("")+`<div class="status-msg" id="gaMeldung${kat}"></div>`;
+  el.querySelectorAll("input,textarea").forEach(x=>x.addEventListener("focus",()=>{ GA_FOKUS=x; }));
+}
+
+function gaGeaendert(kat){
+  const ed=GA_ED[kat]; if(ed.dirty) return;
+  ed.dirty=true; gaRendernBehalteFokus(kat);
+}
+function gaRendernBehalteFokus(kat){
+  const f=GA_FOKUS, sel=f?[f.dataset.li,f.dataset.pi,f.dataset.f,f.selectionStart,f.selectionEnd]:null;
+  gaRendern(kat);
+  if(sel){
+    const x=gaEl(kat).querySelector(`[data-li="${sel[0]}"][data-pi="${sel[1]}"][data-f="${sel[2]}"]`);
+    if(x){ x.focus(); try{ x.setSelectionRange(sel[3],sel[4]); }catch(e){} GA_FOKUS=x; }
+  }
+}
+function gaFeld(x){
+  const kat=x.dataset.kat, li=+x.dataset.li, pi=+x.dataset.pi, f=x.dataset.f, ed=GA_ED[kat];
+  if(pi<0) ed.lektionen[li][f]=x.value; else ed.lektionen[li].punkte[pi][f]=x.value;
+  gaGeaendert(kat);
+}
+function gaStruktur(kat){ GA_ED[kat].dirty=true; gaRendern(kat); }
+function gaLektionNeu(kat){
+  const ed=GA_ED[kat], id=gaNeueId(kat);
+  ed.lektionen.push({id,titel:"Lektion "+(ed.lektionen.length+1),info:"",punkte:[]});
+  ed.offen[id]=true; gaStruktur(kat);
+}
+function gaLektionSchieben(kat,li,d){
+  const l=GA_ED[kat].lektionen, j=li+d; if(j<0||j>=l.length) return;
+  [l[li],l[j]]=[l[j],l[li]]; gaStruktur(kat);
+}
+function gaLektionLoeschen(kat,li){
+  const l=GA_ED[kat].lektionen[li];
+  if(!confirm(`Lektion «${l.titel}» mit ${l.punkte.length} Punkten löschen?`)) return;
+  GA_ED[kat].lektionen.splice(li,1); gaStruktur(kat);
+}
+function gaPunktNeu(kat,li){
+  const p=GA_ED[kat].lektionen[li].punkte, letzter=p[p.length-1];
+  p.push({id:gaNeueId(kat),abschnitt:letzter?letzter.abschnitt:"",dauer:"",thema:"",inhalt:"",seite:""});
+  gaStruktur(kat);
+  const x=gaEl(kat).querySelector(`[data-li="${li}"][data-pi="${p.length-1}"][data-f="thema"]`); if(x) x.focus();
+}
+function gaPunktSchieben(kat,li,pi,d){
+  const p=GA_ED[kat].lektionen[li].punkte, j=pi+d; if(j<0||j>=p.length) return;
+  [p[pi],p[j]]=[p[j],p[pi]]; gaStruktur(kat);
+}
+function gaPunktLoeschen(kat,li,pi){
+  const p=GA_ED[kat].lektionen[li].punkte;
+  if(p[pi].thema && !confirm(`Punkt «${p[pi].thema}» löschen?`)) return;
+  p.splice(pi,1); gaStruktur(kat);
+}
+function gaRSymbol(){
+  const x=GA_FOKUS;
+  if(!x||!document.body.contains(x)){ alert("Zuerst in ein Feld klicken, in das das R-Symbol soll."); return; }
+  const a=x.selectionStart??x.value.length, b=x.selectionEnd??a;
+  x.value=x.value.slice(0,a)+"[R]"+x.value.slice(b);
+  x.focus(); try{ x.setSelectionRange(a+3,a+3); }catch(e){}
+  gaFeld(x);
+}
+function gaVerwerfen(kat){
+  if(!confirm("Alle ungespeicherten Änderungen verwerfen?")) return;
+  gaEditorOeffnen(kat,true);
+}
+async function gaSpeichern(kat){
+  const ed=GA_ED[kat], m=$("gaMeldung"+kat);
+  const leer=[]; ed.lektionen.forEach(l=>{ if(!String(l.titel).trim()) leer.push("eine Lektion ohne Titel"); l.punkte.forEach(p=>{ if(!String(p.thema).trim()) leer.push(`ein Punkt ohne Thema in «${l.titel}»`); }); });
+  if(leer.length){ m.className="status-msg err-msg"; m.style.display="block"; m.textContent="Bitte ergänzen: "+[...new Set(leer)].join(", ")+"."; return; }
+  m.className="status-msg"; m.style.display="block"; m.textContent="Wird gespeichert …";
+  try{
+    const r=await ftCallAdmin({type:GA_SPEICHERN[kat],password:PASS,lektionen:ed.lektionen,stand:ed.stand,anfrageId:Date.now()+"-"+Math.random()});
+    if(r.ok){
+      ed.stand=r.stand; ed.dirty=false; gaRendern(kat);
+      const m2=$("gaMeldung"+kat); m2.className="status-msg ok-msg"; m2.style.display="block";
+      m2.textContent=`Gespeichert: ${r.lektionen} Lektionen, ${r.punkte} Punkte. Die Seite zeigt den neuen Stand beim nächsten Öffnen.`;
+    } else {
+      m.className="status-msg err-msg";
+      m.textContent=r.error==="VERALTET"?"Inzwischen hat jemand anders gespeichert. Bitte «Verwerfen» und die Änderungen neu machen, damit nichts überschrieben wird."
+        :r.error==="KEIN_RECHT"?"Dafür fehlt dir das Recht."
+        :r.error==="UNBEKANNTER_AUFRUF"?"Erst nach dem Deployen von Code.gs CLv1.67 möglich."
+        :"Speichern fehlgeschlagen: "+(r.detail||r.error||"unbekannt");
+    }
+  }catch(e){ m.className="status-msg err-msg"; m.textContent="Fehler: "+e.message; }
+}
+window.addEventListener("beforeunload",e=>{ if(Object.values(GA_ED).some(x=>x&&x.dirty)){ e.preventDefault(); e.returnValue=""; } });
+
 let TF_INIT=false, TF_LISTE=[], TF_AKTUELL=null, TF_TERMINE=[], TF_VORSCHLAEGE=[];
 let TF_FEHLEND={teilnehmer:null,ausbildner:null}, TF_FORTSCHRITT=null, TF_LODUR=null;
 
@@ -3564,7 +3742,7 @@ function tfKontingentHinweis(k,anzahl){
   return `<div class="hinw" style="margin-top:.6rem">Heute noch ${k} Mails möglich.</div>`;
 }
 
-/* ── Termine in Lodur reservieren (seit CLv1.66) ── */
+/* ── Termine in Lodur reservieren (seit CLv1.67) ── */
 let TF_LODUR_DATEN=null, TF_LODUR_STANDARD=null;
 
 function tfLodurKnopf(){
@@ -4546,7 +4724,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.66";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.67";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -4915,7 +5093,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.66", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.67", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -5648,13 +5826,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.66`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.67`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.66";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.67";
 
 async function soApi(payload){
   try{
