@@ -929,6 +929,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 
             <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
               <button class="btn btn-green btn-klein" id="btnTfMailtextSpeichern">Speichern</button>
+              <button class="btn btn-klein" id="btnTfMailtextStandard">Als Standard speichern</button>
               <button class="btn btn-klein" id="btnTfMailtextReset">Auf Standard</button>
             </div>
             <div class="status-msg" id="tfMailtextStatus"></div>
@@ -1329,7 +1330,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.54</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.55</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1598,7 +1599,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.54";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.55";
 
 let GAB_NT_ID=null;
 
@@ -2083,6 +2084,7 @@ function initTf(){
   $("btnTfMailSenden").addEventListener("click", tfMailSenden);
   $("btnTfMailtextSpeichern").addEventListener("click", tfMailtextSpeichern);
   $("btnTfMailtextReset").addEventListener("click", tfMailtextReset);
+  $("btnTfMailtextStandard").addEventListener("click", tfMailtextAlsStandard);
   $("tfMailDetails").addEventListener("toggle", ()=>{ if($("tfMailDetails").open) tfMailtextLaden(); });
   ["tfEinlBetreff","tfEinlText","tfErinnBetreff","tfErinnText"].forEach(i=>$(i).addEventListener("input", tfMailtextVorschau));
   $("btnTfGenerieren").addEventListener("click", tfGenOeffnen);
@@ -2397,6 +2399,21 @@ async function tfMailtextSpeichern(){
       erinnBetreff:$("tfErinnBetreff").value, erinnText:$("tfErinnText").value});
     if(r.ok){ st.className="status-msg ok-msg"; st.textContent="Gespeichert."; }
     else { st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+async function tfMailtextAlsStandard(){
+  if(!confirm("Die aktuellen Texte als neuen Standard speichern?\n\n«Auf Standard» setzt danach auf diese Fassung zurück.")) return;
+  const st=$("tfMailtextStatus");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
+  const werte={einlBetreff:$("tfEinlBetreff").value, einlText:$("tfEinlText").value,
+    erinnBetreff:$("tfErinnBetreff").value, erinnText:$("tfErinnText").value};
+  try{
+    const r=await ftCallAdmin(Object.assign({type:"admin_tf_mail_set_standard",password:PASS},werte));
+    if(r.ok){
+      TF_MAILTEXT_STANDARD=werte;
+      st.className="status-msg ok-msg"; st.textContent="Als Standard gespeichert und übernommen.";
+    } else { st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
 }
 
@@ -3235,7 +3252,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.54";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.55";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -3604,7 +3621,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.54", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.55", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -4340,13 +4357,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.54`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.55`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.54";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.55";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
