@@ -1330,7 +1330,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.55</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.56</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1599,7 +1599,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.55";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.56";
 
 let GAB_NT_ID=null;
 
@@ -2069,7 +2069,7 @@ async function cacheLeeren(){
 
 /* ══════════════════ TERMINFINDUNG ══════════════════ */
 let TF_INIT=false, TF_LISTE=[], TF_AKTUELL=null, TF_TERMINE=[], TF_VORSCHLAEGE=[];
-let TF_FEHLEND={teilnehmer:null,ausbildner:null};
+let TF_FEHLEND={teilnehmer:null,ausbildner:null}, TF_FORTSCHRITT=null;
 
 function initTf(){
   TF_INIT=true;
@@ -2124,6 +2124,7 @@ function tfKarte(a){
           ${a.anzahlDefinitiv?` · ${a.anzahlDefinitiv} definitiv`:""}
           · benötigt ${a.minTeilnehmer} Teilnehmer und ${a.minAusbildner} Ausbildner
           · vorgesehen: ${(a.teilnehmerListe||[]).length||"alle"} Teilnehmer, ${(a.ausbildnerListe||[]).length||"alle"} Ausbildner
+          ${a.benoetigteTermine?` · ${a.benoetigteTermine} Termine benötigt`:""}
           ${a.fahrzeug?` · ${escHtml(a.fahrzeug)}`:""}
         </div>
       </div>
@@ -2179,7 +2180,7 @@ async function tfFormular(a){
   await Promise.all([tfFahrzeugeSicherstellen(), tfMitgliederSicherstellen()]);
   const neu=!a;
   const d=a||{id:"",name:"",beschreibung:"",status:"offen",aktiv:true,
-    minTeilnehmer:1,maxTeilnehmer:3,minAusbildner:1,maxAusbildner:5,fahrzeug:"",dauerMin:120};
+    minTeilnehmer:1,maxTeilnehmer:3,minAusbildner:1,maxAusbildner:5,fahrzeug:"",dauerMin:120,benoetigteTermine:1};
   const id="tf-form";
   const html=`<div class="card" id="${id}" style="border-top-color:var(--green)">
     <h2>${neu?"Neue Ausbildung":"Ausbildung bearbeiten"}</h2>
@@ -2187,6 +2188,13 @@ async function tfFormular(a){
     <input id="${id}-name" type="text" value="${escHtml(d.name)}" placeholder="z. B. TLF-Ausbildung">
     <label for="${id}-beschreibung" style="margin-top:.75rem">Beschreibung (optional)</label>
     <input id="${id}-beschreibung" type="text" value="${escHtml(d.beschreibung||"")}">
+    <label for="${id}-benoetigt" style="margin-top:.75rem">Benötigte Termine</label>
+    <input id="${id}-benoetigt" type="number" min="0" max="100" value="${d.benoetigteTermine||0}" style="max-width:120px">
+    <div class="hinw" style="margin-top:4px">
+      Wie viele Termine die Ausbildung braucht. Ein Termin zählt als gefunden, sobald die Mindestzahl
+      Teilnehmer und Ausbildner eingetragen ist. 0 = kein Ziel, kein Fortschritt.
+    </div>
+
     <div class="entry-row2" style="margin-top:.75rem">
       <div><label for="${id}-minT">Teilnehmer mindestens</label>
         <input id="${id}-minT" type="number" min="1" max="50" value="${d.minTeilnehmer}"></div>
@@ -2247,7 +2255,8 @@ async function tfSpeichern(id){
       minTeilnehmer:$(f+"-minT").value, maxTeilnehmer:$(f+"-maxT").value,
       minAusbildner:$(f+"-minA").value, maxAusbildner:$(f+"-maxA").value,
       fahrzeug:$(f+"-fahrzeug").value, status:$(f+"-status").value,
-      teilnehmerListe:$(f+"-tl").value, ausbildnerListe:$(f+"-al").value});
+      teilnehmerListe:$(f+"-tl").value, ausbildnerListe:$(f+"-al").value,
+      benoetigteTermine:$(f+"-benoetigt").value});
     if(r.ok){ tfLade(); }
     else if(r.error==="NAME_LEER"){ st.className="status-msg err-msg"; st.textContent="Bitte eine Bezeichnung eingeben."; }
     else if(r.error==="TEILNEHMER_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Mindestzahl Teilnehmer darf die Plätze nicht übersteigen."; }
@@ -2274,12 +2283,32 @@ async function tfOeffnen(id){
     if(!r.ok){ $("tfTermine").innerHTML='<div class="empty">Konnte nicht geladen werden.</div>'; return; }
     TF_AKTUELL=r.ausbildung; TF_TERMINE=r.termine||[]; TF_VORSCHLAEGE=r.vorschlaege||[];
     TF_FEHLEND=r.fehlend||{teilnehmer:null,ausbildner:null};
+    TF_FORTSCHRITT=r.fortschritt||null;
     $("tfDetailTitel").textContent=TF_AKTUELL.name;
     tfRenderTermine();
   }catch(e){ $("tfTermine").innerHTML=`<div class="empty">Fehler: ${escHtml(e.message)}</div>`; }
 }
 
 function tfZurueck(){ TF_AKTUELL=null; tfLade(); }
+
+function tfFortschrittKarte(){
+  const f=TF_FORTSCHRITT;
+  if(!f||!f.benoetigt) return "";
+  const anteil=Math.min(100,Math.round(f.gefunden/f.benoetigt*100));
+  return `<div class="card" style="border-top-color:${f.genuegend?"var(--green)":"var(--orange)"}">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
+      <h2 style="margin:0">${f.genuegend?"Genügend Termine gefunden":"Fortschritt"}</h2>
+      <span style="font-size:18px;font-weight:700;color:${f.genuegend?"var(--green)":"var(--orange)"}">${f.gefunden} von ${f.benoetigt}</span>
+    </div>
+    <div style="height:9px;background:var(--gray-mid);margin-top:.6rem">
+      <div style="height:9px;width:${anteil}%;background:${f.genuegend?"var(--green)":"var(--orange)"}"></div>
+    </div>
+    <div class="hinw" style="margin-top:6px">
+      ${f.gefunden} Termin${f.gefunden!==1?"e":""} mit Mindestbesetzung · davon ${f.festgelegt} festgelegt
+      ${f.genuegend&&f.festgelegt<f.benoetigt?` – jetzt unten unter «Geeignete Termine» die ${f.benoetigt} gewünschten festlegen.`:""}
+    </div>
+  </div>`;
+}
 
 function tfRueckmeldungKarte(){
   const f=TF_FEHLEND||{};
@@ -2315,11 +2344,11 @@ function tfRueckmeldungKarte(){
 function tfRenderTermine(){
   const el=$("tfTermine");
   if(TF_TERMINE.length===0){
-    el.innerHTML=tfRueckmeldungKarte()+'<div class="empty">Noch keine Termine erfasst.</div>';
+    el.innerHTML=tfFortschrittKarte()+tfRueckmeldungKarte()+'<div class="empty">Noch keine Termine erfasst.</div>';
     return;
   }
   const geeignet=TF_TERMINE.filter(t=>t.erfuellt);
-  let html=tfRueckmeldungKarte();
+  let html=tfFortschrittKarte()+tfRueckmeldungKarte();
   if(geeignet.length>0){
     html+=`<div class="card" style="border-top-color:var(--green)">
       <h2>Geeignete Termine</h2>
@@ -3252,7 +3281,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.55";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.56";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -3621,7 +3650,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.55", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.56", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -4357,13 +4386,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.55`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.56`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.55";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.56";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
