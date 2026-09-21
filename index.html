@@ -1563,7 +1563,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div id="tfMailBg" style=""position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:450;display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
+<div id="tfMailBg" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:450;display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
   <div style="background:#fff;max-width:560px;width:100%;border-top:5px solid var(--red);padding:1.5rem;max-height:92vh;overflow-y:auto">
     <h3 style="font-size:15px;margin-bottom:.5rem" id="tfMailTitel">Einladung senden</h3>
     <div id="tfMailInhalt"></div>
@@ -1625,7 +1625,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.67</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.68</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten ──
@@ -1765,7 +1765,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
 const FT_EXEC_URL="https://script.google.com/macros/s/AKfycbwvTL3yecdyTvSV5ZPgGslm5K-3UFjW9zc4A2qn_zUk50CcSIpXEaBE1hMiaU3GnNEQ/exec";
-// SoSi läuft im gemeinsamen Script (das alte SoSi-Script ist seit CLv1.67 stillgelegt)
+// SoSi läuft im gemeinsamen Script (das alte SoSi-Script ist seit CLv1.68 stillgelegt)
 const SO_EXEC_URL=FT_EXEC_URL;
 
 let PASS="";
@@ -1796,7 +1796,7 @@ $("pass").addEventListener("keydown", e=>{ if(e.key==="Enter") login(); });
 
 /* ── Anmeldung ──
  * Kürzel + Passwort → Sitzung "SITZUNG:<schlüssel>" ersetzt das Passwort in allen
- * Aufrufen. Das Sammelpasswort gibt es seit CLv1.67 nicht mehr.
+ * Aufrufen. Das Sammelpasswort gibt es seit CLv1.68 nicht mehr.
  */
 let ICH=null;
 const SITZUNG_SPEICHER="mwd_sitzung";
@@ -1851,7 +1851,7 @@ async function panelOeffnen(p, benutzer){
     .then(r=>{ if(r&&r.ok){ SC_LETZT=r; scWarnungSetzen(r); } }).catch(()=>{});
 }
 
-/* ── Rechte (seit CLv1.67) ──
+/* ── Rechte (seit CLv1.68) ──
  * Admins sehen alles. User sehen nur Tools, Reiter und Kacheln, für die sie ein
  * Recht haben. Durchgesetzt wird serverseitig – das Ausblenden ist nur Komfort.
  */
@@ -2182,12 +2182,12 @@ function initGab(){
   $("btnGabLaden").addEventListener("click", gabLadeResultate);
   $("gabSuche").addEventListener("input", gabRendern);
   $("gabFilter").addEventListener("change", gabRendern);
-  // gabSheetLink gibt es im Panel nicht mehr – ohne Prüfung brach initGab hier ab (behoben CLv1.67)
+  // gabSheetLink gibt es im Panel nicht mehr – ohne Prüfung brach initGab hier ab (behoben CLv1.68)
   if($("gabSheetLink")) $("gabSheetLink").href="https://docs.google.com/spreadsheets/d/"+GAB_FRAGEN_SHEET+"/edit";
   if(darf("gab.resultate")) gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.67";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.68";
 
 let GAB_NT_ID=null;
 
@@ -2705,7 +2705,7 @@ async function cacheLeeren(){
 }
 
 /* ══════════════════ TERMINFINDUNG ══════════════════ */
-/* ══════════════════ AUSBILDUNGSINHALTE B / TLF (seit CLv1.67) ══════════════════
+/* ══════════════════ AUSBILDUNGSINHALTE B / TLF (seit CLv1.68) ══════════════════
  * Gemeinsamer Editor für die Seiten BGrund und TLFGrund. Gespeichert wird im Sheet
  * «MWD Ausbildungsinhalte» (Server: ga_inhalte / admin_gab_inhalte_set / admin_gatlf_inhalte_set).
  */
@@ -2723,7 +2723,7 @@ async function gaEditorOeffnen(kat, neu){
     if(!r.ok){
       el.innerHTML=r.error==="KEIN_SHEET"
         ? '<div class="warnung">Das Sheet für die Ausbildungsinhalte ist noch nicht eingerichtet. Im Apps-Script-Editor einmal die Funktion <b>ausbildungsinhalteEinrichten</b> ausführen, danach hier neu laden.</div>'
-        : r.error==="UNBEKANNTER_AUFRUF" ? '<div class="warnung">Erst nach dem Deployen von Code.gs CLv1.67 verfügbar.</div>'
+        : r.error==="UNBEKANNTER_AUFRUF" ? '<div class="warnung">Erst nach dem Deployen von Code.gs CLv1.68 verfügbar.</div>'
         : `<div class="error" style="display:block">Laden fehlgeschlagen (${escHtml(r.error||"")}${r.detail?": "+escHtml(r.detail):""}).</div>`;
       el.innerHTML+=`<div style="margin-top:.75rem"><button class="btn btn-klein" onclick="gaEditorOeffnen('${kat}',true)">Neu laden</button></div>`;
       return;
@@ -2856,7 +2856,7 @@ async function gaSpeichern(kat){
       m.className="status-msg err-msg";
       m.textContent=r.error==="VERALTET"?"Inzwischen hat jemand anders gespeichert. Bitte «Verwerfen» und die Änderungen neu machen, damit nichts überschrieben wird."
         :r.error==="KEIN_RECHT"?"Dafür fehlt dir das Recht."
-        :r.error==="UNBEKANNTER_AUFRUF"?"Erst nach dem Deployen von Code.gs CLv1.67 möglich."
+        :r.error==="UNBEKANNTER_AUFRUF"?"Erst nach dem Deployen von Code.gs CLv1.68 möglich."
         :"Speichern fehlgeschlagen: "+(r.detail||r.error||"unbekannt");
     }
   }catch(e){ m.className="status-msg err-msg"; m.textContent="Fehler: "+e.message; }
@@ -3742,7 +3742,7 @@ function tfKontingentHinweis(k,anzahl){
   return `<div class="hinw" style="margin-top:.6rem">Heute noch ${k} Mails möglich.</div>`;
 }
 
-/* ── Termine in Lodur reservieren (seit CLv1.67) ── */
+/* ── Termine in Lodur reservieren (seit CLv1.68) ── */
 let TF_LODUR_DATEN=null, TF_LODUR_STANDARD=null;
 
 function tfLodurKnopf(){
@@ -4724,7 +4724,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.67";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.68";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -5093,7 +5093,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.67", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.68", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -5826,13 +5826,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.67`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.68`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.67";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.68";
 
 async function soApi(payload){
   try{
