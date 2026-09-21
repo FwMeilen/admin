@@ -69,6 +69,14 @@ select{appearance:none;-webkit-appearance:none;padding-right:28px;background-ima
 .start-link span{display:block;font-size:11px;font-weight:400;color:var(--text3);margin-top:2px;}
 .start-leer{color:var(--text3);font-weight:400;font-size:13px;}
 .start-verwalten{align-self:flex-start;margin-top:auto;}
+.tf-kopf{padding:1rem 1.25rem;cursor:pointer;display:flex;gap:12px;align-items:center;}
+.tf-kopf:hover{background:var(--bg2);}
+.tf-pfeil{transition:transform .15s;color:var(--gray);font-size:11px;flex-shrink:0;}
+.tf-karte.offen .tf-pfeil{transform:rotate(90deg);}
+.tf-koerper{display:none;border-top:1px solid var(--gray-mid);padding:1rem 1.25rem 1.25rem;}
+.tf-karte.offen .tf-koerper{display:block;}
+.tf-koerper .card{margin-bottom:.75rem;}
+.tf-mini{width:90px;height:6px;background:var(--gray-mid);flex-shrink:0;}
 .ampel-leiste{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1.25rem;}
 .ampel{display:flex;align-items:center;gap:9px;border:1px solid var(--gray-mid);padding:10px 14px;background:var(--bg);flex:1;min-width:200px;}
 .ampel-punkt{width:13px;height:13px;border-radius:50%;flex-shrink:0;background:var(--gray-mid);}
@@ -983,10 +991,10 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       <div id="tfListe" class="loading">Lade …</div>
 
       <div id="tfDetail" style="display:none">
-        <div class="card">
-          <h2 id="tfDetailTitel">Termine</h2>
+        <div class="tf-aktionen" style="margin-bottom:1rem">
+          <h2 id="tfDetailTitel" style="display:none">Termine</h2>
           <div class="entry-actions" style="justify-content:flex-start">
-            <button class="btn btn-klein" id="btnTfZurueck">← Übersicht</button>
+            <button class="btn btn-klein" id="btnTfZurueck" style="display:none">← Übersicht</button>
             <button class="btn btn-green btn-klein" id="btnTfTerminNeu">+ Einzelner Termin</button>
             <button class="btn btn-klein" id="btnTfGenerieren">Termine vorschlagen</button>
           </div>
@@ -1466,7 +1474,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.60</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.61</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten ──
@@ -1847,7 +1855,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.60";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.61";
 
 let GAB_NT_ID=null;
 
@@ -2370,6 +2378,7 @@ let TF_FEHLEND={teilnehmer:null,ausbildner:null}, TF_FORTSCHRITT=null;
 
 function initTf(){
   TF_INIT=true;
+  TF_DETAIL_PARK=$("tfDetail").parentNode;
   document.querySelectorAll("[data-tftab]").forEach(t=>{
     t.addEventListener("click", ()=>{
       document.querySelectorAll("[data-tftab]").forEach(x=>x.classList.remove("aktiv"));
@@ -2381,7 +2390,7 @@ function initTf(){
     });
   });
   tfFahrzeugeSicherstellen();
-  $("btnTfLaden").addEventListener("click", tfLade);
+  $("btnTfLaden").addEventListener("click", ()=>tfLade(TF_OFFEN,"termine"));
   $("btnTfNeu").addEventListener("click", ()=>tfFormular(null));
   $("btnTfZurueck").addEventListener("click", tfZurueck);
   $("btnTfTerminNeu").addEventListener("click", tfEinzelOeffnen);
@@ -2403,11 +2412,22 @@ function initTf(){
   tfLade();
 }
 
-async function tfLade(){
+let TF_OFFEN=null, TF_DETAIL_PARK=null;
+
+/** Terminansicht an ihren ursprünglichen Platz zurücklegen, bevor Karten neu gezeichnet werden */
+function tfDetailParken(){
+  const d=$("tfDetail");
+  if(!TF_DETAIL_PARK) TF_DETAIL_PARK=d.parentNode;
+  if(d.parentNode!==TF_DETAIL_PARK) TF_DETAIL_PARK.appendChild(d);
+  d.style.display="none";
+  $("tfEinzelForm").style.display="none";
+}
+
+async function tfLade(offenId, reiter){
   const el=$("tfListe");
+  tfDetailParken();
+  TF_OFFEN=null;
   el.innerHTML='<div class="loading">Lade …</div>';
-  $("tfDetail").style.display="none";
-  $("tfListe").style.display="block";
   try{
     const r=await ftCallAdmin({type:"admin_tf_get",password:PASS});
     if(r.error){ el.innerHTML='<div class="empty">Zugriff verweigert.</div>'; return; }
@@ -2417,6 +2437,7 @@ async function tfLade(){
       return;
     }
     el.innerHTML=TF_LISTE.map(tfKarte).join("");
+    if(offenId&&TF_LISTE.some(a=>a.id===offenId)) tfAufklappen(offenId, reiter||"termine");
   }catch(e){ el.innerHTML=`<div class="empty">Fehler: ${escHtml(e.message)}</div>`; }
 }
 
@@ -2425,26 +2446,84 @@ function tfKarte(a){
   const badge=offen
     ? '<span class="badge" style="background:#2d6a1f">Offen</span>'
     : '<span class="badge" style="background:#888">Abgeschlossen</span>';
-  return `<div class="card" style="border-top-color:${offen?"var(--green)":"var(--gray-mid)"}">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
-      <div style="flex:1;min-width:200px">
-        <div style="font-size:16px;font-weight:700">${escHtml(a.name)} ${badge}</div>
-        ${a.beschreibung?`<div class="hinw" style="margin-top:4px">${escHtml(a.beschreibung)}</div>`:""}
-        <div class="hinw" style="margin-top:6px">
-          ${a.anzahlTermine} Termin${a.anzahlTermine!==1?"e":""}
-          ${a.anzahlDefinitiv?` · ${a.anzahlDefinitiv} definitiv`:""}
-          · benötigt ${a.minTeilnehmer} Teilnehmer und ${a.minAusbildner} Ausbildner
-          · vorgesehen: ${(a.teilnehmerListe||[]).length||"alle"} Teilnehmer, ${(a.ausbildnerListe||[]).length||"alle"} Ausbildner
-          ${a.benoetigteTermine?` · ${a.benoetigteTermine} Termine benötigt`:""}
-          ${a.fahrzeug?` · ${escHtml(a.fahrzeug)}`:""}
-        </div>
+  const f=a.fortschritt;
+  const teile=[];
+  if(f&&f.benoetigt){
+    teile.push(`${f.gefunden} von ${f.benoetigt} gefunden`);
+    teile.push(`${f.festgelegt} festgelegt`);
+  } else {
+    teile.push(`${a.anzahlTermine} Termin${a.anzahlTermine!==1?"e":""}`
+      +(a.anzahlDefinitiv?` · ${a.anzahlDefinitiv} festgelegt`:""));
+  }
+  if(a.fehlendAnzahl) teile.push(a.fehlendAnzahl===1?"1 Rückmeldung fehlt":`${a.fehlendAnzahl} Rückmeldungen fehlen`);
+  if(!a.verantwortlich) teile.push('<span style="color:var(--red)">kein Verantwortlicher</span>');
+  let mini="";
+  if(f&&f.benoetigt){
+    const pct=Math.min(100,Math.round(f.gefunden/f.benoetigt*100));
+    mini=`<div class="tf-mini" title="${f.gefunden} von ${f.benoetigt} Terminen gefunden">
+      <div style="height:6px;width:${pct}%;background:${f.genuegend?"var(--green)":"var(--orange)"}"></div></div>`;
+  }
+  const id=escHtml(a.id);
+  return `<div class="card tf-karte" id="tfC-${id}" style="padding:0;border-top-color:${offen?"var(--green)":"var(--gray-mid)"}">
+    <div class="tf-kopf" onclick="tfUmschalten('${id}')">
+      <span class="tf-pfeil">&#9654;</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15px;font-weight:700">${escHtml(a.name)} ${badge}</div>
+        <div class="hinw" style="margin-top:3px">${teile.join(" · ")}</div>
       </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-klein" onclick="tfOeffnen('${escHtml(a.id)}')">Termine</button>
-        <button class="btn btn-klein" onclick='tfFormular(${JSON.stringify(a).replace(/'/g,"&#39;")})'>Bearbeiten</button>
+      ${mini}
+    </div>
+    <div class="tf-koerper">
+      <div class="tabs" style="margin-bottom:1rem">
+        <button class="tab" data-tfr="termine" onclick="tfReiter('${id}','termine')">Termine</button>
+        <button class="tab" data-tfr="bearbeiten" onclick="tfReiter('${id}','bearbeiten')">Bearbeiten</button>
       </div>
+      <div id="tfI-${id}"></div>
     </div>
   </div>`;
+}
+
+function tfUmschalten(id){
+  if(TF_OFFEN===id) tfZuklappen(); else tfAufklappen(id,"termine");
+}
+
+function tfZuklappen(){
+  tfDetailParken();
+  document.querySelectorAll(".tf-karte.offen").forEach(k=>k.classList.remove("offen"));
+  const neu=$("tfNeuBox"); if(neu) neu.remove();
+  TF_OFFEN=null; TF_AKTUELL=null;
+}
+
+function tfAufklappen(id,reiter){
+  tfZuklappen();
+  const karte=$("tfC-"+id);
+  if(!karte) return;
+  karte.classList.add("offen");
+  TF_OFFEN=id;
+  tfReiter(id,reiter);
+  setTimeout(()=>karte.scrollIntoView({behavior:"smooth",block:"start"}),60);
+}
+
+function tfReiter(id,reiter){
+  const karte=$("tfC-"+id), box=$("tfI-"+id);
+  if(!karte||!box) return;
+  karte.querySelectorAll("[data-tfr]").forEach(t=>t.classList.toggle("aktiv",t.dataset.tfr===reiter));
+  if(reiter==="termine"){
+    box.innerHTML="";
+    const d=$("tfDetail");
+    box.appendChild(d);
+    d.style.display="block";
+    tfOeffnen(id);
+  } else {
+    tfDetailParken();
+    const a=TF_LISTE.find(x=>x.id===id);
+    tfFormular(a,box);
+  }
+}
+
+function tfFormAbbrechen(id){
+  if(id&&TF_OFFEN===id) tfReiter(id,"termine");
+  else { const b=$("tfNeuBox"); if(b) b.remove(); }
 }
 
 let TF_MITGLIEDER=null;
@@ -2489,7 +2568,7 @@ async function tfFahrzeugeSicherstellen(){
   }catch(e){ console.warn("Fahrzeuge:",e); }
 }
 
-async function tfFormular(a){
+async function tfFormular(a,ziel){
   await Promise.all([tfFahrzeugeSicherstellen(), tfMitgliederSicherstellen()]);
   const neu=!a;
   const d=a||{id:"",name:"",beschreibung:"",status:"offen",aktiv:true,
@@ -2553,12 +2632,20 @@ async function tfFormular(a){
     </div>
     <div class="entry-actions" style="margin-top:1rem">
       ${neu?"":`<button class="btn btn-red btn-klein" onclick="tfLoeschen('${escHtml(d.id)}','${escHtml(d.name)}')">Löschen</button>`}
-      <button class="btn btn-klein" onclick="tfLade()">Abbrechen</button>
+      <button class="btn btn-klein" onclick="tfFormAbbrechen('${escHtml(d.id)}')">Abbrechen</button>
       <button class="btn btn-green btn-klein" onclick="tfSpeichern('${escHtml(d.id)}')">Speichern</button>
     </div>
     <div class="status-msg" id="${id}-status-msg"></div>
   </div>`;
-  $("tfListe").innerHTML=html;
+  if(ziel){ ziel.innerHTML=html; }
+  else {
+    // Neue Ausbildung: eigene Karte ganz oben
+    tfZuklappen();
+    const box=document.createElement("div");
+    box.id="tfNeuBox"; box.innerHTML=html;
+    $("tfListe").prepend(box);
+    box.scrollIntoView({behavior:"smooth",block:"start"});
+  }
   tfListePruefen(id+"-tl",id+"-tl-info");
   tfListePruefen(id+"-al",id+"-al-info");
   tfListePruefen(id+"-verantw",id+"-verantw-info");
@@ -2577,7 +2664,7 @@ async function tfSpeichern(id){
       fahrzeug:$(f+"-fahrzeug").value, status:$(f+"-status").value,
       teilnehmerListe:$(f+"-tl").value, ausbildnerListe:$(f+"-al").value,
       benoetigteTermine:$(f+"-benoetigt").value, verantwortlich:$(f+"-verantw").value});
-    if(r.ok){ tfLade(); }
+    if(r.ok){ tfLade(r.ausbildung&&r.ausbildung.id, "termine"); }
     else if(r.error==="NAME_LEER"){ st.className="status-msg err-msg"; st.textContent="Bitte eine Bezeichnung eingeben."; }
     else if(r.error==="TEILNEHMER_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Mindestzahl Teilnehmer darf die Plätze nicht übersteigen."; }
     else if(r.error==="AUSBILDNER_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Mindestzahl Ausbildner darf die Plätze nicht übersteigen."; }
@@ -2595,8 +2682,6 @@ async function tfLoeschen(id,name){
 
 /* ── Termine ── */
 async function tfOeffnen(id){
-  $("tfListe").style.display="none";
-  $("tfDetail").style.display="block";
   $("tfTermine").innerHTML='<div class="loading">Lade …</div>';
   try{
     const r=await ftCallAdmin({type:"admin_tf_termine",password:PASS,ausbildung:id});
@@ -2609,7 +2694,7 @@ async function tfOeffnen(id){
   }catch(e){ $("tfTermine").innerHTML=`<div class="empty">Fehler: ${escHtml(e.message)}</div>`; }
 }
 
-function tfZurueck(){ TF_AKTUELL=null; tfLade(); }
+function tfZurueck(){ tfZuklappen(); }
 
 function tfFortschrittKarte(){
   const f=TF_FORTSCHRITT;
@@ -3234,7 +3319,7 @@ function tfDefinitivOeffnen(terminId){
     <div class="status-msg" id="tfDefStatus"></div>
   </div>`;
   $("tfTermine").innerHTML=html;
-  window.scrollTo({top:0,behavior:"smooth"});
+  $("tfTermine").scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 async function tfDefinitivSetzen(terminId){
@@ -3812,7 +3897,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.60";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.61";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -4181,7 +4266,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.60", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.61", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -4914,13 +4999,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.60`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.61`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.60";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.61";
 
 async function soApi(payload){
   try{ return await fwAufruf(SO_EXEC_URL, payload, {seite:"Admin SoSi"}); }
