@@ -907,6 +907,23 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
             <button class="btn btn-green btn-klein" id="btnTfTerminNeu">+ Einzelner Termin</button>
             <button class="btn btn-klein" id="btnTfGenerieren">Termine vorschlagen</button>
           </div>
+
+          <div id="tfEinzelForm" style="display:none;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--gray-mid)">
+            <div class="entry-row2">
+              <div><label for="tfEinzelDatum">Datum</label><input id="tfEinzelDatum" type="date"></div>
+              <div><label for="tfEinzelBemerkung">Bemerkung (optional)</label><input id="tfEinzelBemerkung" type="text" placeholder="z. B. Treffpunkt Depot"></div>
+            </div>
+            <div class="entry-row2" style="margin-top:.75rem">
+              <div><label for="tfEinzelVon">Beginn</label><input id="tfEinzelVon" type="time" value="19:00"></div>
+              <div><label for="tfEinzelBis">Ende</label><input id="tfEinzelBis" type="time" value="21:00"></div>
+            </div>
+            <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+              <button class="btn btn-green btn-klein" id="btnTfEinzelSpeichern">Hinzufügen</button>
+              <button class="btn btn-klein" id="btnTfEinzelSchliessen">Schliessen</button>
+            </div>
+            <div class="hinw" style="margin-top:8px">Das Formular bleibt nach dem Hinzufügen offen – für weitere Termine einfach Datum ändern.</div>
+          </div>
+
           <div class="status-msg" id="tfTerminStatus"></div>
         </div>
         <div id="tfTermine" class="loading">Lade …</div>
@@ -1212,6 +1229,19 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
+<div id="tfKolBg" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:450;display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
+  <div style="background:#fff;max-width:640px;width:100%;border-top:5px solid var(--orange);padding:1.5rem;max-height:92vh;overflow-y:auto">
+    <h3 style="font-size:15px;margin-bottom:.5rem">Achtung – Feuerwehranlässe</h3>
+    <p class="hinw" style="margin-bottom:1rem">Diese Termine fallen auf einen Anlass. Bitte je Termin entscheiden.</p>
+    <div id="tfKolListe"></div>
+    <div class="hinw" id="tfKolZaehler" style="margin-top:1rem;font-weight:600;color:var(--text)"></div>
+    <div style="display:flex;gap:10px;margin-top:1.25rem">
+      <button class="btn" style="flex:1;justify-content:center" onclick="tfKolSchliessen()">Zurück</button>
+      <button class="btn btn-red" style="flex:1;justify-content:center" id="btnTfKolUebernehmen">Übernehmen</button>
+    </div>
+  </div>
+</div>
+
 <div class="info-modal-bg" id="tfGenBg" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
   <div style="background:#fff;max-width:520px;width:100%;border-top:5px solid var(--red);padding:1.5rem;max-height:92vh;overflow-y:auto">
     <h3 style="font-size:15px;margin-bottom:.75rem">Termine vorschlagen</h3>
@@ -1249,7 +1279,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.52</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.53</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1258,6 +1288,24 @@ const SO_EXEC_URL="https://script.google.com/macros/s/AKfycbz0mGY8B8I__4UV8HoMT6
 
 let PASS="";
 let FT_OK=false, SO_OK=false;
+// "ok" | "falsch" | "offline" – unterscheidet falsches Passwort von fehlender Antwort
+let FT_STATUS="offline", SO_STATUS="offline";
+
+async function pruefeFt(p){
+  try{
+    const r=await ftCallAdmin({type:"admin_auth",password:p});
+    if(r&&r.ok) return "ok";
+    return "falsch";
+  }catch(e){ return "offline"; }
+}
+async function pruefeSo(p){
+  try{
+    const r=await soApi({action:"adminLogin",pass:p});
+    if(r&&r.ok) return "ok";
+    if(r&&(r.error==="KEIN_JSON"||r.error==="NETZWERK")) return "offline";
+    return "falsch";
+  }catch(e){ return "offline"; }
+}
 const $=id=>document.getElementById(id);
 function escHtml(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
@@ -1271,13 +1319,22 @@ async function login(){
   if(!p) return;
   $("btnLogin").disabled=true; $("btnLogin").textContent="Prüfe …";
   try{
-    const [ftRes, soRes] = await Promise.all([
-      ftCallAdmin({type:"admin_auth",password:p}).then(r=>r&&r.ok).catch(()=>false),
-      soApi({action:"adminLogin",pass:p}).then(r=>r&&r.ok).catch(()=>false)
-    ]);
-    FT_OK=ftRes; SO_OK=soRes;
+    let [ft, so] = await Promise.all([pruefeFt(p), pruefeSo(p)]);
+    // Keine Antwort (z.B. Kaltstart bei Google): einmal nachfassen
+    if(ft==="offline"||so==="offline"){
+      $("btnLogin").textContent="Server startet …";
+      const [ft2, so2] = await Promise.all([
+        ft==="offline"?pruefeFt(p):Promise.resolve(ft),
+        so==="offline"?pruefeSo(p):Promise.resolve(so)
+      ]);
+      ft=ft2; so=so2;
+    }
+    FT_STATUS=ft; SO_STATUS=so;
+    FT_OK=ft==="ok"; SO_OK=so==="ok";
     if(!FT_OK && !SO_OK){
-      fehlerEl.textContent="Falsches Passwort.";
+      fehlerEl.textContent = (ft==="offline"&&so==="offline")
+        ? "Die Server antworten gerade nicht. Bitte in einem Moment erneut versuchen."
+        : "Falsches Passwort.";
       fehlerEl.style.display="block";
       return;
     }
@@ -1296,11 +1353,36 @@ async function login(){
 
 function updateAuthWarnung(){
   const w=$("authWarnung");
+  const text=(name,st)=> st==="offline"
+    ? `${name}: Server antwortet nicht`
+    : `${name}: Passwort im Backend nicht synchronisiert`;
   const probleme=[];
-  if(!FT_OK) probleme.push("Fahrtraining: Passwort im Backend nicht synchronisiert");
-  if(!SO_OK) probleme.push("SoSi: Passwort im Backend nicht synchronisiert");
-  if(probleme.length>0){ w.innerHTML="⚠ "+probleme.join(" · "); w.style.display="block"; }
+  if(!FT_OK) probleme.push(text("Fahrtraining",FT_STATUS));
+  if(!SO_OK) probleme.push(text("SoSi",SO_STATUS));
+  if(probleme.length>0){
+    const offline=(!FT_OK&&FT_STATUS==="offline")||(!SO_OK&&SO_STATUS==="offline");
+    w.innerHTML="⚠ "+probleme.join(" · ")
+      +(offline?' <button class="btn btn-klein" id="btnNeuVerbinden" style="margin-left:10px">Erneut verbinden</button>':"");
+    w.style.display="block";
+    const b=$("btnNeuVerbinden");
+    if(b) b.addEventListener("click", neuVerbinden);
+  }
   else w.style.display="none";
+}
+
+async function neuVerbinden(){
+  const b=$("btnNeuVerbinden");
+  if(b){ b.disabled=true; b.textContent="Verbinde …"; }
+  const [ft, so] = await Promise.all([
+    FT_OK?Promise.resolve("ok"):pruefeFt(PASS),
+    SO_OK?Promise.resolve("ok"):pruefeSo(PASS)
+  ]);
+  const ftNeu=!FT_OK&&ft==="ok";
+  FT_STATUS=ft; SO_STATUS=so;
+  FT_OK=ft==="ok"; SO_OK=so==="ok";
+  updateAuthWarnung();
+  // Nur Daten nachladen – die Bedienelemente sind seit dem Login verdrahtet
+  if(ftNeu){ ftHoleFahrzeuge().then(()=>ftLadeFragenAdmin()); ftLadeStatistik(); }
 }
 
 $("toolSelect").addEventListener("change", switchTool);
@@ -1321,8 +1403,11 @@ function switchTool(){
   $("toolGab").style.display = tool==="gab" ? "block" : "none";
   $("toolGatlf").style.display = tool==="gatlf" ? "block" : "none";
   $("toolTf").style.display = tool==="tf" ? "block" : "none";
-  if(tool==="ft" && !FT_OK) alert("Fahrtraining-Backend ist nicht angemeldet (Passwort nicht synchron).");
-  if(tool==="so" && !SO_OK) alert("SoSi-Backend ist nicht angemeldet (Passwort nicht synchron).");
+  const hinweis=(name,st)=> st==="offline"
+    ? `${name}-Backend antwortet gerade nicht. Oben auf «Erneut verbinden» klicken.`
+    : `${name}-Backend ist nicht angemeldet (Passwort nicht synchron).`;
+  if(tool==="ft" && !FT_OK) alert(hinweis("Fahrtraining",FT_STATUS));
+  if(tool==="so" && !SO_OK) alert(hinweis("SoSi",SO_STATUS));
   if(tool==="so" && SO_OK && !SO_INIT) initSo();
   if(tool==="res" && FT_OK && !RES_INIT) initRes();
   if(tool==="backup" && FT_OK && !BACKUP_INIT) initBackup();
@@ -1463,7 +1548,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.52";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.53";
 
 let GAB_NT_ID=null;
 
@@ -1940,7 +2025,10 @@ function initTf(){
   $("btnTfLaden").addEventListener("click", tfLade);
   $("btnTfNeu").addEventListener("click", ()=>tfFormular(null));
   $("btnTfZurueck").addEventListener("click", tfZurueck);
-  $("btnTfTerminNeu").addEventListener("click", tfTerminNeu);
+  $("btnTfTerminNeu").addEventListener("click", tfEinzelOeffnen);
+  $("btnTfEinzelSpeichern").addEventListener("click", tfEinzelSpeichern);
+  $("btnTfEinzelSchliessen").addEventListener("click", ()=>{ $("tfEinzelForm").style.display="none"; });
+  $("btnTfKolUebernehmen").addEventListener("click", tfKolUebernehmen);
   $("btnTfGenerieren").addEventListener("click", tfGenOeffnen);
   $("btnTfGenErzeugen").addEventListener("click", tfGenErzeugen);
   tfLade();
@@ -2137,13 +2225,87 @@ function tfRenderTermine(){
   el.innerHTML=html;
 }
 
-function tfTerminNeu(){
-  const datum=prompt("Datum des Termins (TT.MM.JJJJ):");
-  if(!datum) return;
-  const von=prompt("Beginn (HH:MM):","19:00");
-  if(von===null) return;
-  const bis=prompt("Ende (HH:MM):","21:00");
-  tfTermineAnlegen([{datum,von:von||"19:00",bis:bis||""}]);
+/* ── Einzelner Termin ── */
+function tfEinzelOeffnen(){
+  const f=$("tfEinzelForm");
+  f.style.display="block";
+  if(!$("tfEinzelDatum").value){
+    const morgen=new Date(Date.now()+86400000);
+    $("tfEinzelDatum").value=morgen.toISOString().slice(0,10);
+  }
+  $("tfEinzelDatum").focus();
+}
+
+function tfEinzelSpeichern(){
+  const st=$("tfTerminStatus");
+  const datum=$("tfEinzelDatum").value;
+  const von=$("tfEinzelVon").value, bis=$("tfEinzelBis").value;
+  st.className="status-msg"; st.style.display="block";
+  if(!datum){ st.className="status-msg err-msg"; st.textContent="Bitte ein Datum wählen."; return; }
+  if(!von||!bis){ st.className="status-msg err-msg"; st.textContent="Bitte Beginn und Ende angeben."; return; }
+  if(bis<=von){ st.className="status-msg err-msg"; st.textContent="Das Ende muss nach dem Beginn liegen."; return; }
+  tfMitPruefungAnlegen([{datum,von,bis,bemerkung:$("tfEinzelBemerkung").value.trim()}]);
+}
+
+/* ── Prüfen gegen Feuerwehranlässe, dann anlegen ── */
+let TF_KOL_DATEN=null;
+
+async function tfMitPruefungAnlegen(termine){
+  const st=$("tfTerminStatus");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gegen den Feuerwehrkalender geprüft…";
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_pruefen",password:PASS,termine});
+    if(!r.ok){ st.className="status-msg err-msg"; st.textContent="Prüfung fehlgeschlagen."; return; }
+    const gueltig=(r.termine||[]).filter(t=>t.gueltig);
+    const frei=gueltig.filter(t=>!t.kollision);
+    const konflikt=gueltig.filter(t=>t.kollision);
+    if(konflikt.length===0){
+      st.style.display="none";
+      tfTermineAnlegen(frei);
+      return;
+    }
+    st.style.display="none";
+    TF_KOL_DATEN={frei, konflikt, entscheid: konflikt.map(()=>false)};
+    tfKolRendern();
+    $("tfKolBg").style.display="flex";
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+function tfKolRendern(){
+  const d=TF_KOL_DATEN;
+  $("tfKolListe").innerHTML=`<div class="tblwrap"><table class="l5">
+    <thead><tr><th>Termin</th><th>Anlass</th><th style="text-align:right"></th></tr></thead>
+    <tbody>`+d.konflikt.map((t,i)=>{
+      const an=d.entscheid[i];
+      return `<tr${an?"":' style="opacity:.6"'}>
+        <td><b>${escHtml(t.datumAnzeige)}</b><br><span class="hinw">${escHtml(t.von)}–${escHtml(t.bis)}</span></td>
+        <td>${escHtml(t.kollision.titel)}<br><span class="hinw">${escHtml(t.kollision.von)}–${escHtml(t.kollision.bis)}</span></td>
+        <td style="text-align:right;white-space:nowrap">
+          <button class="btn btn-klein${an?"":" btn-red"}" onclick="tfKolSetzen(${i},false)">Weglassen</button>
+          <button class="btn btn-klein${an?" btn-green":""}" onclick="tfKolSetzen(${i},true)">Trotzdem übernehmen</button>
+        </td>
+      </tr>`;
+    }).join("")+`</tbody></table></div>`;
+  const bestaetigt=d.entscheid.filter(x=>x).length;
+  const total=d.frei.length+bestaetigt;
+  const teile=[];
+  if(d.frei.length) teile.push(`${d.frei.length} ohne Konflikt`);
+  if(bestaetigt) teile.push(`${bestaetigt} bestätigt`);
+  $("tfKolZaehler").textContent = total===0
+    ? "Es wird kein Termin übernommen."
+    : `${total} Termin${total!==1?"e":""} werden übernommen (${teile.join(" + ")}).`;
+  $("btnTfKolUebernehmen").disabled = total===0;
+}
+
+function tfKolSetzen(i,wert){ TF_KOL_DATEN.entscheid[i]=wert; tfKolRendern(); }
+function tfKolSchliessen(){ $("tfKolBg").style.display="none"; TF_KOL_DATEN=null; }
+
+function tfKolUebernehmen(){
+  const d=TF_KOL_DATEN;
+  if(!d) return;
+  const liste=d.frei.concat(d.konflikt.filter((t,i)=>d.entscheid[i]));
+  tfKolSchliessen();
+  if(liste.length) tfTermineAnlegen(liste);
 }
 
 async function tfTermineAnlegen(termine){
@@ -2199,12 +2361,12 @@ async function tfGenErzeugen(){
     }
     st.className="status-msg ok-msg";
     st.textContent=`${r.anzahl} Vorschläge${r.mitKollision?` · ${r.mitKollision} mit Übungsbetrieb`:""}`;
-    $("tfGenErgebnis").innerHTML=`<div class="hinw" style="margin-bottom:8px">Auswahl prüfen, dann übernehmen:</div>
+    $("tfGenErgebnis").innerHTML=`<div class="hinw" style="margin-bottom:8px">Auswahl prüfen, dann übernehmen. Rot markierte fallen auf einen Feuerwehranlass – beim Übernehmen kannst du je Termin entscheiden.</div>
       <div style="max-height:260px;overflow-y:auto;border:1px solid var(--gray-mid)">
       ${r.vorschlaege.map((v,i)=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 10px;
         border-bottom:1px solid var(--gray-mid);text-transform:none;letter-spacing:0;color:var(--text);font-size:13px;
         ${v.kollision?"background:var(--red-light)":""}">
-        <input type="checkbox" class="tf-vor" data-i="${i}" ${v.kollision?"":"checked"} style="width:auto;margin:0">
+        <input type="checkbox" class="tf-vor" data-i="${i}" checked style="width:auto;margin:0">
         <span style="flex:1"><b>${escHtml(v.datumAnzeige)}</b> ${escHtml(v.wochentag)} · ${escHtml(v.von)}–${escHtml(v.bis)}</span>
         ${v.kollision?`<span class="hinw" style="color:var(--red)">${escHtml(v.kollision)}</span>`:""}
       </label>`).join("")}</div>
@@ -2225,7 +2387,7 @@ function tfGenUebernehmen(vorschlaege){
     return;
   }
   tfGenSchliessen();
-  tfTermineAnlegen(gewaehlt);
+  tfMitPruefungAnlegen(gewaehlt);
 }
 
 /* ── Definitiv festlegen ── */
@@ -2831,7 +2993,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.52";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.53";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -3200,7 +3362,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.52", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.53", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -3936,13 +4098,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.52`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.53`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.52";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.53";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
