@@ -200,7 +200,6 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       <div class="status-msg" id="loginInfo"></div>
       <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:1rem;font-size:12px">
         <a href="#" id="lnkPwVergessen" style="color:var(--red);font-weight:600">Passwort vergessen?</a>
-        <span class="hinw" style="font-size:11px">Übergangszeit: Kürzel leer lassen = Sammelpasswort</span>
       </div>
     </div>
   </div>
@@ -247,7 +246,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
     <!-- ═══════════ ÜBERSICHT ═══════════ -->
     <div id="toolStart">
       <div class="card" style="padding:1.75rem 1.5rem">
-        <h1 style="font-size:22px;font-weight:700;margin-bottom:.4rem">Willkommen beim Adminpanel des MWD Team</h1>
+        <h1 id="startGruss" style="font-size:22px;font-weight:700;margin-bottom:.4rem">Willkommen beim MWD Adminpanel!</h1>
         <p class="hinw">Alle Werkzeuge auf einen Blick. Die Links öffnen die Seiten, wie sie die Angehörigen der Feuerwehr sehen – «Verwalten» führt zum jeweiligen Bereich hier im Panel.</p>
       </div>
 
@@ -288,7 +287,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 
         <div class="start-kachel">
           <div class="start-titel">Terminfindung</div>
-          <a class="start-link" href="https://uebungsfindung.feuerwehrmeilen.ch" target="_blank" rel="noopener">Für Ausbildungen eintragen<span>uebungsfindung.feuerwehrmeilen.ch</span></a>
+          <a class="start-link" href="https://terminfindung.feuerwehrmeilen.ch" target="_blank" rel="noopener">Für Ausbildungen eintragen<span>terminfindung.feuerwehrmeilen.ch</span></a>
           <button class="btn btn-klein start-verwalten" data-ziel="tf">Verwalten →</button>
         </div>
 
@@ -1019,6 +1018,26 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         </details>
         </div>
         <div class="card">
+          <h2>Termine in Lodur reservieren</h2>
+          <p class="hinw" style="margin-bottom:1rem">Vorlage für den Knopf «Termine in Lodur reservieren» in jeder Ausbildung.
+            Die Mail geht an die Empfänger unten, mit Kopie an den Ausbildungsverantwortlichen.
+            Neue und geänderte Angaben erscheinen kursiv, entfallene Termine durchgestrichen.</p>
+          <label for="tfLodurEmpfV">Empfänger (Kürzel, mehrere mit Komma)</label>
+          <input id="tfLodurEmpfV" type="text" style="max-width:260px;text-transform:uppercase" oninput="tfListePruefen('tfLodurEmpfV','tfLodurEmpfV-info')">
+          <div id="tfLodurEmpfV-info" style="margin-top:6px"></div>
+          <label for="tfLodurBetreffV" style="margin-top:.75rem">Betreff</label>
+          <input id="tfLodurBetreffV" type="text">
+          <label for="tfLodurTextV" style="margin-top:.5rem">Text</label>
+          <textarea id="tfLodurTextV" rows="10"></textarea>
+          <div class="hinw" style="margin-top:6px">Platzhalter: <code>{vorname}</code> (Empfänger) <code>{ausbildung}</code>
+            <code>{termine}</code> (Liste der festgelegten Termine) <code>{absender}</code> (wer sendet)</div>
+          <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+            <button class="btn btn-green btn-klein" id="btnTfLodurSpeichern">Speichern</button>
+            <button class="btn btn-klein" id="btnTfLodurReset">Auf Standard</button>
+          </div>
+          <div class="status-msg" id="tfLodurVStatus"></div>
+        </div>
+        <div class="card">
           <h2>Kalender-Abo</h2>
           <p class="hinw">Die Adresse des Cloudflare Workers für die Kalender-Abos wird zentral unter
             <b>Admin → Kalender-Worker</b> verwaltet.</p>
@@ -1030,7 +1049,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         <h2>Ausbildungen</h2>
         <p class="hinw" style="margin-bottom:1rem">
           Für jede Ausbildung werden Termine erfasst. Teilnehmer und Ausbildner tragen sich unter
-          <a href="https://uebungsfindung.feuerwehrmeilen.ch" target="_blank" rel="noopener" style="color:var(--red);font-weight:600">uebungsfindung.feuerwehrmeilen.ch</a>
+          <a href="https://terminfindung.feuerwehrmeilen.ch" target="_blank" rel="noopener" style="color:var(--red);font-weight:600">terminfindung.feuerwehrmeilen.ch</a>
           ein.
         </p>
         <div class="entry-actions" style="justify-content:flex-start">
@@ -1263,7 +1282,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         </div>
         <p class="hinw" style="margin:.5rem 0 1rem">Haken = der User sieht diese Funktion im Menü und darf sie benutzen.
           Ein Klick auf einen Toolnamen setzt oder entfernt alle Haken des Tools für diese Person.
-          Die Rechte greifen, sobald die Anmeldung für User freigeschaltet ist.</p>
+          Änderungen wirken sofort, auch bei bereits angemeldeten Usern. Ein User ohne Haken kann sich nicht anmelden.</p>
         <div id="bvMatrix" class="tblwrap"></div>
         <div class="status-msg" id="bvRechteStatus"></div>
       </div>
@@ -1506,7 +1525,31 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div id="tfMailBg" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:450;display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
+<div id="tfLodurBg" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:450;display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
+  <div style="background:#fff;max-width:640px;width:100%;border-top:5px solid var(--red);padding:1.5rem;max-height:92vh;overflow-y:auto">
+    <h3 style="font-size:15px;margin-bottom:.5rem">Termine in Lodur reservieren</h3>
+    <p class="hinw" id="tfLodurKopf" style="margin-bottom:1rem"></p>
+    <div id="tfLodurEmpf"></div>
+    <label for="tfLodurBetreff" style="margin-top:1rem">Betreff</label>
+    <input id="tfLodurBetreff" type="text">
+    <label for="tfLodurText" style="margin-top:.5rem">Text</label>
+    <textarea id="tfLodurText" rows="11"></textarea>
+    <div class="hinw" style="margin-top:6px">Änderungen gelten nur für diesen Versand (Vorlage unter Einstellungen). Platzhalter:
+      <code>{vorname}</code> <code>{ausbildung}</code> <code>{termine}</code> <code>{absender}</code></div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:1rem 0 6px">Vorschau</div>
+    <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem">
+      <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="tfLodurPvBetreff" style="font-weight:400"></span></div>
+      <div id="tfLodurPvText" style="font-size:13px;line-height:1.6"></div>
+    </div>
+    <div class="status-msg" id="tfLodurStatus"></div>
+    <div style="display:flex;gap:10px;margin-top:1.25rem">
+      <button class="btn" style="flex:1;justify-content:center" onclick="$('tfLodurBg').style.display='none'">Abbrechen</button>
+      <button class="btn btn-red" style="flex:1;justify-content:center" id="btnTfLodurSenden">Senden</button>
+    </div>
+  </div>
+</div>
+
+<div id="tfMailBg" style=""position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:450;display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
   <div style="background:#fff;max-width:560px;width:100%;border-top:5px solid var(--red);padding:1.5rem;max-height:92vh;overflow-y:auto">
     <h3 style="font-size:15px;margin-bottom:.5rem" id="tfMailTitel">Einladung senden</h3>
     <div id="tfMailInhalt"></div>
@@ -1568,7 +1611,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.65</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.66</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten ──
@@ -1708,9 +1751,8 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
 const FT_EXEC_URL="https://script.google.com/macros/s/AKfycbwvTL3yecdyTvSV5ZPgGslm5K-3UFjW9zc4A2qn_zUk50CcSIpXEaBE1hMiaU3GnNEQ/exec";
-// SoSi läuft seit CLv1.65 im gemeinsamen Script; bis zur Übernahme weicht soApi ans alte aus
+// SoSi läuft im gemeinsamen Script (das alte SoSi-Script ist seit CLv1.66 stillgelegt)
 const SO_EXEC_URL=FT_EXEC_URL;
-const SO_EXEC_URL_ALT="https://script.google.com/macros/s/AKfycbz0mGY8B8I__4UV8HoMT6Jih-Aw_m_YIWvSyzpR8PP1avfnDZRtDTNU8ufKtPSrTg8sNg/exec";
 
 let PASS="";
 let FT_OK=false, SO_OK=false;
@@ -1739,8 +1781,8 @@ $("btnLogin").addEventListener("click", login);
 $("pass").addEventListener("keydown", e=>{ if(e.key==="Enter") login(); });
 
 /* ── Anmeldung ──
- * Mit Kürzel: Benutzerkonto, Sitzung "SITZUNG:<schlüssel>" ersetzt das Passwort
- * in allen bestehenden Aufrufen. Ohne Kürzel: Sammelpasswort (Übergangszeit).
+ * Kürzel + Passwort → Sitzung "SITZUNG:<schlüssel>" ersetzt das Passwort in allen
+ * Aufrufen. Das Sammelpasswort gibt es seit CLv1.66 nicht mehr.
  */
 let ICH=null;
 const SITZUNG_SPEICHER="mwd_sitzung";
@@ -1750,26 +1792,25 @@ async function login(){
   const p=$("pass").value;
   const fehlerEl=$("loginFehler");
   fehlerEl.style.display="none"; $("loginInfo").style.display="none";
+  if(!k){ fehlerEl.textContent="Bitte dein Kürzel eingeben."; fehlerEl.style.display="block"; return; }
   if(!p) return;
   $("btnLogin").disabled=true; $("btnLogin").textContent="Prüfe …";
   try{
-    if(k){
+    {
       const r=await fwAufruf(FT_EXEC_URL,{type:"auth_login",kuerzel:k,passwort:p},{seite:"Admin Anmeldung"});
       if(!r.ok){
         const m={FALSCH:"Kürzel oder Passwort falsch.",
           GESPERRT:`Zu viele Fehlversuche – bitte in ${r.minuten} Minuten erneut versuchen.`,
           KEIN_PASSWORT:"Für dieses Kürzel ist noch kein Passwort festgelegt. Bitte den Link aus der Einladungsmail verwenden.",
           RECHTE_FOLGEN:"Dein Zugang ist eingerichtet. Die Anmeldung für User wird in Kürze freigeschaltet.",
-          UNBEKANNTER_AUFRUF:"Die Anmeldung mit Kürzel ist erst nach dem Deployen der neuen Code.gs verfügbar. Bitte vorerst ohne Kürzel mit dem Sammelpasswort anmelden."};
+          KEINE_RECHTE:"Dir sind noch keine Funktionen freigegeben. Bitte beim MWD Team melden."};
         fehlerEl.textContent=m[r.error]||"Anmeldung fehlgeschlagen.";
         fehlerEl.style.display="block";
         return;
       }
       try{ sessionStorage.setItem(SITZUNG_SPEICHER,r.token); }catch(e){}
       await panelOeffnen("SITZUNG:"+r.token, r.benutzer);
-      return;
     }
-    await panelOeffnen(p, null);
   }catch(e){
     fehlerEl.textContent="Verbindung fehlgeschlagen.";
     fehlerEl.style.display="block";
@@ -1780,30 +1821,66 @@ async function login(){
 
 /** Gemeinsamer Teil nach erfolgreicher Anmeldung (oder beim Wiederherstellen der Sitzung) */
 async function panelOeffnen(p, benutzer){
-  const fehlerEl=$("loginFehler");
-  {
-    // Wiederholungen bei Kaltstart übernimmt fwAufruf
-    const [ft, so] = await Promise.all([pruefeFt(p), pruefeSo(p)]);
-    FT_STATUS=ft; SO_STATUS=so;
-    FT_OK=ft==="ok"; SO_OK=so==="ok";
-    if(!FT_OK && !SO_OK){
-      fehlerEl.textContent = (ft==="offline"&&so==="offline")
-        ? "Die Server antworten gerade nicht. Bitte in einem Moment erneut versuchen."
-        : "Falsches Passwort.";
-      fehlerEl.style.display="block";
-      return;
-    }
-    PASS=p; ICH=benutzer;
-    $("scLogin").style.display="none";
-    $("scPanel").style.display="block";
-    ichLeisteZeigen();
-    updateAuthWarnung();
-    initFt();
-    // Systemcheck im Hintergrund – meldet sich nur bei Problemen
-    if(FT_OK) fwAufruf(FT_EXEC_URL,{type:"admin_systemcheck",password:PASS},
-        {seite:"Admin Systemcheck",still:true,nachfragen:[0,25000]})
-      .then(r=>{ if(r&&r.ok){ SC_LETZT=r; scWarnungSetzen(r); } }).catch(()=>{});
-  }
+  // Die Sitzung hat der Server bei der Anmeldung (bzw. auth_ich) schon bestätigt –
+  // keine zusätzlichen Prüfaufrufe mehr (spart zwei Umwege beim Anmelden).
+  FT_STATUS=SO_STATUS="ok"; FT_OK=SO_OK=true;
+  PASS=p; ICH=benutzer||null;
+  $("scLogin").style.display="none";
+  $("scPanel").style.display="block";
+  ichLeisteZeigen();
+  rechteAnwenden();
+  updateAuthWarnung();
+  initFt();
+  // Systemcheck im Hintergrund – nur für Admins, meldet sich nur bei Problemen
+  if(istAdmin()) fwAufruf(FT_EXEC_URL,{type:"admin_systemcheck",password:PASS},
+      {seite:"Admin Systemcheck",still:true,nachfragen:[0,25000]})
+    .then(r=>{ if(r&&r.ok){ SC_LETZT=r; scWarnungSetzen(r); } }).catch(()=>{});
+}
+
+/* ── Rechte (seit CLv1.66) ──
+ * Admins sehen alles. User sehen nur Tools, Reiter und Kacheln, für die sie ein
+ * Recht haben. Durchgesetzt wird serverseitig – das Ausblenden ist nur Komfort.
+ */
+const REITER_ATTR={ft:"fttab",so:"sotab",res:"restab",gab:"gabtab",tf:"tftab"};
+function istAdmin(){ return !!ICH && ICH.rolle==="voll"; }
+function darf(id){ return istAdmin() || (!!ICH && Array.isArray(ICH.rechte) && ICH.rechte.indexOf(id)>=0); }
+function darfTool(tool){
+  if(tool==="start") return true;
+  if(tool==="backup"||tool==="benutzer") return istAdmin();
+  if(tool==="gatlf") return darf("gatlf.alles");
+  const attr=REITER_ATTR[tool];
+  if(!attr) return istAdmin();
+  return Array.from(document.querySelectorAll(`[data-${attr}]`)).some(t=>darf(tool+"."+t.dataset[attr]));
+}
+function vorname(){
+  if(!ICH) return "";
+  if(ICH.vorname) return ICH.vorname;
+  return String(ICH.name||"").split(" ")[0]||"";
+}
+function rechteAnwenden(){
+  // Begrüssung
+  const v=vorname();
+  $("startGruss").textContent=v?`Willkommen beim MWD Adminpanel, ${v}!`:"Willkommen beim MWD Adminpanel!";
+  // Tool-Auswahl
+  Array.from($("toolSelect").options).forEach(o=>{ const ok=darfTool(o.value); o.hidden=!ok; o.disabled=!ok; });
+  // Kacheln auf der Übersicht
+  document.querySelectorAll(".start-verwalten").forEach(b=>{
+    const k=b.closest(".start-kachel"); if(k) k.style.display=darfTool(b.dataset.ziel)?"":"none";
+  });
+  // Reiter
+  Object.keys(REITER_ATTR).forEach(tool=>{
+    const attr=REITER_ATTR[tool];
+    document.querySelectorAll(`[data-${attr}]`).forEach(t=>{ t.style.display=darf(tool+"."+t.dataset[attr])?"":"none"; });
+  });
+}
+/** Ist der aktive Reiter eines Tools nicht erlaubt, auf den ersten erlaubten wechseln */
+function ersterErlaubterReiter(tool){
+  const attr=REITER_ATTR[tool]; if(!attr) return;
+  const alle=Array.from(document.querySelectorAll(`[data-${attr}]`));
+  const aktiv=alle.find(t=>t.classList.contains("aktiv"));
+  if(aktiv && darf(tool+"."+aktiv.dataset[attr])) return;
+  const erster=alle.find(t=>darf(tool+"."+t.dataset[attr]));
+  if(erster) erster.click();
 }
 
 function ichLeisteZeigen(){
@@ -1811,7 +1888,7 @@ function ichLeisteZeigen(){
   const rolle=ICH?(ICH.rolle==="voll"?"Admin":"User"):"";
   el.innerHTML=(ICH
       ? `Angemeldet als <b>${escHtml(ICH.kuerzel)}</b>${ICH.name?" · "+escHtml(ICH.name):""} (${rolle})`
-      : `Angemeldet mit dem Sammelpasswort`)
+      : `Angemeldet`)
     +` · <a href="#" id="btnAbmelden" style="color:var(--red);font-weight:600">Abmelden</a>`;
   el.style.display="flex";
   $("btnAbmelden").addEventListener("click",e=>{ e.preventDefault(); abmelden(); });
@@ -1935,7 +2012,7 @@ async function neuVerbinden(){
   FT_OK=ft==="ok"; SO_OK=so==="ok";
   updateAuthWarnung();
   // Nur Daten nachladen – die Bedienelemente sind seit dem Login verdrahtet
-  if(ftNeu){ ftHoleFahrzeuge().then(()=>ftLadeFragenAdmin()); ftLadeStatistik(); }
+  if(ftNeu){ ftHoleFahrzeuge().then(()=>{ if(darf("ft.fragen")) ftLadeFragenAdmin(); }); if(darf("ft.statistik")) ftLadeStatistik(); }
 }
 
 $("toolSelect").addEventListener("change", switchTool);
@@ -1947,6 +2024,7 @@ document.querySelectorAll(".start-verwalten").forEach(b=>{
   });
 });
 function switchTool(){
+  if(!darfTool($("toolSelect").value)) $("toolSelect").value="start";
   const tool=$("toolSelect").value;
   $("toolStart").style.display = tool==="start" ? "block" : "none";
   $("toolFt").style.display = tool==="ft" ? "block" : "none";
@@ -1968,6 +2046,7 @@ function switchTool(){
   if(tool==="gab" && FT_OK && !GAB_INIT) initGab();
   if(tool==="tf" && FT_OK && !TF_INIT) initTf();
   if(tool==="benutzer" && FT_OK && !BV_INIT) initBv();
+  ersterErlaubterReiter(tool);
 }
 
 /* ══════════════════ FAHRTRAINING ══════════════════ */
@@ -2004,7 +2083,11 @@ async function ftHoleFahrzeuge(){
 
 function initFt(){
   ftPopulateFahrzeugSelect();
-  if(FT_OK){ ftHoleFahrzeuge().then(()=>ftLadeFragenAdmin()); ftLadeStatistik(); }
+  if(FT_OK){
+    if(darf("ft.fragen")) ftHoleFahrzeuge().then(()=>ftLadeFragenAdmin());
+    else ftHoleFahrzeuge();
+    if(darf("ft.statistik")) ftLadeStatistik();
+  }
   document.querySelectorAll("[data-fttab]").forEach(t=>{
     t.addEventListener("click", ()=>{
       document.querySelectorAll("[data-fttab]").forEach(x=>x.classList.remove("aktiv"));
@@ -2084,7 +2167,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.65";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.66";
 
 let GAB_NT_ID=null;
 
@@ -2603,7 +2686,7 @@ async function cacheLeeren(){
 
 /* ══════════════════ TERMINFINDUNG ══════════════════ */
 let TF_INIT=false, TF_LISTE=[], TF_AKTUELL=null, TF_TERMINE=[], TF_VORSCHLAEGE=[];
-let TF_FEHLEND={teilnehmer:null,ausbildner:null}, TF_FORTSCHRITT=null;
+let TF_FEHLEND={teilnehmer:null,ausbildner:null}, TF_FORTSCHRITT=null, TF_LODUR=null;
 
 function initTf(){
   TF_INIT=true;
@@ -2615,7 +2698,7 @@ function initTf(){
       const tab=t.dataset.tftab;
       $("tfTabAusbildungen").style.display=tab==="ausbildungen"?"block":"none";
       $("tfTabEinstellungen").style.display=tab==="einstellungen"?"block":"none";
-      if(tab==="einstellungen") tfMailtextLaden();
+      if(tab==="einstellungen"){ tfMailtextLaden(); tfLodurVorlageLaden(); }
     });
   });
   tfFahrzeugeSicherstellen();
@@ -2628,6 +2711,10 @@ function initTf(){
   $("btnTfKolUebernehmen").addEventListener("click", tfKolUebernehmen);
   $("btnTfMailSenden").addEventListener("click", tfMailSenden);
   $("btnTfInfoSenden").addEventListener("click", tfInfoSenden);
+  $("btnTfLodurSenden").addEventListener("click", tfLodurSenden);
+  ["tfLodurBetreff","tfLodurText"].forEach(i=>$(i).addEventListener("input", tfLodurVorschau));
+  $("btnTfLodurSpeichern").addEventListener("click", tfLodurVorlageSpeichern);
+  $("btnTfLodurReset").addEventListener("click", tfLodurVorlageReset);
   ["tfInfoBetreff","tfInfoText"].forEach(i=>$(i).addEventListener("input", tfInfoVorschau));
   $("btnTfMailtextSpeichern").addEventListener("click", tfMailtextSpeichern);
   $("btnTfMailtextReset").addEventListener("click", tfMailtextReset);
@@ -2771,6 +2858,7 @@ function tfListePruefen(feldId,ausgabeId){
   const liste=$(feldId).value.split(/[\s,;]+/).map(x=>x.trim().toUpperCase()).filter(x=>x);
   if(liste.length===0){
     if(feldId==="bvKuerzel"){ el.innerHTML=""; return; }
+    if(feldId==="tfLodurEmpfV"){ el.innerHTML='<span style="color:var(--red)">Kein Empfänger – dann kann nicht gesendet werden.</span>'; return; }
     el.innerHTML = feldId.endsWith("-verantw")
       ? '<span class="hinw">Noch niemand eingetragen – dann geht keine Mail raus.</span>'
       : '<span class="hinw">Leer lassen = alle dürfen sich eintragen.</span>';
@@ -2786,7 +2874,7 @@ function tfListePruefen(feldId,ausgabeId){
       border:1px solid ${bekannt?"var(--gray-mid)":"var(--red)"};background:${bekannt?"var(--bg2)":"var(--red-light)"};
       color:${bekannt?"var(--text)":"var(--red-dark)"}"><b>${escHtml(k)}</b>${
         name?" · "+escHtml(name):(bekannt?"":" · unbekannt")}</span>`;
-  }).join("")+`<div class="hinw" style="margin-top:2px">${Object.keys(doppelt).length} Personen</div>`;
+  }).join("")+`<div class="hinw" style="margin-top:2px">${Object.keys(doppelt).length} Person${Object.keys(doppelt).length!==1?"en":""}</div>`;
 }
 
 /** Fahrzeugliste laden, falls sie in dieser Sitzung noch nicht geholt wurde */
@@ -2802,7 +2890,8 @@ async function tfFormular(a,ziel){
   await Promise.all([tfFahrzeugeSicherstellen(), tfMitgliederSicherstellen()]);
   const neu=!a;
   const d=a||{id:"",name:"",beschreibung:"",status:"offen",aktiv:true,
-    minTeilnehmer:1,maxTeilnehmer:3,minAusbildner:1,maxAusbildner:5,fahrzeug:"",dauerMin:120,benoetigteTermine:1};
+    minTeilnehmer:1,maxTeilnehmer:3,minAusbildner:1,maxAusbildner:5,fahrzeug:"",dauerMin:120,benoetigteTermine:1,
+    verantwortlich:ICH?ICH.kuerzel:""};
   const id="tf-form";
   const html=`<div class="card" id="${id}" style="border-top-color:var(--green)">
     <h2>${neu?"Neue Ausbildung":"Ausbildung bearbeiten"}</h2>
@@ -2918,6 +3007,7 @@ async function tfOeffnen(id){
     if(!r.ok){ $("tfTermine").innerHTML='<div class="empty">Konnte nicht geladen werden.</div>'; return; }
     TF_AKTUELL=r.ausbildung; TF_TERMINE=r.termine||[]; TF_VORSCHLAEGE=r.vorschlaege||[];
     TF_FEHLEND=r.fehlend||{teilnehmer:null,ausbildner:null};
+    TF_LODUR=r.lodur||null;
     TF_FORTSCHRITT=r.fortschritt||null;
     $("tfDetailTitel").textContent=TF_AKTUELL.name;
     tfRenderTermine();
@@ -2968,6 +3058,8 @@ function tfRueckmeldungKarte(){
       <h2>Rückmeldungen</h2>
       <p class="hinw">Für diese Ausbildung sind keine Personen hinterlegt – alle dürfen sich eintragen.
       Einladung und Erinnerung sind erst möglich, wenn unter «Bearbeiten» Teilnehmer oder Ausbildner erfasst sind.</p>
+      <div class="entry-actions" style="justify-content:flex-end;margin-top:.75rem">${tfLodurKnopf()}</div>
+      ${tfLodurVermerk()}
     </div>`;
   }
   const block=(titel,liste)=>{
@@ -2986,7 +3078,10 @@ function tfRueckmeldungKarte(){
     <div class="entry-actions" style="justify-content:flex-start">
       <button class="btn btn-klein" onclick="tfMailVorschau('einladung')">Einladung senden</button>
       <button class="btn btn-klein${offen?" btn-red":""}" onclick="tfMailVorschau('erinnerung')" ${offen?"":"disabled"}>Erinnerung senden</button>
+      <span style="flex:1"></span>
+      ${tfLodurKnopf()}
     </div>
+    ${tfLodurVermerk()}
     <div class="status-msg" id="tfMailStatus"></div>
   </div>`;
 }
@@ -3289,20 +3384,8 @@ function scAnzeigen(r){
         <div style="font-size:13px;font-weight:700">${escHtml(p.titel)}</div>
         ${p.grund?`<div class="hinw" style="font-size:12px">${escHtml(p.grund)}</div>`:""}
         ${!p.ok&&p.loesung?`<div style="font-size:12px;margin-top:3px"><b>Lösung:</b> ${escHtml(p.loesung)}</div>`:""}
-        ${p.id==="sosi_uebernahme"&&!p.ok?`<button class="btn btn-red btn-klein" style="margin-top:8px" onclick="sosiUebernehmen(this)">SoSi übernehmen</button>`:""}
       </div></div>`;
   }).join("")+`<div class="hinw" style="margin-top:.75rem">Stand: ${escHtml(zeit)}${r.ausCache?" (zwischengespeichert)":""} · Server ${escHtml(r.version||"")}</div>`;
-}
-async function sosiUebernehmen(btn){
-  if(!confirm("SoSi-Einstellungen (Mailtexte, Erinnerungen, Gültigkeit, Erinnerungs-Protokoll) aus dem alten Script übernehmen?\n\nDanach beantwortet das gemeinsame Script alle SoSi-Aufrufe.")) return;
-  btn.disabled=true; btn.textContent="Wird übernommen …";
-  try{
-    const r=await fwAufruf(FT_EXEC_URL,{type:"admin_sosi_uebernehmen",password:PASS},{seite:"Admin",nachfragen:[0,30000],hinweisNach:15000});
-    if(r.ok){
-      alert(`Übernommen: ${r.anzahl} Einstellungen.\n\nWichtig: Im ALTEN SoSi-Script jetzt den Auslöser «taeglicherErinnerungsCheck» löschen, sonst gehen Erinnerungen doppelt raus.`);
-      scLaden(true);
-    } else { alert("Übernahme fehlgeschlagen: "+(r.detail||r.error)); btn.disabled=false; btn.textContent="SoSi übernehmen"; }
-  }catch(e){ alert("Fehler: "+e.message); btn.disabled=false; btn.textContent="SoSi übernehmen"; }
 }
 
 function scWarnungSetzen(r){
@@ -3336,7 +3419,7 @@ async function scEmpfSpeichern(){
 }
 
 /* ── Mailtexte ── */
-let TF_MAILTEXT_STANDARD=null, TF_MAIL_VERSION="", TF_MAIL_LINK="https://uebungsfindung.feuerwehrmeilen.ch";
+let TF_MAILTEXT_STANDARD=null, TF_MAIL_VERSION="", TF_MAIL_LINK="https://terminfindung.feuerwehrmeilen.ch";
 
 async function tfMailtextLaden(){
   const st=$("tfMailtextStatus");
@@ -3479,6 +3562,129 @@ function tfKontingentHinweis(k,anzahl){
   if(k===undefined||k===null||k<0) return "";
   if(k<anzahl) return `<div class="warnung" style="margin-top:.75rem;border-color:var(--red)"><b>Heute nur noch ${k} Mails möglich</b> – Google begrenzt den täglichen Versand. ${anzahl-k} Empfänger würden nichts erhalten. Morgen erneut senden.</div>`;
   return `<div class="hinw" style="margin-top:.6rem">Heute noch ${k} Mails möglich.</div>`;
+}
+
+/* ── Termine in Lodur reservieren (seit CLv1.66) ── */
+let TF_LODUR_DATEN=null, TF_LODUR_STANDARD=null;
+
+function tfLodurKnopf(){
+  const fest=TF_TERMINE.filter(t=>t.definitiv&&t.definitiv.length>0).length;
+  const moeglich=fest>0||(TF_LODUR&&TF_LODUR.gemeldet);
+  return `<button class="btn btn-klein${TF_LODUR&&TF_LODUR.geaendert?" btn-red":""}" onclick="tfLodurOeffnen()" ${moeglich?"":"disabled"}
+    title="${moeglich?"Mail mit den festgelegten Terminen an die Lodur-Verantwortlichen":"Erst möglich, wenn ein Termin festgelegt ist"}">Termine in Lodur reservieren</button>`;
+}
+function tfLodurVermerk(){
+  const l=TF_LODUR;
+  if(!l||!l.gemeldet) return "";
+  return `<div class="hinw" style="margin-top:6px;text-align:right">An Lodur gemeldet am ${escHtml(l.zeitAnzeige||"")}`
+    +(l.durch?` durch <b>${escHtml(l.durch)}</b>`:"")
+    +(l.geaendert?` · <b style="color:var(--red)">seit der Meldung geändert (${l.unterschiede} Termin${l.unterschiede!==1?"e":""})</b>`:"")+`</div>`;
+}
+function tfLodurFuelle(v,d){
+  return String(v).replace(/\{(vorname|ausbildung|absender)\}/g,(m,k)=>d[k]!==undefined?d[k]:m);
+}
+function tfLodurVorschau(){
+  const r=TF_LODUR_DATEN; if(!r) return;
+  const d=r.daten||{};
+  $("tfLodurPvBetreff").textContent=tfLodurFuelle($("tfLodurBetreff").value,d).replace(/\{termine\}/g,"");
+  const marke="\u0001TERMINE\u0001";
+  const text=tfLodurFuelle($("tfLodurText").value,d).replace(/\{termine\}/g,marke);
+  $("tfLodurPvText").innerHTML=escHtml(text).replace(/\n/g,"<br>")
+    .split(marke).join(`<div style="margin:6px 0">${r.termineHtml||""}</div>`);
+}
+async function tfLodurOeffnen(){
+  const st=$("tfTerminStatus");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Mail wird vorbereitet…";
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_lodur",password:PASS,ausbildung:TF_AKTUELL.id});
+    st.style.display="none";
+    if(!r.ok){
+      st.className="status-msg err-msg"; st.style.display="block";
+      st.textContent=r.error==="NICHTS_FESTGELEGT"?"Es ist noch kein Termin festgelegt."
+        :r.error==="UNBEKANNTER_AUFRUF"?"Diese Funktion ist erst nach dem Deployen der neuen Code.gs verfügbar."
+        :r.error==="KEIN_RECHT"?"Dafür fehlt dir das Recht."
+        :"Fehler: "+(r.detail||r.error||"unbekannt");
+      return;
+    }
+    TF_LODUR_DATEN=r;
+    const person=p=>`<b>${escHtml(p.kuerzel)}</b> ${escHtml(p.name||"")} ${p.email?`<span class="hinw">· ${escHtml(p.email)}</span>`:'<span style="color:var(--red)">· keine Mailadresse</span>'}`;
+    const teile=[`${r.festgelegt} festgelegte${r.festgelegt!==1?"":"r"} Termin${r.festgelegt!==1?"e":""}`];
+    if(r.status&&r.status.gemeldet){
+      teile.push(`zuletzt gemeldet am ${escHtml(r.status.zeitAnzeige)}`);
+      const aend=[]; if(r.neu) aend.push(`${r.neu} neu`); if(r.geaendert) aend.push(`${r.geaendert} geändert`); if(r.entfallen) aend.push(`${r.entfallen} entfallen`);
+      teile.push(aend.length?`seither: ${aend.join(", ")} (in der Mail kursiv bzw. durchgestrichen)`:"seither unverändert");
+    }
+    $("tfLodurKopf").innerHTML=teile.join(" · ")+".";
+    $("tfLodurEmpf").innerHTML=`<div style="font-size:13px;line-height:1.8">
+        <div>An: ${(r.an||[]).map(person).join(", ")||'<span style="color:var(--red)">niemand</span>'}</div>
+        <div>Kopie: ${(r.cc||[]).map(person).join(", ")||'<span class="hinw">keine</span>'}</div></div>`
+      +((r.warnungen||[]).length?`<div class="warnung" style="margin-top:.75rem;border-color:var(--red)">${r.warnungen.map(escHtml).join("<br>")}</div>`:"")
+      +tfKontingentHinweis(r.kontingent, 1);
+    $("tfLodurBetreff").value=r.betreff||"";
+    $("tfLodurText").value=r.text||"";
+    tfLodurVorschau();
+    $("tfLodurStatus").style.display="none";
+    const sendbar=(r.an||[]).length>0&&(r.an||[]).every(p=>p.email);
+    $("btnTfLodurSenden").disabled=!sendbar;
+    $("btnTfLodurSenden").textContent="Senden";
+    $("tfLodurBg").style.display="flex";
+  }catch(err){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+err.message; }
+}
+async function tfLodurSenden(){
+  const st=$("tfLodurStatus"), btn=$("btnTfLodurSenden");
+  btn.disabled=true;
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gesendet…";
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_lodur",password:PASS,ausbildung:TF_AKTUELL.id,senden:true,
+      betreff:$("tfLodurBetreff").value,text:$("tfLodurText").value,anfrageId:Date.now()+"-"+Math.random()});
+    if(r.ok&&r.gesendet){
+      $("tfLodurBg").style.display="none";
+      TF_LODUR=r.status||TF_LODUR;
+      tfRenderTermine();
+      const s=$("tfTerminStatus");
+      s.className="status-msg ok-msg"; s.style.display="block";
+      s.textContent="Mail an die Lodur-Verantwortlichen versendet.";
+    } else {
+      st.className="status-msg err-msg";
+      st.textContent=r.error==="KEIN_EMPFAENGER"?"Empfänger ohne Mailadresse – bitte unter Einstellungen prüfen."
+        :"Fehler beim Senden"+(r.detail?": "+r.detail:".");
+      btn.disabled=false;
+    }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; btn.disabled=false; }
+}
+async function tfLodurVorlageLaden(){
+  const st=$("tfLodurVStatus");
+  try{
+    await tfMitgliederSicherstellen();
+    const r=await ftCallAdmin({type:"admin_tf_lodur_get",password:PASS});
+    if(!r.ok){
+      st.className="status-msg err-msg"; st.style.display="block";
+      st.textContent=r.error==="UNBEKANNTER_AUFRUF"?"Erst nach dem Deployen der neuen Code.gs verfügbar.":"Laden fehlgeschlagen.";
+      return;
+    }
+    TF_LODUR_STANDARD=r.standard||null;
+    $("tfLodurEmpfV").value=r.empfaenger||""; $("tfLodurBetreffV").value=r.betreff||""; $("tfLodurTextV").value=r.text||"";
+    tfListePruefen("tfLodurEmpfV","tfLodurEmpfV-info");
+    st.style.display="none";
+  }catch(e){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+e.message; }
+}
+async function tfLodurVorlageSpeichern(){
+  const st=$("tfLodurVStatus");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_lodur_set",password:PASS,empfaenger:$("tfLodurEmpfV").value,
+      betreff:$("tfLodurBetreffV").value,text:$("tfLodurTextV").value});
+    if(r.ok){
+      $("tfLodurEmpfV").value=r.empfaenger||""; tfListePruefen("tfLodurEmpfV","tfLodurEmpfV-info");
+      st.className="status-msg ok-msg"; st.textContent="Gespeichert.";
+    } else { st.className="status-msg err-msg"; st.textContent="Speichern fehlgeschlagen."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+function tfLodurVorlageReset(){
+  const d=TF_LODUR_STANDARD; if(!d) return;
+  $("tfLodurEmpfV").value=d.empfaenger; $("tfLodurBetreffV").value=d.betreff; $("tfLodurTextV").value=d.text;
+  tfListePruefen("tfLodurEmpfV","tfLodurEmpfV-info");
+  const st=$("tfLodurVStatus"); st.className="status-msg"; st.style.display="block"; st.textContent="Standard eingesetzt – zum Übernehmen «Speichern».";
 }
 
 /* ── Beteiligte informieren ── */
@@ -3859,7 +4065,7 @@ function grBaueHtml(ft,so){
     +grZeile("Grundausbildung (Startseite)","grundausbildung.feuerwehrmeilen.ch","https://grundausbildung.feuerwehrmeilen.ch")
     +grZeile("Schlusstest Kategorie B","grundausbildung.feuerwehrmeilen.ch/BTest","https://grundausbildung.feuerwehrmeilen.ch/BTest/")
     +grZeile("Ausbildungsinhalte Kategorie B","grundausbildung.feuerwehrmeilen.ch/BGrund","https://grundausbildung.feuerwehrmeilen.ch/BGrund/")
-    +grZeile("Terminfindung Ausbildungen","uebungsfindung.feuerwehrmeilen.ch","https://uebungsfindung.feuerwehrmeilen.ch")
+    +grZeile("Terminfindung Ausbildungen","terminfindung.feuerwehrmeilen.ch","https://terminfindung.feuerwehrmeilen.ch")
     +grZeile("Dieses Admin-Panel","mwd.feuerwehrmeilen.ch","https://mwd.feuerwehrmeilen.ch"));
 
   // Quellcode
@@ -3868,7 +4074,7 @@ function grBaueHtml(ft,so){
     +grZeile("SoSi-Prüfungstool","FwMeilen/sosi","https://github.com/FwMeilen/sosi")
     +grZeile("Admin-Panel","FwMeilen/admin","https://github.com/FwMeilen/admin")
     +grZeile("Grundausbildung","FwMeilen/grundausbildung","https://github.com/FwMeilen/grundausbildung")
-    +grZeile("Terminfindung","FwMeilen/uebungsfindung","https://github.com/FwMeilen/uebungsfindung"));
+    +grZeile("Terminfindung","FwMeilen/terminfindung","https://github.com/FwMeilen/terminfindung"));
 
   // Apps Scripts
   let scripts="";
@@ -4340,7 +4546,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.65";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.66";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -4709,7 +4915,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.65", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.66", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -5442,20 +5648,17 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.65`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.66`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.65";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.66";
 
 async function soApi(payload){
   try{
-    const r=await fwAufruf(SO_EXEC_URL, payload, {seite:"Admin SoSi"});
-    if(r&&(r.error==="SOSI_NICHT_UEBERNOMMEN"||r.error==="UNBEKANNTER_AUFRUF"))
-      return await fwAufruf(SO_EXEC_URL_ALT, payload, {seite:"Admin SoSi (altes Script)"});
-    return r;
+    return await fwAufruf(SO_EXEC_URL, payload, {seite:"Admin SoSi"});
   }
   catch(e){ return {ok:false,error:"NETZWERK",detail:String(e&&e.message||e)}; }
 }
