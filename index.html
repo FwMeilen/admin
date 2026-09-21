@@ -61,6 +61,14 @@ select{appearance:none;-webkit-appearance:none;padding-right:28px;background-ima
 
 /* Zeilen-Listen (Fahrer, Fragen, Hilfe) */
 .frage-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--gray-mid);font-size:13px;}
+.start-raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:1rem;}
+.start-kachel{background:var(--bg);border:1px solid var(--gray-mid);border-top:3px solid var(--red);padding:1.1rem 1.25rem;display:flex;flex-direction:column;gap:8px;}
+.start-titel{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.start-link{display:block;font-size:14px;font-weight:600;color:var(--red);text-decoration:none;padding:6px 0;border-bottom:1px solid var(--gray-mid);}
+.start-link:hover{color:var(--red-dark);}
+.start-link span{display:block;font-size:11px;font-weight:400;color:var(--text3);margin-top:2px;}
+.start-leer{color:var(--text3);font-weight:400;font-size:13px;}
+.start-verwalten{align-self:flex-start;margin-top:auto;}
 .ampel-leiste{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1.25rem;}
 .ampel{display:flex;align-items:center;gap:9px;border:1px solid var(--gray-mid);padding:10px 14px;background:var(--bg);flex:1;min-width:200px;}
 .ampel-punkt{width:13px;height:13px;border-radius:50%;flex-shrink:0;background:var(--gray-mid);}
@@ -179,6 +187,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
     <div class="card" style="padding:1rem 1.25rem">
       <label for="toolSelect" style="margin-bottom:6px">Tool</label>
       <select id="toolSelect" style="max-width:300px">
+        <option value="start">Übersicht</option>
         <option value="ft">Fahrtraining</option>
         <option value="so">SoSi-Prüfung</option>
         <option value="res">Fahrzeugreservationen</option>
@@ -190,8 +199,65 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
     </div>
     <div class="warnung" id="authWarnung" style="display:none"></div>
 
+    <!-- ═══════════ ÜBERSICHT ═══════════ -->
+    <div id="toolStart">
+      <div class="card" style="padding:1.75rem 1.5rem">
+        <h1 style="font-size:22px;font-weight:700;margin-bottom:.4rem">Willkommen beim Adminpanel des MWD Team</h1>
+        <p class="hinw">Alle Werkzeuge auf einen Blick. Die Links öffnen die Seiten, wie sie die Angehörigen der Feuerwehr sehen – «Verwalten» führt zum jeweiligen Bereich hier im Panel.</p>
+      </div>
+
+      <div class="start-raster">
+
+        <div class="start-kachel">
+          <div class="start-titel">Fahrtraining</div>
+          <a class="start-link" href="https://fahrtraining.feuerwehrmeilen.ch" target="_blank" rel="noopener">Fahrtraining erfassen<span>fahrtraining.feuerwehrmeilen.ch</span></a>
+          <a class="start-link" href="https://fahrtraining.feuerwehrmeilen.ch/dashboard.html" target="_blank" rel="noopener">Auswertung / Screenanzeige<span>…/dashboard.html</span></a>
+          <a class="start-link" href="https://fahrtraining.feuerwehrmeilen.ch/rueckmeldungen.html" target="_blank" rel="noopener">Zufahrts-Rückmeldungen<span>…/rueckmeldungen.html</span></a>
+          <button class="btn btn-klein start-verwalten" data-ziel="ft">Verwalten →</button>
+        </div>
+
+        <div class="start-kachel">
+          <div class="start-titel">Fahrzeugreservationen</div>
+          <a class="start-link" href="https://fahrtraining.feuerwehrmeilen.ch" target="_blank" rel="noopener">Fahrzeug reservieren<span>fahrtraining.feuerwehrmeilen.ch → «Fahrzeug reservieren»</span></a>
+          <button class="btn btn-klein start-verwalten" data-ziel="res">Verwalten →</button>
+        </div>
+
+        <div class="start-kachel">
+          <div class="start-titel">SoSi-Prüfung</div>
+          <a class="start-link" href="https://sosi.feuerwehrmeilen.ch" target="_blank" rel="noopener">Prüfung ablegen<span>sosi.feuerwehrmeilen.ch</span></a>
+          <button class="btn btn-klein start-verwalten" data-ziel="so">Verwalten →</button>
+        </div>
+
+        <div class="start-kachel">
+          <div class="start-titel">Grundausbildung B</div>
+          <a class="start-link" href="https://grundausbildung.feuerwehrmeilen.ch/BGrund/" target="_blank" rel="noopener">Ausbildungsinhalte<span>grundausbildung.feuerwehrmeilen.ch/BGrund</span></a>
+          <a class="start-link" href="https://grundausbildung.feuerwehrmeilen.ch/BTest/" target="_blank" rel="noopener">Schlusstest<span>grundausbildung.feuerwehrmeilen.ch/BTest</span></a>
+          <button class="btn btn-klein start-verwalten" data-ziel="gab">Verwalten →</button>
+        </div>
+
+        <div class="start-kachel">
+          <div class="start-titel">Grundausbildung TLF</div>
+          <div class="start-link start-leer">In Vorbereitung</div>
+          <button class="btn btn-klein start-verwalten" data-ziel="gatlf">Verwalten →</button>
+        </div>
+
+        <div class="start-kachel">
+          <div class="start-titel">Terminfindung</div>
+          <a class="start-link" href="https://uebungsfindung.feuerwehrmeilen.ch" target="_blank" rel="noopener">Für Ausbildungen eintragen<span>uebungsfindung.feuerwehrmeilen.ch</span></a>
+          <button class="btn btn-klein start-verwalten" data-ziel="tf">Verwalten →</button>
+        </div>
+
+        <div class="start-kachel">
+          <div class="start-titel">System</div>
+          <div class="start-link start-leer">Systemübersicht, Backup, Zwischenspeicher, Ladezeiten</div>
+          <button class="btn btn-klein start-verwalten" data-ziel="backup">Verwalten →</button>
+        </div>
+
+      </div>
+    </div>
+
     <!-- ═══════════ FAHRTRAINING ═══════════ -->
-    <div id="toolFt">
+    <div id="toolFt" style="display:none">
       <div class="tabs">
         <button class="tab aktiv" data-fttab="statistik">Statistik</button>
         <button class="tab" data-fttab="lookup">Fahrer-Lookup</button>
@@ -1183,7 +1249,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.50</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.51</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1238,8 +1304,16 @@ function updateAuthWarnung(){
 }
 
 $("toolSelect").addEventListener("change", switchTool);
+document.querySelectorAll(".start-verwalten").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    $("toolSelect").value=b.dataset.ziel;
+    switchTool();
+    window.scrollTo({top:0,behavior:"smooth"});
+  });
+});
 function switchTool(){
   const tool=$("toolSelect").value;
+  $("toolStart").style.display = tool==="start" ? "block" : "none";
   $("toolFt").style.display = tool==="ft" ? "block" : "none";
   $("toolSo").style.display = tool==="so" ? "block" : "none";
   $("toolRes").style.display = tool==="res" ? "block" : "none";
@@ -1389,7 +1463,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.50";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.51";
 
 let GAB_NT_ID=null;
 
@@ -2746,7 +2820,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.50";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.51";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -3115,7 +3189,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.50", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.51", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -3851,13 +3925,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.50`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.51`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.50";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.51";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
