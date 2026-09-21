@@ -897,7 +897,23 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         </div>
         <div class="status-msg" id="tfStatus"></div>
 
-        <details id="tfMailDetails" style="margin-top:1rem">
+        <details id="tfProxyDetails" style="margin-top:1rem">
+          <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Kalender-Abo (Cloudflare Worker)</summary>
+          <div style="margin-top:.75rem">
+            <p class="hinw" style="margin-bottom:1rem">
+              Kalender-Apps kommen mit Googles Weiterleitung nicht immer zurecht. Ist hier die Adresse
+              des Cloudflare Workers hinterlegt, laufen alle Abo-Links über ihn. Leer = direkt über Google.
+            </p>
+            <label for="tfProxyUrl">Adresse des Workers</label>
+            <input id="tfProxyUrl" type="text" placeholder="https://fwmeilen-kalender.….workers.dev">
+            <div class="entry-actions" style="justify-content:flex-start;margin-top:.75rem">
+              <button class="btn btn-green btn-klein" id="btnTfProxySpeichern">Speichern</button>
+            </div>
+            <div class="status-msg" id="tfProxyStatus"></div>
+          </div>
+        </details>
+
+        <details id="tfMailDetails" style="margin-top:.5rem">
           <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Mailtexte Einladung &amp; Erinnerung</summary>
           <div style="margin-top:.75rem">
             <p class="hinw" style="margin-bottom:1rem">Gelten für alle Ausbildungen. Die Platzhalter werden beim Versand ersetzt.</p>
@@ -993,6 +1009,20 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
             </div>
             <div class="status-msg" id="grAusloeserHinweis"></div>
             <div id="grInhalt" class="loading">Lade …</div>
+          </div>
+        </details>
+      </div>
+
+      <div class="card">
+        <h2>Aussetzer</h2>
+        <details id="axDetails">
+          <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Aussetzer der letzten 7 Tage</summary>
+          <div style="margin-top:0.75rem">
+            <p class="hinw" style="margin-bottom:1rem">
+              Wie oft ein Aufruf wiederholt werden musste, weil der Server nicht sofort antwortete.
+              Zeigt, ob Kaltstarts seltener werden (z.B. durch das Wachhalten).
+            </p>
+            <div id="axInhalt" class="loading">Lade …</div>
           </div>
         </details>
       </div>
@@ -1330,8 +1360,106 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.56</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.57</div>
 
+<script>
+/* ── Netzwerk: geduldige Wiederholung (gemeinsam für alle MWD-Seiten) ──
+ * Google liefert gelegentlich eine Fehlerseite statt Daten, vor allem beim
+ * Kaltstart. fwAufruf() wiederholt dann mit wachsenden Pausen (bis ca. 15 s),
+ * zeigt «Server startet …» und fragt erst danach, ob erneut versucht werden soll.
+ * Jeder Aufruf erhält eine Kennung, damit eine Wiederholung auf dem Server
+ * nichts doppelt schreibt. Wiederholungen werden fürs Aussetzer-Protokoll gemeldet.
+ */
+(function(){
+  const PAUSEN=[0,1000,2000,4000,8000];
+  const MELDE_URL="https://script.google.com/macros/s/AKfycbwvTL3yecdyTvSV5ZPgGslm5K-3UFjW9zc4A2qn_zUk50CcSIpXEaBE1hMiaU3GnNEQ/exec";
+  let aktiv=0, entscheid=null;
+
+  function banner(){
+    let b=document.getElementById("fw-netz-banner");
+    if(!b){
+      b=document.createElement("div");
+      b.id="fw-netz-banner";
+      b.style.cssText="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;max-width:92vw;"
+        +"color:#fff;font:600 13px 'Open Sans',Arial,sans-serif;padding:11px 16px;"
+        +"box-shadow:0 4px 18px rgba(0,0,0,.25);display:none;align-items:center;gap:12px;flex-wrap:wrap";
+      document.body.appendChild(b);
+    }
+    return b;
+  }
+  function zeigeWarten(){
+    if(entscheid) return;
+    const b=banner(); b.style.background="#1a1a1a";
+    b.textContent="⏳ Server startet, einen Moment …";
+    b.style.display="flex";
+  }
+  function verstecke(){
+    if(aktiv<=0&&!entscheid){ const b=document.getElementById("fw-netz-banner"); if(b) b.style.display="none"; }
+  }
+  function frageNochmals(){
+    if(entscheid) return entscheid;
+    entscheid=new Promise(resolve=>{
+      const b=banner(); b.style.background="#990000"; b.innerHTML="";
+      const t=document.createElement("span"); t.textContent="Server nicht erreichbar."; b.appendChild(t);
+      const knopf=(text,wert)=>{
+        const x=document.createElement("button"); x.textContent=text; x.type="button";
+        x.style.cssText="font:700 11px 'Open Sans',Arial,sans-serif;text-transform:uppercase;letter-spacing:.05em;"
+          +"padding:7px 12px;border:2px solid #fff;cursor:pointer;background:"+(wert?"#fff":"transparent")
+          +";color:"+(wert?"#990000":"#fff");
+        x.onclick=()=>{ entscheid=null; b.style.display="none"; resolve(wert); };
+        b.appendChild(x);
+      };
+      knopf("Erneut versuchen",true); knopf("Schliessen",false);
+      b.style.display="flex";
+    });
+    return entscheid;
+  }
+  function melden(d){
+    try{
+      fetch(MELDE_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify(Object.assign({type:"aussetzer_melden"},d))}).catch(()=>{});
+    }catch(e){}
+  }
+
+  /**
+   * @param url     Adresse des Apps Script
+   * @param payload Daten (Objekt)
+   * @param opts    {seite:"Name fürs Protokoll", still:true für Hintergrundaufrufe ohne Anzeige}
+   */
+  window.fwAufruf=async function(url,payload,opts){
+    opts=opts||{};
+    payload=Object.assign({},payload);
+    if(!payload.anfrageId) payload.anfrageId=Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,10);
+    const body=JSON.stringify(payload);
+    const aufruf=payload.type||payload.action||"";
+    const start=Date.now();
+    let versuche=0, zeigt=false;
+    while(true){
+      for(let i=0;i<PAUSEN.length;i++){
+        if(PAUSEN[i]) await new Promise(r=>setTimeout(r,PAUSEN[i]));
+        versuche++;
+        try{
+          const res=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body});
+          const text=await res.text();
+          try{
+            const daten=JSON.parse(text);
+            if(zeigt){ aktiv--; verstecke(); }
+            if(versuche>1) melden({seite:opts.seite||location.hostname,aufruf,versuche,dauerMs:Date.now()-start,erfolg:true});
+            return daten;
+          }catch(e){ console.warn("Keine gültige Antwort (Versuch "+versuche+"):",text.slice(0,200)); }
+        }catch(e){ console.warn("Netzwerkfehler (Versuch "+versuche+"):",e&&e.message); }
+        if(!zeigt&&!opts.still){ zeigt=true; aktiv++; zeigeWarten(); }
+      }
+      if(zeigt){ aktiv--; zeigt=false; }
+      melden({seite:opts.seite||location.hostname,aufruf,versuche,dauerMs:Date.now()-start,erfolg:false});
+      if(opts.still){ verstecke(); throw new Error("Server nicht erreichbar."); }
+      const nochmals=await frageNochmals();
+      if(!nochmals){ verstecke(); throw new Error("Server nicht erreichbar. Bitte später erneut versuchen."); }
+      zeigt=true; aktiv++; zeigeWarten();
+    }
+  };
+})();
+</script>
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
 const FT_EXEC_URL="https://script.google.com/macros/s/AKfycbwvTL3yecdyTvSV5ZPgGslm5K-3UFjW9zc4A2qn_zUk50CcSIpXEaBE1hMiaU3GnNEQ/exec";
@@ -1370,16 +1498,8 @@ async function login(){
   if(!p) return;
   $("btnLogin").disabled=true; $("btnLogin").textContent="Prüfe …";
   try{
-    let [ft, so] = await Promise.all([pruefeFt(p), pruefeSo(p)]);
-    // Keine Antwort (z.B. Kaltstart bei Google): einmal nachfassen
-    if(ft==="offline"||so==="offline"){
-      $("btnLogin").textContent="Server startet …";
-      const [ft2, so2] = await Promise.all([
-        ft==="offline"?pruefeFt(p):Promise.resolve(ft),
-        so==="offline"?pruefeSo(p):Promise.resolve(so)
-      ]);
-      ft=ft2; so=so2;
-    }
+    // Wiederholungen bei Kaltstart übernimmt fwAufruf
+    const [ft, so] = await Promise.all([pruefeFt(p), pruefeSo(p)]);
     FT_STATUS=ft; SO_STATUS=so;
     FT_OK=ft==="ok"; SO_OK=so==="ok";
     if(!FT_OK && !SO_OK){
@@ -1481,28 +1601,9 @@ function vollerName(kuerzel){
   return (FT_MITGLIEDER[k]&&FT_MITGLIEDER[k].vollerName)||kuerzel;
 }
 
-/**
- * Aufruf ans Fahrtraining-Backend.
- * Google liefert gelegentlich statt JSON eine HTML-Seite (kurzzeitige Aussetzer,
- * Weiterleitungen). In dem Fall wird einmal automatisch neu versucht.
- */
-async function ftCallAdmin(payload,versuch){
-  versuch=versuch||1;
-  const res=await fetch(FT_EXEC_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)});
-  const text=await res.text();
-  try{
-    return JSON.parse(text);
-  }catch(e){
-    const istHtml=text.trim().slice(0,15).toLowerCase().includes("<!doctype")
-      || text.trim().startsWith("<");
-    if(istHtml && versuch<3){
-      await new Promise(r=>setTimeout(r,600*versuch));
-      return ftCallAdmin(payload,versuch+1);
-    }
-    throw new Error(istHtml
-      ? "Server nicht erreichbar (nach "+versuch+" Versuchen). Bitte kurz warten und erneut versuchen."
-      : "Unerwartete Antwort vom Server.");
-  }
+/** Aufruf ans Fahrtraining-Backend – Wiederholung übernimmt fwAufruf */
+async function ftCallAdmin(payload){
+  return fwAufruf(FT_EXEC_URL, payload, {seite:"Admin"});
 }
 
 async function ftHoleFahrzeuge(){
@@ -1599,7 +1700,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.56";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.57";
 
 let GAB_NT_ID=null;
 
@@ -1986,6 +2087,36 @@ function gabRendern(){
     }).join("")+`</tbody></table></div></div>`;
 }
 
+async function axLaden(){
+  const el=$("axInhalt");
+  el.innerHTML='<div class="loading">Lade …</div>';
+  try{
+    const r=await ftCallAdmin({type:"admin_aussetzer",password:PASS,tage:7});
+    if(!r.ok){ el.innerHTML='<div class="empty">Fehler beim Laden.</div>'; return; }
+    if(!r.eintraege){
+      el.innerHTML='<div class="empty" style="color:var(--green)">Keine Aussetzer in den letzten 7 Tagen ✓</div>';
+      return;
+    }
+    const max=Math.max.apply(null,r.proTag.map(t=>t.anzahl));
+    let h=`<div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:1rem">
+      <div><div style="font-size:24px;font-weight:700">${r.eintraege}</div><div class="hinw">Aussetzer</div></div>
+      <div><div style="font-size:24px;font-weight:700;color:${r.fehlgeschlagen?"var(--red)":"var(--green)"}">${r.fehlgeschlagen}</div><div class="hinw">davon endgültig gescheitert</div></div>
+    </div>`;
+    h+=`<div style="display:flex;align-items:flex-end;gap:4px;height:60px;margin-bottom:.4rem">`
+      +r.proTag.map(t=>`<div title="${escHtml(t.tag)}: ${t.anzahl}" style="flex:1;background:var(--orange);height:${Math.max(6,Math.round(t.anzahl/max*60))}px"></div>`).join("")
+      +`</div><div class="hinw" style="display:flex;justify-content:space-between;margin-bottom:1rem">
+        <span>${escHtml(r.proTag[0].tag.split("-").reverse().join("."))}</span><span>${escHtml(r.proTag[r.proTag.length-1].tag.split("-").reverse().join("."))}</span></div>`;
+    h+=`<div class="tblwrap"><table class="l5"><thead><tr><th>Seite</th><th style="text-align:right">Aussetzer</th>
+      <th style="text-align:right">Ø Versuche</th><th style="text-align:right">längste Wartezeit</th><th style="text-align:right">gescheitert</th></tr></thead><tbody>`
+      +r.proSeite.map(s=>`<tr><td>${escHtml(s.seite)}</td><td style="text-align:right">${s.anzahl}</td>
+        <td style="text-align:right">${(s.versuche/s.anzahl).toFixed(1)}</td>
+        <td style="text-align:right">${(s.maxMs/1000).toFixed(1)} s</td>
+        <td style="text-align:right;${s.fehlgeschlagen?"color:var(--red);font-weight:700":""}">${s.fehlgeschlagen}</td></tr>`).join("")
+      +`</tbody></table></div>`;
+    el.innerHTML=h;
+  }catch(e){ el.innerHTML=`<div class="empty">Fehler: ${escHtml(e.message)}</div>`; }
+}
+
 async function messungStarten(mitCache){
   const st=$("messungStatus"), el=$("messungErgebnis");
   const btns=[$("btnMessungCache"),$("btnMessungOhne")];
@@ -2085,6 +2216,8 @@ function initTf(){
   $("btnTfMailtextSpeichern").addEventListener("click", tfMailtextSpeichern);
   $("btnTfMailtextReset").addEventListener("click", tfMailtextReset);
   $("btnTfMailtextStandard").addEventListener("click", tfMailtextAlsStandard);
+  $("btnTfProxySpeichern").addEventListener("click", tfProxySpeichern);
+  $("tfProxyDetails").addEventListener("toggle", ()=>{ if($("tfProxyDetails").open) tfProxyLaden(); });
   $("tfMailDetails").addEventListener("toggle", ()=>{ if($("tfMailDetails").open) tfMailtextLaden(); });
   ["tfEinlBetreff","tfEinlText","tfErinnBetreff","tfErinnText"].forEach(i=>$(i).addEventListener("input", tfMailtextVorschau));
   $("btnTfGenerieren").addEventListener("click", tfGenOeffnen);
@@ -2390,6 +2523,30 @@ function tfRenderTermine(){
       </tr>`;
     }).join("")+`</tbody></table></div></div>`;
   el.innerHTML=html;
+}
+
+/* ── Kalender-Zwischenhalter ── */
+async function tfProxyLaden(){
+  const st=$("tfProxyStatus"); st.style.display="none";
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_proxy_get",password:PASS});
+    if(r.ok) $("tfProxyUrl").value=r.proxy||"";
+  }catch(e){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+e.message; }
+}
+async function tfProxySpeichern(){
+  const st=$("tfProxyStatus");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_proxy_set",password:PASS,proxy:$("tfProxyUrl").value});
+    if(r.ok){
+      st.className="status-msg ok-msg";
+      st.textContent = r.proxy
+        ? "Gespeichert – die Abo-Links laufen ab sofort über den Worker."
+        : "Gespeichert – die Abo-Links laufen wieder direkt über Google.";
+    } else if(r.error==="URL_UNGUELTIG"){
+      st.className="status-msg err-msg"; st.textContent="Die Adresse muss mit https:// beginnen.";
+    } else { st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
 }
 
 /* ── Mailtexte ── */
@@ -2963,6 +3120,7 @@ function initBackup(){
   });
   $("btnCacheLeeren").addEventListener("click", cacheLeeren);
   $("btnMessungCache").addEventListener("click", ()=>messungStarten(true));
+  $("axDetails").addEventListener("toggle", ()=>{ if($("axDetails").open) axLaden(); });
   $("btnMessungOhne").addEventListener("click", ()=>messungStarten(false));
   $("grDetails").addEventListener("toggle", ()=>{
     if($("grDetails").open) grLadeGrundlagen();
@@ -3281,7 +3439,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.56";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.57";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -3650,7 +3808,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.56", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.57", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -3761,8 +3919,7 @@ async function ftLadeStatistik(){
   $("ft-stat-content").style.display="none";
   $("ft-stat-error").style.display="none";
   try{
-    const res=await fetch(FT_EXEC_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({type:"lade_dashboard_daten"})});
-    const daten=await res.json();
+    const daten=await fwAufruf(FT_EXEC_URL,{type:"lade_dashboard_daten"},{seite:"Admin Statistik"});
     DATA.fahrten=daten.fahrten||[];
     DATA.fragen=daten.fragen||[];
     DATA.rueckmeldungen=daten.rueckmeldungen||[];
@@ -4230,9 +4387,7 @@ async function ftLadeFahrten(){
 
 async function ftLadeMitglieder(){
   try{
-    const res=await fetch(FT_EXEC_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify({type:"lade_dashboard_daten"})});
-    const daten=await res.json();
+    const daten=await fwAufruf(FT_EXEC_URL,{type:"lade_dashboard_daten"},{seite:"Admin",still:true});
     const m={};
     Object.entries(daten.mitglieder||{}).forEach(([k,v])=>{ m[k]={vollerName:v}; });
     FT_MITGLIEDER=m;
@@ -4386,31 +4541,17 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.56`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.57`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.56";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.57";
 
-async function soApi(payload,versuch){
-  versuch=versuch||1;
-  try{
-    const res=await fetch(SO_EXEC_URL,{method:"POST",body:JSON.stringify(payload)});
-    const txt=await res.text();
-    try{
-      return JSON.parse(txt);
-    }catch(e){
-      const istHtml=txt.trim().slice(0,15).toLowerCase().includes("<!doctype") || txt.trim().startsWith("<");
-      if(istHtml && versuch<3){
-        await new Promise(r=>setTimeout(r,600*versuch));
-        return soApi(payload,versuch+1);
-      }
-      return {ok:false,error:"KEIN_JSON",
-        detail: istHtml ? "Server nicht erreichbar (nach "+versuch+" Versuchen)." : txt.slice(0,200)};
-    }
-  }catch(e){ return {ok:false,error:"NETZWERK",detail:String(e&&e.message||e)}; }
+async function soApi(payload){
+  try{ return await fwAufruf(SO_EXEC_URL, payload, {seite:"Admin SoSi"}); }
+  catch(e){ return {ok:false,error:"NETZWERK",detail:String(e&&e.message||e)}; }
 }
 function soFehlerHtml(prefix,r){
   const d=r?((r.error||"")+(r.detail?" — "+r.detail:"")):"";
