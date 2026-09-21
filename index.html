@@ -622,6 +622,23 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           </details>
 
           <details style="margin-top:0.5rem">
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Fahrtraining ohne Reservation</summary>
+            <div style="margin-top:0.75rem">
+              <p class="hinw" style="margin-bottom:1rem">
+                Startet jemand ein Fahrtraining ohne Reservation, bietet das Formular an, das Fahrzeug gleich zu
+                reservieren. Der Block läuft ab Abfahrt über die folgende Dauer und wird beim Abschluss auf die
+                tatsächliche Rückkehr angepasst.
+              </p>
+              <label for="ftBlockStd">Standarddauer (Stunden)</label>
+              <input id="ftBlockStd" type="number" min="0.5" max="12" step="0.5" style="max-width:120px">
+              <div class="entry-actions" style="justify-content:flex-start;margin-top:.75rem">
+                <button class="btn btn-green btn-klein" id="btnFtBlockSpeichern">Speichern</button>
+              </div>
+              <div class="status-msg" id="ftBlockStatus"></div>
+            </div>
+          </details>
+
+          <details style="margin-top:0.5rem">
             <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Übungsbetrieb (Kalenderabo)</summary>
             <div style="margin-top:0.75rem">
               <p class="hinw" style="margin-bottom:1rem">
@@ -1474,7 +1491,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.61</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.62</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten ──
@@ -1855,7 +1872,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.61";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.62";
 
 let GAB_NT_ID=null;
 
@@ -3697,13 +3714,14 @@ function initRes(){
       $("resTabKalender").style.display=tab==="kalender"?"block":"none";
       $("resTabExport").style.display=tab==="export"?"block":"none";
       $("resTabEinstellungen").style.display=tab==="einstellungen"?"block":"none";
-      if(tab==="einstellungen"){ ftLadeResTypen(); ftLadeResMail(); ftLadeUebung(); }
+      if(tab==="einstellungen"){ ftLadeResTypen(); ftLadeResMail(); ftLadeUebung(); ftBlockLaden(); }
     });
   });
   $("btnFtResSpeichern").addEventListener("click", ftSpeichereResTypen);
   $("btnFtResReset").addEventListener("click", ftResTypenReset);
   $("ftResTypen").addEventListener("input", ()=>ftResVorschau(null));
   $("btnFtUebungSpeichern").addEventListener("click", ftSpeichereUebung);
+  $("btnFtBlockSpeichern").addEventListener("click", ftBlockSpeichern);
   $("btnFtUebungSync").addEventListener("click", ftUebungSync);
   $("btnFtResMailSpeichern").addEventListener("click", ftSpeichereResMail);
   $("btnFtResMailReset").addEventListener("click", ftResMailReset);
@@ -3828,6 +3846,20 @@ function resExportAuswahl(){
   st.textContent=`${gewaehlt.length} Eintrag${gewaehlt.length!==1?"e":""} exportiert.`;
 }
 
+/* ── Fahrtraining ohne Reservation ── */
+async function ftBlockLaden(){
+  try{ const r=await ftCallAdmin({type:"admin_ft_block_get",password:PASS}); if(r.ok) $("ftBlockStd").value=r.stunden; }catch(e){}
+}
+async function ftBlockSpeichern(){
+  const st=$("ftBlockStatus");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
+  try{
+    const r=await ftCallAdmin({type:"admin_ft_block_set",password:PASS,stunden:$("ftBlockStd").value});
+    if(r.ok){ st.className="status-msg ok-msg"; st.textContent=`Gespeichert – ${r.stunden} Stunden.`; }
+    else { st.className="status-msg err-msg"; st.textContent="Bitte eine Dauer zwischen 0.5 und 12 Stunden angeben."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
 /* ── Übungsbetrieb ── */
 async function ftLadeUebung(){
   const st=$("ftUebungStatus");
@@ -3897,7 +3929,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.61";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.62";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -4266,7 +4298,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.61", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.62", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -4999,13 +5031,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.61`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.62`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.61";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.62";
 
 async function soApi(payload){
   try{ return await fwAufruf(SO_EXEC_URL, payload, {seite:"Admin SoSi"}); }
