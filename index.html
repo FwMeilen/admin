@@ -198,6 +198,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       </select>
     </div>
     <div class="warnung" id="authWarnung" style="display:none"></div>
+    <div class="warnung" id="scWarnung" style="display:none;border-color:var(--red)"></div>
 
     <!-- ═══════════ ÜBERSICHT ═══════════ -->
     <div id="toolStart">
@@ -884,36 +885,16 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 
     <!-- ═══════════ TERMINFINDUNG ═══════════ -->
     <div id="toolTf" style="display:none">
-      <div class="card">
-        <h2>Ausbildungen</h2>
-        <p class="hinw" style="margin-bottom:1rem">
-          Für jede Ausbildung werden Termine erfasst. Teilnehmer und Ausbildner tragen sich unter
-          <a href="https://uebungsfindung.feuerwehrmeilen.ch" target="_blank" rel="noopener" style="color:var(--red);font-weight:600">uebungsfindung.feuerwehrmeilen.ch</a>
-          ein.
-        </p>
-        <div class="entry-actions" style="justify-content:flex-start">
-          <button class="btn btn-red btn-klein" id="btnTfLaden">Aktualisieren</button>
-          <button class="btn btn-green btn-klein" id="btnTfNeu">+ Neue Ausbildung</button>
-        </div>
-        <div class="status-msg" id="tfStatus"></div>
+      <div class="tabs">
+        <button class="tab aktiv" data-tftab="ausbildungen">Ausbildungen</button>
+        <button class="tab" data-tftab="einstellungen">Einstellungen</button>
+      </div>
 
-        <details id="tfProxyDetails" style="margin-top:1rem">
-          <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Kalender-Abo (Cloudflare Worker)</summary>
-          <div style="margin-top:.75rem">
-            <p class="hinw" style="margin-bottom:1rem">
-              Kalender-Apps kommen mit Googles Weiterleitung nicht immer zurecht. Ist hier die Adresse
-              des Cloudflare Workers hinterlegt, laufen alle Abo-Links über ihn. Leer = direkt über Google.
-            </p>
-            <label for="tfProxyUrl">Adresse des Workers</label>
-            <input id="tfProxyUrl" type="text" placeholder="https://fwmeilen-kalender.….workers.dev">
-            <div class="entry-actions" style="justify-content:flex-start;margin-top:.75rem">
-              <button class="btn btn-green btn-klein" id="btnTfProxySpeichern">Speichern</button>
-            </div>
-            <div class="status-msg" id="tfProxyStatus"></div>
-          </div>
-        </details>
-
-        <details id="tfMailDetails" style="margin-top:.5rem">
+      <div id="tfTabEinstellungen" style="display:none">
+        <div class="card">
+          <h2>Mailtexte &amp; Erinnerungen</h2>
+          <p class="hinw" style="margin-bottom:.5rem">Gelten für alle Ausbildungen.</p>
+        <details id="tfMailDetails" open>
           <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Mailtexte Einladung &amp; Erinnerung</summary>
           <div style="margin-top:.75rem">
             <p class="hinw" style="margin-bottom:1rem">Gelten für alle Ausbildungen. Die Platzhalter werden beim Versand ersetzt.</p>
@@ -975,6 +956,29 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
             <div class="status-msg" id="tfMailtextStatus"></div>
           </div>
         </details>
+        </div>
+        <div class="card">
+          <h2>Kalender-Abo</h2>
+          <p class="hinw">Die Adresse des Cloudflare Workers für die Kalender-Abos wird zentral unter
+            <b>Admin → Kalender-Worker</b> verwaltet.</p>
+        </div>
+      </div>
+
+      <div id="tfTabAusbildungen">
+      <div class="card">
+        <h2>Ausbildungen</h2>
+        <p class="hinw" style="margin-bottom:1rem">
+          Für jede Ausbildung werden Termine erfasst. Teilnehmer und Ausbildner tragen sich unter
+          <a href="https://uebungsfindung.feuerwehrmeilen.ch" target="_blank" rel="noopener" style="color:var(--red);font-weight:600">uebungsfindung.feuerwehrmeilen.ch</a>
+          ein.
+        </p>
+        <div class="entry-actions" style="justify-content:flex-start">
+          <button class="btn btn-red btn-klein" id="btnTfLaden">Aktualisieren</button>
+          <button class="btn btn-green btn-klein" id="btnTfNeu">+ Neue Ausbildung</button>
+        </div>
+        <div class="status-msg" id="tfStatus"></div>
+
+
       </div>
       <div id="tfListe" class="loading">Lade …</div>
 
@@ -1007,10 +1011,32 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         </div>
         <div id="tfTermine" class="loading">Lade …</div>
       </div>
+      </div>
     </div>
 
     <!-- ═══════════ ADMIN ═══════════ -->
     <div id="toolBackup" style="display:none">
+
+      <div class="card" id="scKarte">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+          <h2 style="margin:0">Systemcheck</h2>
+          <button class="btn btn-red btn-klein" id="btnScPruefen">Jetzt prüfen</button>
+        </div>
+        <p class="hinw" style="margin:.5rem 0 1rem">Prüft beide Scripts stündlich. Bei einem Problem geht eine Mail an die Empfänger unten –
+          direkt vom Feuerwehrkonto, damit sie auch bei gestörtem Mailversand ankommt.</p>
+        <div id="scInhalt"><div class="loading">Lade …</div></div>
+        <details style="margin-top:1rem">
+          <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Empfänger der Alarm-Mails</summary>
+          <div style="margin-top:.75rem">
+            <label for="scEmpf">Kürzel (mehrere mit Komma)</label>
+            <input id="scEmpf" type="text" style="text-transform:uppercase" placeholder="LOL">
+            <div class="entry-actions" style="justify-content:flex-start;margin-top:.75rem">
+              <button class="btn btn-green btn-klein" id="btnScEmpf">Speichern</button>
+            </div>
+            <div class="status-msg" id="scEmpfStatus"></div>
+          </div>
+        </details>
+      </div>
 
       <div class="card">
         <h2>Grundlagen</h2>
@@ -1074,6 +1100,29 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
             </div>
             <div class="status-msg" id="messungStatus"></div>
             <div id="messungErgebnis" style="margin-top:1rem"></div>
+          </div>
+        </details>
+      </div>
+
+      <div class="card">
+        <h2>Kalender-Worker (Cloudflare)</h2>
+        <details id="wkDetails">
+          <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Adresse &amp; Prüfung</summary>
+          <div style="margin-top:.75rem">
+            <p class="hinw" style="margin-bottom:1rem">
+              Kalender-Apps kommen mit Googles Weiterleitung nicht zurecht. Ist hier der Worker hinterlegt,
+              laufen alle Kalender-Abos über ihn. Leer = direkt über Google.
+              Der Worker-Code liegt als <code>kalender-worker.js</code> bei; einrichten unter
+              <a href="https://dash.cloudflare.com" target="_blank" rel="noopener" style="color:var(--red);font-weight:600">dash.cloudflare.com</a>
+              → Workers &amp; Pages → Worker → «Edit code».
+            </p>
+            <label for="wkUrl">Adresse des Workers</label>
+            <input id="wkUrl" type="text" placeholder="https://cal.….workers.dev">
+            <div class="entry-actions" style="justify-content:flex-start;margin-top:.75rem">
+              <button class="btn btn-green btn-klein" id="btnWkSpeichern">Speichern</button>
+              <button class="btn btn-klein" id="btnWkPruefen">Worker prüfen</button>
+            </div>
+            <div class="status-msg" id="wkStatus"></div>
           </div>
         </details>
       </div>
@@ -1417,7 +1466,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.59</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.60</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten ──
@@ -1507,7 +1556,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       };
       const starte=()=>{
         if(fertig) return;
-        if(gestartet>=NACHFRAGEN.length){ if(offen===0) ende(false); return; }
+        if(gestartet>=(opts.nachfragen||NACHFRAGEN).length){ if(offen===0) ende(false); return; }
         gestartet++; offen++;
         const a=new AbortController(); abbrecher.push(a);
         fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body,signal:a.signal})
@@ -1526,8 +1575,9 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
             if(offen===0) uhren.push(setTimeout(starte,700));
           });
       };
-      NACHFRAGEN.forEach(t=>uhren.push(setTimeout(starte,t)));
-      if(!opts.still) uhren.push(setTimeout(()=>{ if(!fertig){ zeigt=true; aktiv++; zeigeWarten(); } },HINWEIS_NACH));
+      // Bewusst lange Aufrufe (z.B. Systemcheck) können eigene Zeitpunkte angeben
+      (opts.nachfragen||NACHFRAGEN).forEach(t=>uhren.push(setTimeout(starte,t)));
+      if(!opts.still) uhren.push(setTimeout(()=>{ if(!fertig){ zeigt=true; aktiv++; zeigeWarten(); } },opts.hinweisNach||HINWEIS_NACH));
       uhren.push(setTimeout(()=>ende(false),HOECHSTENS));
     });
   }
@@ -1607,6 +1657,10 @@ async function login(){
     $("scPanel").style.display="block";
     updateAuthWarnung();
     initFt();
+    // Systemcheck im Hintergrund – meldet sich nur bei Problemen
+    if(FT_OK) fwAufruf(FT_EXEC_URL,{type:"admin_systemcheck",password:PASS},
+        {seite:"Admin Systemcheck",still:true,nachfragen:[0,25000]})
+      .then(r=>{ if(r&&r.ok){ SC_LETZT=r; scWarnungSetzen(r); } }).catch(()=>{});
   }catch(e){
     fehlerEl.textContent="Verbindung fehlgeschlagen.";
     fehlerEl.style.display="block";
@@ -1793,7 +1847,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.59";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.60";
 
 let GAB_NT_ID=null;
 
@@ -2316,6 +2370,16 @@ let TF_FEHLEND={teilnehmer:null,ausbildner:null}, TF_FORTSCHRITT=null;
 
 function initTf(){
   TF_INIT=true;
+  document.querySelectorAll("[data-tftab]").forEach(t=>{
+    t.addEventListener("click", ()=>{
+      document.querySelectorAll("[data-tftab]").forEach(x=>x.classList.remove("aktiv"));
+      t.classList.add("aktiv");
+      const tab=t.dataset.tftab;
+      $("tfTabAusbildungen").style.display=tab==="ausbildungen"?"block":"none";
+      $("tfTabEinstellungen").style.display=tab==="einstellungen"?"block":"none";
+      if(tab==="einstellungen") tfMailtextLaden();
+    });
+  });
   tfFahrzeugeSicherstellen();
   $("btnTfLaden").addEventListener("click", tfLade);
   $("btnTfNeu").addEventListener("click", ()=>tfFormular(null));
@@ -2330,8 +2394,7 @@ function initTf(){
   $("btnTfMailtextSpeichern").addEventListener("click", tfMailtextSpeichern);
   $("btnTfMailtextReset").addEventListener("click", tfMailtextReset);
   $("btnTfMailtextStandard").addEventListener("click", tfMailtextAlsStandard);
-  $("btnTfProxySpeichern").addEventListener("click", tfProxySpeichern);
-  $("tfProxyDetails").addEventListener("toggle", ()=>{ if($("tfProxyDetails").open) tfProxyLaden(); });
+
   $("tfMailDetails").addEventListener("toggle", ()=>{ if($("tfMailDetails").open) tfMailtextLaden(); });
   ["tfEinlBetreff","tfEinlText","tfErinnBetreff","tfErinnText","tfGenugBetreff","tfGenugText","tfInfoBetreffV","tfInfoTextV"]
     .forEach(i=>$(i).addEventListener("input", tfMailtextVorschau));
@@ -2665,25 +2728,97 @@ function tfRenderTermine(){
 }
 
 /* ── Kalender-Zwischenhalter ── */
-async function tfProxyLaden(){
-  const st=$("tfProxyStatus"); st.style.display="none";
+async function wkLaden(){
+  const st=$("wkStatus"); st.style.display="none";
   try{
     const r=await ftCallAdmin({type:"admin_tf_proxy_get",password:PASS});
-    if(r.ok) $("tfProxyUrl").value=r.proxy||"";
+    if(r.ok) $("wkUrl").value=r.proxy||"";
   }catch(e){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+e.message; }
 }
-async function tfProxySpeichern(){
-  const st=$("tfProxyStatus");
+async function wkSpeichern(){
+  const st=$("wkStatus");
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
   try{
-    const r=await ftCallAdmin({type:"admin_tf_proxy_set",password:PASS,proxy:$("tfProxyUrl").value});
+    const r=await ftCallAdmin({type:"admin_tf_proxy_set",password:PASS,proxy:$("wkUrl").value});
     if(r.ok){
       st.className="status-msg ok-msg";
-      st.textContent = r.proxy
-        ? "Gespeichert – die Abo-Links laufen ab sofort über den Worker."
-        : "Gespeichert – die Abo-Links laufen wieder direkt über Google.";
-    } else if(r.error==="URL_UNGUELTIG"){
-      st.className="status-msg err-msg"; st.textContent="Die Adresse muss mit https:// beginnen.";
+      st.textContent = r.proxy ? "Gespeichert – die Kalender-Abos laufen über den Worker."
+                               : "Gespeichert – die Kalender-Abos laufen direkt über Google.";
+    } else if(r.error==="URL_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Die Adresse muss mit https:// beginnen."; }
+    else { st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+async function wkPruefen(){
+  const st=$("wkStatus");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Worker wird geprüft…";
+  try{
+    const r=await ftCallAdmin({type:"admin_worker_pruefen",password:PASS,url:$("wkUrl").value});
+    if(r.error==="KEINE_ADRESSE"){ st.className="status-msg err-msg"; st.textContent="Keine Adresse eingetragen."; return; }
+    if(!r.ok){ st.className="status-msg err-msg"; st.textContent="Worker nicht erreichbar: "+(r.detail||r.error); return; }
+    if(r.aktuell){ st.className="status-msg ok-msg"; st.textContent=`Worker antwortet (${escHtml(r.text)}, ${r.ms} ms) – alles in Ordnung.`; }
+    else if(r.code===400){ st.className="status-msg err-msg"; st.textContent="Worker antwortet, läuft aber noch mit altem Code. Bitte den aktuellen kalender-worker.js bei Cloudflare einfügen."; }
+    else { st.className="status-msg err-msg"; st.textContent=`Unerwartete Antwort ${r.code}: ${r.text}`; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+/* ── Systemcheck ── */
+let SC_LETZT=null;
+async function scLaden(neu){
+  const el=$("scInhalt");
+  if(neu) el.innerHTML='<div class="loading">Wird geprüft – das dauert einige Sekunden …</div>';
+  try{
+    const r=await fwAufruf(FT_EXEC_URL,{type:"admin_systemcheck",password:PASS,neu:!!neu},
+      {seite:"Admin Systemcheck",nachfragen:[0,25000],hinweisNach:15000});
+    if(!r.ok){ el.innerHTML='<div class="empty">Systemcheck nicht möglich.</div>'; return; }
+    SC_LETZT=r;
+    scAnzeigen(r);
+    scWarnungSetzen(r);
+  }catch(e){ el.innerHTML=`<div class="empty">Fehler: ${escHtml(e.message)}</div>`; }
+}
+function scAnzeigen(r){
+  const el=$("scInhalt");
+  const zeit=new Date(r.zeit).toLocaleString("de-CH",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"2-digit"});
+  const kopf = r.fehler
+    ? `<div class="warnung" style="margin-bottom:.75rem;border-color:var(--red)"><b>${r.fehler} Problem${r.fehler!==1?"e":""}</b> gefunden.</div>`
+    : `<div style="color:var(--green);font-weight:700;margin-bottom:.75rem">✓ Alles in Ordnung</div>`;
+  el.innerHTML=kopf+r.pruefungen.map(p=>{
+    const farbe=p.neutral?"#888":(p.ok?"var(--green)":"var(--red)");
+    return `<div class="frage-row" style="align-items:flex-start;gap:10px;padding:9px 0">
+      <span style="width:11px;height:11px;border-radius:50%;background:${farbe};flex-shrink:0;margin-top:4px"></span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gray)">${escHtml(p.script)}</div>
+        <div style="font-size:13px;font-weight:700">${escHtml(p.titel)}</div>
+        ${p.grund?`<div class="hinw" style="font-size:12px">${escHtml(p.grund)}</div>`:""}
+        ${!p.ok&&p.loesung?`<div style="font-size:12px;margin-top:3px"><b>Lösung:</b> ${escHtml(p.loesung)}</div>`:""}
+      </div></div>`;
+  }).join("")+`<div class="hinw" style="margin-top:.75rem">Stand: ${escHtml(zeit)}${r.ausCache?" (zwischengespeichert)":""} · Server ${escHtml(r.version||"")}</div>`;
+}
+function scWarnungSetzen(r){
+  const w=$("scWarnung");
+  if(!w) return;
+  if(r&&r.fehler){
+    const titel=r.pruefungen.filter(p=>!p.ok).map(p=>`${p.script}: ${p.titel}`).join(" · ");
+    w.innerHTML=`⚠ Systemcheck: ${r.fehler} Problem${r.fehler!==1?"e":""} – ${escHtml(titel)} `
+      +'<button class="btn btn-klein" id="btnScDetails" style="margin-left:10px">Details</button>';
+    w.style.display="block";
+    $("btnScDetails").addEventListener("click", ()=>{
+      $("toolSelect").value="backup"; switchTool();
+      setTimeout(()=>$("scKarte").scrollIntoView({behavior:"smooth"}),50);
+    });
+  } else w.style.display="none";
+}
+async function scEmpfLaden(){
+  try{ const r=await ftCallAdmin({type:"admin_systemcheck_empf_get",password:PASS}); if(r.ok) $("scEmpf").value=r.empfaenger||""; }catch(e){}
+}
+async function scEmpfSpeichern(){
+  const st=$("scEmpfStatus");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
+  try{
+    const r=await ftCallAdmin({type:"admin_systemcheck_empf_set",password:PASS,empfaenger:$("scEmpf").value});
+    if(r.ok){
+      st.className=(r.unbekannt||[]).length?"status-msg err-msg":"status-msg ok-msg";
+      st.textContent="Gespeichert: "+(r.empfaenger||"niemand")
+        +((r.unbekannt||[]).length?` – ohne Mailadresse in der Mitgliederliste: ${r.unbekannt.join(", ")}`:"");
     } else { st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
 }
@@ -3351,6 +3486,13 @@ function initBackup(){
   $("btnCacheLeeren").addEventListener("click", cacheLeeren);
   $("btnMessungCache").addEventListener("click", ()=>messungStarten(true));
   $("axDetails").addEventListener("toggle", ()=>{ if($("axDetails").open) axLaden(); });
+  $("btnScPruefen").addEventListener("click", ()=>scLaden(true));
+  $("btnScEmpf").addEventListener("click", scEmpfSpeichern);
+  $("btnWkSpeichern").addEventListener("click", wkSpeichern);
+  $("btnWkPruefen").addEventListener("click", wkPruefen);
+  $("wkDetails").addEventListener("toggle", ()=>{ if($("wkDetails").open) wkLaden(); });
+  if(SC_LETZT) scAnzeigen(SC_LETZT); else scLaden(false);
+  scEmpfLaden();
   $("mvDetails").addEventListener("toggle", ()=>{ if($("mvDetails").open) mvLaden(); });
   $("btnMessungOhne").addEventListener("click", ()=>messungStarten(false));
   $("grDetails").addEventListener("toggle", ()=>{
@@ -3670,7 +3812,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.59";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.60";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -4039,7 +4181,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.59", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.60", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -4772,13 +4914,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.59`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.60`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.59";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.60";
 
 async function soApi(payload){
   try{ return await fwAufruf(SO_EXEC_URL, payload, {seite:"Admin SoSi"}); }
