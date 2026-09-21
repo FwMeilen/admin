@@ -1249,7 +1249,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.51</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.52</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1463,7 +1463,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.51";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.52";
 
 let GAB_NT_ID=null;
 
@@ -1936,6 +1936,7 @@ let TF_INIT=false, TF_LISTE=[], TF_AKTUELL=null, TF_TERMINE=[], TF_VORSCHLAEGE=[
 
 function initTf(){
   TF_INIT=true;
+  tfFahrzeugeSicherstellen();
   $("btnTfLaden").addEventListener("click", tfLade);
   $("btnTfNeu").addEventListener("click", ()=>tfFormular(null));
   $("btnTfZurueck").addEventListener("click", tfZurueck);
@@ -1987,7 +1988,17 @@ function tfKarte(a){
   </div>`;
 }
 
-function tfFormular(a){
+/** Fahrzeugliste laden, falls sie in dieser Sitzung noch nicht geholt wurde */
+async function tfFahrzeugeSicherstellen(){
+  if(FT_FZG_LISTE && FT_FZG_LISTE.length>0) return;
+  try{
+    const res=await ftCallAdmin({type:"admin_get_fahrzeuge",password:PASS});
+    if(res && res.liste) FT_FZG_LISTE=res.liste;
+  }catch(e){ console.warn("Fahrzeuge:",e); }
+}
+
+async function tfFormular(a){
+  await tfFahrzeugeSicherstellen();
   const neu=!a;
   const d=a||{id:"",name:"",beschreibung:"",status:"offen",aktiv:true,
     minTeilnehmer:1,maxTeilnehmer:3,minAusbildner:1,maxAusbildner:5,fahrzeug:"",dauerMin:120};
@@ -2820,7 +2831,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.51";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.52";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -3189,7 +3200,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.51", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.52", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -3925,13 +3936,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.51`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.52`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.51";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.52";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
