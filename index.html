@@ -896,6 +896,44 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           <button class="btn btn-green btn-klein" id="btnTfNeu">+ Neue Ausbildung</button>
         </div>
         <div class="status-msg" id="tfStatus"></div>
+
+        <details id="tfMailDetails" style="margin-top:1rem">
+          <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Mailtexte Einladung &amp; Erinnerung</summary>
+          <div style="margin-top:.75rem">
+            <p class="hinw" style="margin-bottom:1rem">Gelten für alle Ausbildungen. Die Platzhalter werden beim Versand ersetzt.</p>
+
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Einladung</div>
+            <label for="tfEinlBetreff">Betreff</label>
+            <input id="tfEinlBetreff" type="text">
+            <label for="tfEinlText" style="margin-top:.5rem">Text</label>
+            <textarea id="tfEinlText" rows="10"></textarea>
+            <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:.75rem">
+              <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="tfPvEinlBetreff" style="font-weight:400"></span></div>
+              <div id="tfPvEinlText" style="font-size:13px;line-height:1.6"></div>
+            </div>
+
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:1.25rem 0 6px">Erinnerung</div>
+            <label for="tfErinnBetreff">Betreff</label>
+            <input id="tfErinnBetreff" type="text">
+            <label for="tfErinnText" style="margin-top:.5rem">Text</label>
+            <textarea id="tfErinnText" rows="10"></textarea>
+            <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:.75rem">
+              <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="tfPvErinnBetreff" style="font-weight:400"></span></div>
+              <div id="tfPvErinnText" style="font-size:13px;line-height:1.6"></div>
+            </div>
+
+            <div class="hinw" style="margin-top:.75rem">Platzhalter:
+              <code>{vorname}</code> <code>{name}</code> <code>{kuerzel}</code> <code>{ausbildung}</code>
+              <code>{beschreibung}</code> <code>{rolle}</code> <code>{anzahlTermine}</code>
+              <code>{ersterTermin}</code> <code>{letzterTermin}</code> <code>{link}</code> <code>{version}</code></div>
+
+            <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+              <button class="btn btn-green btn-klein" id="btnTfMailtextSpeichern">Speichern</button>
+              <button class="btn btn-klein" id="btnTfMailtextReset">Auf Standard</button>
+            </div>
+            <div class="status-msg" id="tfMailtextStatus"></div>
+          </div>
+        </details>
       </div>
       <div id="tfListe" class="loading">Lade …</div>
 
@@ -1229,6 +1267,18 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
+<div id="tfMailBg" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:450;display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
+  <div style="background:#fff;max-width:560px;width:100%;border-top:5px solid var(--red);padding:1.5rem;max-height:92vh;overflow-y:auto">
+    <h3 style="font-size:15px;margin-bottom:.5rem" id="tfMailTitel">Einladung senden</h3>
+    <div id="tfMailInhalt"></div>
+    <div class="status-msg" id="tfMailDlgStatus"></div>
+    <div style="display:flex;gap:10px;margin-top:1.25rem">
+      <button class="btn" style="flex:1;justify-content:center" onclick="$('tfMailBg').style.display='none'">Abbrechen</button>
+      <button class="btn btn-red" style="flex:1;justify-content:center" id="btnTfMailSenden">Senden</button>
+    </div>
+  </div>
+</div>
+
 <div id="tfKolBg" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:450;display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
   <div style="background:#fff;max-width:640px;width:100%;border-top:5px solid var(--orange);padding:1.5rem;max-height:92vh;overflow-y:auto">
     <h3 style="font-size:15px;margin-bottom:.5rem">Achtung – Feuerwehranlässe</h3>
@@ -1279,7 +1329,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.53</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.54</div>
 
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
@@ -1548,7 +1598,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.53";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.54";
 
 let GAB_NT_ID=null;
 
@@ -2018,6 +2068,7 @@ async function cacheLeeren(){
 
 /* ══════════════════ TERMINFINDUNG ══════════════════ */
 let TF_INIT=false, TF_LISTE=[], TF_AKTUELL=null, TF_TERMINE=[], TF_VORSCHLAEGE=[];
+let TF_FEHLEND={teilnehmer:null,ausbildner:null};
 
 function initTf(){
   TF_INIT=true;
@@ -2029,6 +2080,11 @@ function initTf(){
   $("btnTfEinzelSpeichern").addEventListener("click", tfEinzelSpeichern);
   $("btnTfEinzelSchliessen").addEventListener("click", ()=>{ $("tfEinzelForm").style.display="none"; });
   $("btnTfKolUebernehmen").addEventListener("click", tfKolUebernehmen);
+  $("btnTfMailSenden").addEventListener("click", tfMailSenden);
+  $("btnTfMailtextSpeichern").addEventListener("click", tfMailtextSpeichern);
+  $("btnTfMailtextReset").addEventListener("click", tfMailtextReset);
+  $("tfMailDetails").addEventListener("toggle", ()=>{ if($("tfMailDetails").open) tfMailtextLaden(); });
+  ["tfEinlBetreff","tfEinlText","tfErinnBetreff","tfErinnText"].forEach(i=>$(i).addEventListener("input", tfMailtextVorschau));
   $("btnTfGenerieren").addEventListener("click", tfGenOeffnen);
   $("btnTfGenErzeugen").addEventListener("click", tfGenErzeugen);
   tfLade();
@@ -2065,6 +2121,7 @@ function tfKarte(a){
           ${a.anzahlTermine} Termin${a.anzahlTermine!==1?"e":""}
           ${a.anzahlDefinitiv?` · ${a.anzahlDefinitiv} definitiv`:""}
           · benötigt ${a.minTeilnehmer} Teilnehmer und ${a.minAusbildner} Ausbildner
+          · vorgesehen: ${(a.teilnehmerListe||[]).length||"alle"} Teilnehmer, ${(a.ausbildnerListe||[]).length||"alle"} Ausbildner
           ${a.fahrzeug?` · ${escHtml(a.fahrzeug)}`:""}
         </div>
       </div>
@@ -2074,6 +2131,37 @@ function tfKarte(a){
       </div>
     </div>
   </div>`;
+}
+
+let TF_MITGLIEDER=null;
+async function tfMitgliederSicherstellen(){
+  if(TF_MITGLIEDER) return;
+  try{
+    const r=await ftCallAdmin({type:"admin_mitglieder",password:PASS});
+    TF_MITGLIEDER={};
+    (r.mitglieder||[]).forEach(m=>{ TF_MITGLIEDER[m.kuerzel]=m.name; });
+  }catch(e){ TF_MITGLIEDER=null; }
+}
+
+/** Kürzel im Feld prüfen und mit Namen anzeigen */
+function tfListePruefen(feldId,ausgabeId){
+  const el=$(ausgabeId);
+  const liste=$(feldId).value.split(/[\s,;]+/).map(x=>x.trim().toUpperCase()).filter(x=>x);
+  if(liste.length===0){
+    el.innerHTML='<span class="hinw">Leer lassen = alle dürfen sich eintragen.</span>';
+    return;
+  }
+  const doppelt={};
+  el.innerHTML=liste.map(k=>{
+    if(doppelt[k]) return "";
+    doppelt[k]=true;
+    const name=TF_MITGLIEDER?TF_MITGLIEDER[k]:undefined;
+    const bekannt=!TF_MITGLIEDER||name!==undefined;
+    return `<span style="display:inline-block;font-size:11px;padding:2px 8px;margin:0 4px 4px 0;
+      border:1px solid ${bekannt?"var(--gray-mid)":"var(--red)"};background:${bekannt?"var(--bg2)":"var(--red-light)"};
+      color:${bekannt?"var(--text)":"var(--red-dark)"}"><b>${escHtml(k)}</b>${
+        name?" · "+escHtml(name):(bekannt?"":" · unbekannt")}</span>`;
+  }).join("")+`<div class="hinw" style="margin-top:2px">${Object.keys(doppelt).length} Personen</div>`;
 }
 
 /** Fahrzeugliste laden, falls sie in dieser Sitzung noch nicht geholt wurde */
@@ -2086,7 +2174,7 @@ async function tfFahrzeugeSicherstellen(){
 }
 
 async function tfFormular(a){
-  await tfFahrzeugeSicherstellen();
+  await Promise.all([tfFahrzeugeSicherstellen(), tfMitgliederSicherstellen()]);
   const neu=!a;
   const d=a||{id:"",name:"",beschreibung:"",status:"offen",aktiv:true,
     minTeilnehmer:1,maxTeilnehmer:3,minAusbildner:1,maxAusbildner:5,fahrzeug:"",dauerMin:120};
@@ -2109,6 +2197,19 @@ async function tfFormular(a){
       <div><label for="${id}-maxA">Ausbildner Plätze</label>
         <input id="${id}-maxA" type="number" min="1" max="50" value="${d.maxAusbildner}"></div>
     </div>
+    <label for="${id}-tl" style="margin-top:.75rem">Teilnehmer (Kürzel, mit Komma oder Leerzeichen getrennt)</label>
+    <textarea id="${id}-tl" rows="2" style="text-transform:uppercase" placeholder="z. B. ABC, DEF, GHI"
+      oninput="tfListePruefen('${id}-tl','${id}-tl-info')">${escHtml((d.teilnehmerListe||[]).join(", "))}</textarea>
+    <div id="${id}-tl-info" style="margin-top:6px"></div>
+
+    <label for="${id}-al" style="margin-top:.75rem">Ausbildner (Kürzel, mit Komma oder Leerzeichen getrennt)</label>
+    <textarea id="${id}-al" rows="2" style="text-transform:uppercase" placeholder="z. B. LOL, XYZ"
+      oninput="tfListePruefen('${id}-al','${id}-al-info')">${escHtml((d.ausbildnerListe||[]).join(", "))}</textarea>
+    <div id="${id}-al-info" style="margin-top:6px"></div>
+    <div class="hinw" style="margin-top:6px">
+      Eine Person kann auf beiden Listen stehen. Auf der Anmeldeseite sieht jeder nur die Ausbildungen und Rollen, für die er vorgesehen ist.
+    </div>
+
     <div class="entry-row2" style="margin-top:.75rem">
       <div><label for="${id}-fahrzeug">Fahrzeug (optional)</label>
         <select id="${id}-fahrzeug"><option value="">keines</option>${
@@ -2129,6 +2230,8 @@ async function tfFormular(a){
     <div class="status-msg" id="${id}-status-msg"></div>
   </div>`;
   $("tfListe").innerHTML=html;
+  tfListePruefen(id+"-tl",id+"-tl-info");
+  tfListePruefen(id+"-al",id+"-al-info");
   $(id+"-name").focus();
 }
 
@@ -2141,7 +2244,8 @@ async function tfSpeichern(id){
       name:$(f+"-name").value, beschreibung:$(f+"-beschreibung").value,
       minTeilnehmer:$(f+"-minT").value, maxTeilnehmer:$(f+"-maxT").value,
       minAusbildner:$(f+"-minA").value, maxAusbildner:$(f+"-maxA").value,
-      fahrzeug:$(f+"-fahrzeug").value, status:$(f+"-status").value});
+      fahrzeug:$(f+"-fahrzeug").value, status:$(f+"-status").value,
+      teilnehmerListe:$(f+"-tl").value, ausbildnerListe:$(f+"-al").value});
     if(r.ok){ tfLade(); }
     else if(r.error==="NAME_LEER"){ st.className="status-msg err-msg"; st.textContent="Bitte eine Bezeichnung eingeben."; }
     else if(r.error==="TEILNEHMER_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Mindestzahl Teilnehmer darf die Plätze nicht übersteigen."; }
@@ -2167,6 +2271,7 @@ async function tfOeffnen(id){
     const r=await ftCallAdmin({type:"admin_tf_termine",password:PASS,ausbildung:id});
     if(!r.ok){ $("tfTermine").innerHTML='<div class="empty">Konnte nicht geladen werden.</div>'; return; }
     TF_AKTUELL=r.ausbildung; TF_TERMINE=r.termine||[]; TF_VORSCHLAEGE=r.vorschlaege||[];
+    TF_FEHLEND=r.fehlend||{teilnehmer:null,ausbildner:null};
     $("tfDetailTitel").textContent=TF_AKTUELL.name;
     tfRenderTermine();
   }catch(e){ $("tfTermine").innerHTML=`<div class="empty">Fehler: ${escHtml(e.message)}</div>`; }
@@ -2174,14 +2279,45 @@ async function tfOeffnen(id){
 
 function tfZurueck(){ TF_AKTUELL=null; tfLade(); }
 
+function tfRueckmeldungKarte(){
+  const f=TF_FEHLEND||{};
+  const hatListen=f.teilnehmer!==null||f.ausbildner!==null;
+  if(!hatListen){
+    return `<div class="card" style="border-top-color:var(--gray-mid)">
+      <h2>Rückmeldungen</h2>
+      <p class="hinw">Für diese Ausbildung sind keine Personen hinterlegt – alle dürfen sich eintragen.
+      Einladung und Erinnerung sind erst möglich, wenn unter «Bearbeiten» Teilnehmer oder Ausbildner erfasst sind.</p>
+    </div>`;
+  }
+  const block=(titel,liste)=>{
+    if(liste===null) return `<div style="margin-bottom:.75rem"><b>${titel}:</b> <span class="hinw">keine Liste – alle dürfen</span></div>`;
+    if(liste.length===0) return `<div style="margin-bottom:.75rem"><b>${titel}:</b> <span style="color:var(--green);font-weight:600">alle haben sich eingetragen ✓</span></div>`;
+    return `<div style="margin-bottom:.75rem"><b>${titel}:</b> ${liste.length} noch nicht eingetragen<br>
+      <div style="margin-top:5px">${liste.map(p=>`<span style="display:inline-block;font-size:11px;padding:2px 8px;margin:0 4px 4px 0;
+        border:1px solid var(--orange);background:var(--orange-light,#fdf3e5)"><b>${escHtml(p.kuerzel)}</b>${
+        p.name?" · "+escHtml(p.name):""}${p.email?"":" · ohne Mail"}</span>`).join("")}</div></div>`;
+  };
+  const offen=(f.teilnehmer||[]).length+(f.ausbildner||[]).length;
+  return `<div class="card" style="border-top-color:${offen?"var(--orange)":"var(--green)"}">
+    <h2>Rückmeldungen</h2>
+    ${block("Teilnehmer",f.teilnehmer)}
+    ${block("Ausbildner",f.ausbildner)}
+    <div class="entry-actions" style="justify-content:flex-start">
+      <button class="btn btn-klein" onclick="tfMailVorschau('einladung')">Einladung senden</button>
+      <button class="btn btn-klein${offen?" btn-red":""}" onclick="tfMailVorschau('erinnerung')" ${offen?"":"disabled"}>Erinnerung senden</button>
+    </div>
+    <div class="status-msg" id="tfMailStatus"></div>
+  </div>`;
+}
+
 function tfRenderTermine(){
   const el=$("tfTermine");
   if(TF_TERMINE.length===0){
-    el.innerHTML='<div class="empty">Noch keine Termine erfasst.</div>';
+    el.innerHTML=tfRueckmeldungKarte()+'<div class="empty">Noch keine Termine erfasst.</div>';
     return;
   }
   const geeignet=TF_TERMINE.filter(t=>t.erfuellt);
-  let html="";
+  let html=tfRueckmeldungKarte();
   if(geeignet.length>0){
     html+=`<div class="card" style="border-top-color:var(--green)">
       <h2>Geeignete Termine</h2>
@@ -2223,6 +2359,112 @@ function tfRenderTermine(){
       </tr>`;
     }).join("")+`</tbody></table></div></div>`;
   el.innerHTML=html;
+}
+
+/* ── Mailtexte ── */
+let TF_MAILTEXT_STANDARD=null, TF_MAIL_VERSION="", TF_MAIL_LINK="https://uebungsfindung.feuerwehrmeilen.ch";
+
+async function tfMailtextLaden(){
+  const st=$("tfMailtextStatus");
+  st.style.display="none";
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_mail_get",password:PASS});
+    if(!r.ok){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler beim Laden."; return; }
+    $("tfEinlBetreff").value=r.einlBetreff; $("tfEinlText").value=r.einlText;
+    $("tfErinnBetreff").value=r.erinnBetreff; $("tfErinnText").value=r.erinnText;
+    TF_MAILTEXT_STANDARD=r.standard; TF_MAIL_VERSION=r.version||""; if(r.link) TF_MAIL_LINK=r.link;
+    tfMailtextVorschau();
+  }catch(e){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+e.message; }
+}
+
+function tfMailtextVorschau(){
+  const d={vorname:"Max",name:"Muster",kuerzel:"MUS",ausbildung:"ULF Ausbildung 2026",
+    beschreibung:"Grundausbildung ULF",rolle:"Teilnehmer",anzahlTermine:"8",
+    ersterTermin:"22.09.2026",letzterTermin:"20.10.2026",link:TF_MAIL_LINK,version:TF_MAIL_VERSION};
+  const f=v=>String(v).replace(/\{(\w+)\}/g,(m,k)=>d[k]!==undefined?d[k]:m);
+  $("tfPvEinlBetreff").textContent=f($("tfEinlBetreff").value);
+  $("tfPvEinlText").innerHTML=escHtml(f($("tfEinlText").value)).replace(/\n/g,"<br>");
+  $("tfPvErinnBetreff").textContent=f($("tfErinnBetreff").value);
+  $("tfPvErinnText").innerHTML=escHtml(f($("tfErinnText").value)).replace(/\n/g,"<br>");
+}
+
+async function tfMailtextSpeichern(){
+  const st=$("tfMailtextStatus");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_mail_set",password:PASS,
+      einlBetreff:$("tfEinlBetreff").value, einlText:$("tfEinlText").value,
+      erinnBetreff:$("tfErinnBetreff").value, erinnText:$("tfErinnText").value});
+    if(r.ok){ st.className="status-msg ok-msg"; st.textContent="Gespeichert."; }
+    else { st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+function tfMailtextReset(){
+  if(!TF_MAILTEXT_STANDARD) return;
+  $("tfEinlBetreff").value=TF_MAILTEXT_STANDARD.einlBetreff; $("tfEinlText").value=TF_MAILTEXT_STANDARD.einlText;
+  $("tfErinnBetreff").value=TF_MAILTEXT_STANDARD.erinnBetreff; $("tfErinnText").value=TF_MAILTEXT_STANDARD.erinnText;
+  tfMailtextVorschau();
+  const st=$("tfMailtextStatus");
+  st.className="status-msg"; st.style.display="block";
+  st.textContent='Standard eingesetzt – zum Übernehmen "Speichern" klicken.';
+}
+
+/* ── Einladung und Erinnerung ── */
+let TF_MAIL_ART=null;
+
+async function tfMailVorschau(art){
+  TF_MAIL_ART=art;
+  const st=$("tfMailStatus");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Empfänger werden ermittelt…";
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_mail_senden",password:PASS,ausbildung:TF_AKTUELL.id,art});
+    st.style.display="none";
+    if(!r.ok){
+      st.className="status-msg err-msg"; st.style.display="block";
+      st.textContent=r.error==="LISTEN_LEER"?"Keine Personen hinterlegt.":"Fehler beim Ermitteln.";
+      return;
+    }
+    $("tfMailTitel").textContent = art==="einladung" ? "Einladung senden" : "Erinnerung senden";
+    const e=r.empfaenger||[], o=r.ohneMail||[];
+    let h=`<p class="hinw" style="margin-bottom:1rem">${art==="einladung"
+      ? "Geht an alle vorgesehenen Personen."
+      : "Geht nur an Personen, die sich noch bei keinem Termin eingetragen haben."}
+      ${r.anzahlTermine===0?'<br><b style="color:var(--red)">Achtung: Es sind noch keine Termine erfasst.</b>':""}</p>`;
+    if(e.length===0){
+      h+='<div class="empty">Keine Empfänger.</div>';
+    } else {
+      h+=`<div style="font-weight:700;font-size:13px;margin-bottom:6px">${e.length} Empfänger</div>
+        <div style="max-height:260px;overflow-y:auto;border:1px solid var(--gray-mid)">${e.map(p=>
+          `<div style="padding:6px 10px;border-bottom:1px solid var(--gray-mid);font-size:13px">
+            <b>${escHtml(p.kuerzel)}</b> ${escHtml(p.name)} <span class="hinw">· ${escHtml(p.rolle)}</span></div>`).join("")}</div>`;
+    }
+    if(o.length){
+      h+=`<div class="warnung" style="margin-top:.75rem">Ohne Mailadresse, erhalten nichts: ${o.map(p=>escHtml(p.kuerzel)).join(", ")}</div>`;
+    }
+    $("tfMailInhalt").innerHTML=h;
+    $("tfMailDlgStatus").style.display="none";
+    $("btnTfMailSenden").disabled=e.length===0;
+    $("btnTfMailSenden").textContent=`${e.length} Mail${e.length!==1?"s":""} senden`;
+    $("tfMailBg").style.display="flex";
+  }catch(err){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+err.message; }
+}
+
+async function tfMailSenden(){
+  const st=$("tfMailDlgStatus"), btn=$("btnTfMailSenden");
+  btn.disabled=true;
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gesendet…";
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_mail_senden",password:PASS,
+      ausbildung:TF_AKTUELL.id,art:TF_MAIL_ART,senden:true,anfrageId:Date.now()+"-"+Math.random()});
+    if(r.ok){
+      $("tfMailBg").style.display="none";
+      const s=$("tfMailStatus");
+      s.className="status-msg ok-msg"; s.style.display="block";
+      s.textContent=`${r.gesendet} Mail${r.gesendet!==1?"s":""} versendet.`
+        +((r.fehler||[]).length?` Fehler bei: ${r.fehler.join(", ")}.`:"");
+    } else { st.className="status-msg err-msg"; st.textContent="Fehler beim Senden."; btn.disabled=false; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; btn.disabled=false; }
 }
 
 /* ── Einzelner Termin ── */
@@ -2993,7 +3235,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.53";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.54";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -3362,7 +3604,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.53", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.54", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -4098,13 +4340,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.53`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.54`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.53";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.54";
 
 async function soApi(payload,versuch){
   versuch=versuch||1;
