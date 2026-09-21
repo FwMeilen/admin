@@ -943,6 +943,30 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
               <code>{beschreibung}</code> <code>{rolle}</code> <code>{anzahlTermine}</code>
               <code>{ersterTermin}</code> <code>{letzterTermin}</code> <code>{link}</code> <code>{version}</code></div>
 
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:1.25rem 0 6px">An den Verantwortlichen: genügend Termine gefunden</div>
+            <div class="hinw" style="margin-bottom:6px">Geht automatisch einmal raus, sobald die benötigte Anzahl erreicht ist.
+              Zusätzlich: <code>{gefunden}</code> <code>{benoetigt}</code> <code>{adminLink}</code></div>
+            <label for="tfGenugBetreff">Betreff</label>
+            <input id="tfGenugBetreff" type="text">
+            <label for="tfGenugText" style="margin-top:.5rem">Text</label>
+            <textarea id="tfGenugText" rows="9"></textarea>
+            <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:.75rem">
+              <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="tfPvGenugBetreff" style="font-weight:400"></span></div>
+              <div id="tfPvGenugText" style="font-size:13px;line-height:1.6"></div>
+            </div>
+
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:1.25rem 0 6px">An die Beteiligten: Termine festgelegt</div>
+            <div class="hinw" style="margin-bottom:6px">Vorlage für den Knopf «Beteiligte informieren» – dort vor dem Senden anpassbar.
+              Zusätzlich: <code>{termine}</code> <code>{anzahl}</code> <code>{fahrzeug}</code></div>
+            <label for="tfInfoBetreffV">Betreff</label>
+            <input id="tfInfoBetreffV" type="text">
+            <label for="tfInfoTextV" style="margin-top:.5rem">Text</label>
+            <textarea id="tfInfoTextV" rows="11"></textarea>
+            <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:.75rem">
+              <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="tfPvInfoBetreff" style="font-weight:400"></span></div>
+              <div id="tfPvInfoText" style="font-size:13px;line-height:1.6"></div>
+            </div>
+
             <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
               <button class="btn btn-green btn-klein" id="btnTfMailtextSpeichern">Speichern</button>
               <button class="btn btn-klein" id="btnTfMailtextStandard">Als Standard speichern</button>
@@ -1298,6 +1322,31 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
+<div id="tfInfoBg" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:450;display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
+  <div style="background:#fff;max-width:640px;width:100%;border-top:5px solid var(--red);padding:1.5rem;max-height:92vh;overflow-y:auto">
+    <h3 style="font-size:15px;margin-bottom:.5rem">Beteiligte informieren</h3>
+    <p class="hinw" id="tfInfoKopf" style="margin-bottom:1rem"></p>
+    <div id="tfInfoEmpf"></div>
+    <label for="tfInfoBetreff" style="margin-top:1rem">Betreff</label>
+    <input id="tfInfoBetreff" type="text">
+    <label for="tfInfoText" style="margin-top:.5rem">Text</label>
+    <textarea id="tfInfoText" rows="11"></textarea>
+    <div class="hinw" style="margin-top:6px">Änderungen gelten nur für diesen Versand. Platzhalter:
+      <code>{vorname}</code> <code>{name}</code> <code>{kuerzel}</code> <code>{ausbildung}</code>
+      <code>{termine}</code> <code>{anzahl}</code> <code>{fahrzeug}</code> <code>{link}</code> <code>{version}</code></div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:1rem 0 6px" id="tfInfoPvTitel">Vorschau</div>
+    <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem">
+      <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="tfInfoPvBetreff" style="font-weight:400"></span></div>
+      <div id="tfInfoPvText" style="font-size:13px;line-height:1.6"></div>
+    </div>
+    <div class="status-msg" id="tfInfoStatus"></div>
+    <div style="display:flex;gap:10px;margin-top:1.25rem">
+      <button class="btn" style="flex:1;justify-content:center" onclick="$('tfInfoBg').style.display='none'">Abbrechen</button>
+      <button class="btn btn-red" style="flex:1;justify-content:center" id="btnTfInfoSenden">Senden</button>
+    </div>
+  </div>
+</div>
+
 <div id="tfMailBg" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:450;display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
   <div style="background:#fff;max-width:560px;width:100%;border-top:5px solid var(--red);padding:1.5rem;max-height:92vh;overflow-y:auto">
     <h3 style="font-size:15px;margin-bottom:.5rem" id="tfMailTitel">Einladung senden</h3>
@@ -1360,18 +1409,24 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.57</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.58</div>
 
 <script>
-/* ── Netzwerk: geduldige Wiederholung (gemeinsam für alle MWD-Seiten) ──
- * Google liefert gelegentlich eine Fehlerseite statt Daten, vor allem beim
- * Kaltstart. fwAufruf() wiederholt dann mit wachsenden Pausen (bis ca. 15 s),
- * zeigt «Server startet …» und fragt erst danach, ob erneut versucht werden soll.
- * Jeder Aufruf erhält eine Kennung, damit eine Wiederholung auf dem Server
- * nichts doppelt schreibt. Wiederholungen werden fürs Aussetzer-Protokoll gemeldet.
+/* ── Netzwerk-Baustein für alle MWD-Seiten ──
+ * Google antwortet manchmal sofort, manchmal hängt eine Anfrage 30 Sekunden
+ * oder liefert eine Fehlerseite. Deshalb:
+ *  - Kommt nach 4 s keine Antwort, geht dieselbe Anfrage ein zweites Mal los
+ *    (danach nach 9, 16, 25 s). Die erste gültige Antwort gewinnt.
+ *  - Scheitert eine Anfrage (Fehlerseite), startet sofort die nächste.
+ *  - Nach 3 s erscheint «Server braucht gerade länger …».
+ *  - Nach 45 s ohne Erfolg: «Server nicht erreichbar» mit «Erneut versuchen».
+ * Alle Anfragen tragen dieselbe Kennung – der Server führt Schreibvorgänge
+ * dadurch nur einmal aus. Mehrfachanfragen werden fürs Aussetzer-Protokoll gemeldet.
  */
 (function(){
-  const PAUSEN=[0,1000,2000,4000,8000];
+  const NACHFRAGEN=[0,4000,9000,16000,25000];  // Startzeitpunkte der Anfragen
+  const HOECHSTENS=45000;                         // danach aufgeben und fragen
+  const HINWEIS_NACH=3000;
   const MELDE_URL="https://script.google.com/macros/s/AKfycbwvTL3yecdyTvSV5ZPgGslm5K-3UFjW9zc4A2qn_zUk50CcSIpXEaBE1hMiaU3GnNEQ/exec";
   let aktiv=0, entscheid=null;
 
@@ -1390,7 +1445,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   function zeigeWarten(){
     if(entscheid) return;
     const b=banner(); b.style.background="#1a1a1a";
-    b.textContent="⏳ Server startet, einen Moment …";
+    b.textContent="⏳ Server braucht gerade länger, einen Moment …";
     b.style.display="flex";
   }
   function verstecke(){
@@ -1420,6 +1475,54 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         body:JSON.stringify(Object.assign({type:"aussetzer_melden"},d))}).catch(()=>{});
     }catch(e){}
   }
+  function lesen(text){
+    const t=String(text||"").trim();
+    if(t==="ok") return {ok:true};   // ältere Server-Versionen
+    try{ return JSON.parse(t); }catch(e){ return null; }
+  }
+
+  /** Eine Runde: Anfragen gestaffelt starten, erste gültige Antwort gewinnt */
+  function runde(url,body,opts,aufruf){
+    return new Promise(resolve=>{
+      const start=Date.now();
+      let gestartet=0, offen=0, fertig=false, zeigt=false;
+      const abbrecher=[], uhren=[];
+      const ende=(ok,daten)=>{
+        if(fertig) return;
+        fertig=true;
+        uhren.forEach(clearTimeout);
+        abbrecher.forEach(a=>{ try{ a.abort(); }catch(e){} });
+        if(zeigt){ aktiv--; verstecke(); }
+        if(gestartet>1||!ok) melden({seite:opts.seite||location.hostname,aufruf,
+          versuche:gestartet,dauerMs:Date.now()-start,erfolg:ok});
+        resolve({ok,daten});
+      };
+      const starte=()=>{
+        if(fertig) return;
+        if(gestartet>=NACHFRAGEN.length){ if(offen===0) ende(false); return; }
+        gestartet++; offen++;
+        const a=new AbortController(); abbrecher.push(a);
+        fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body,signal:a.signal})
+          .then(r=>r.text())
+          .then(text=>{
+            offen--;
+            if(fertig) return;
+            const daten=lesen(text);
+            if(daten && daten.error!=="BESCHAEFTIGT") return ende(true,daten);
+            if(!daten) console.warn("Keine gültige Antwort:",String(text).slice(0,160));
+            if(offen===0) uhren.push(setTimeout(starte,700));
+          })
+          .catch(e=>{
+            offen--;
+            if(fertig) return;
+            if(offen===0) uhren.push(setTimeout(starte,700));
+          });
+      };
+      NACHFRAGEN.forEach(t=>uhren.push(setTimeout(starte,t)));
+      if(!opts.still) uhren.push(setTimeout(()=>{ if(!fertig){ zeigt=true; aktiv++; zeigeWarten(); } },HINWEIS_NACH));
+      uhren.push(setTimeout(()=>ende(false),HOECHSTENS));
+    });
+  }
 
   /**
    * @param url     Adresse des Apps Script
@@ -1432,30 +1535,12 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
     if(!payload.anfrageId) payload.anfrageId=Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,10);
     const body=JSON.stringify(payload);
     const aufruf=payload.type||payload.action||"";
-    const start=Date.now();
-    let versuche=0, zeigt=false;
     while(true){
-      for(let i=0;i<PAUSEN.length;i++){
-        if(PAUSEN[i]) await new Promise(r=>setTimeout(r,PAUSEN[i]));
-        versuche++;
-        try{
-          const res=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body});
-          const text=await res.text();
-          try{
-            const daten=JSON.parse(text);
-            if(zeigt){ aktiv--; verstecke(); }
-            if(versuche>1) melden({seite:opts.seite||location.hostname,aufruf,versuche,dauerMs:Date.now()-start,erfolg:true});
-            return daten;
-          }catch(e){ console.warn("Keine gültige Antwort (Versuch "+versuche+"):",text.slice(0,200)); }
-        }catch(e){ console.warn("Netzwerkfehler (Versuch "+versuche+"):",e&&e.message); }
-        if(!zeigt&&!opts.still){ zeigt=true; aktiv++; zeigeWarten(); }
-      }
-      if(zeigt){ aktiv--; zeigt=false; }
-      melden({seite:opts.seite||location.hostname,aufruf,versuche,dauerMs:Date.now()-start,erfolg:false});
-      if(opts.still){ verstecke(); throw new Error("Server nicht erreichbar."); }
+      const r=await runde(url,body,opts,aufruf);
+      if(r.ok) return r.daten;
+      if(opts.still) throw new Error("Server nicht erreichbar.");
       const nochmals=await frageNochmals();
       if(!nochmals){ verstecke(); throw new Error("Server nicht erreichbar. Bitte später erneut versuchen."); }
-      zeigt=true; aktiv++; zeigeWarten();
     }
   };
 })();
@@ -1700,7 +1785,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.57";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.58";
 
 let GAB_NT_ID=null;
 
@@ -2213,13 +2298,16 @@ function initTf(){
   $("btnTfEinzelSchliessen").addEventListener("click", ()=>{ $("tfEinzelForm").style.display="none"; });
   $("btnTfKolUebernehmen").addEventListener("click", tfKolUebernehmen);
   $("btnTfMailSenden").addEventListener("click", tfMailSenden);
+  $("btnTfInfoSenden").addEventListener("click", tfInfoSenden);
+  ["tfInfoBetreff","tfInfoText"].forEach(i=>$(i).addEventListener("input", tfInfoVorschau));
   $("btnTfMailtextSpeichern").addEventListener("click", tfMailtextSpeichern);
   $("btnTfMailtextReset").addEventListener("click", tfMailtextReset);
   $("btnTfMailtextStandard").addEventListener("click", tfMailtextAlsStandard);
   $("btnTfProxySpeichern").addEventListener("click", tfProxySpeichern);
   $("tfProxyDetails").addEventListener("toggle", ()=>{ if($("tfProxyDetails").open) tfProxyLaden(); });
   $("tfMailDetails").addEventListener("toggle", ()=>{ if($("tfMailDetails").open) tfMailtextLaden(); });
-  ["tfEinlBetreff","tfEinlText","tfErinnBetreff","tfErinnText"].forEach(i=>$(i).addEventListener("input", tfMailtextVorschau));
+  ["tfEinlBetreff","tfEinlText","tfErinnBetreff","tfErinnText","tfGenugBetreff","tfGenugText","tfInfoBetreffV","tfInfoTextV"]
+    .forEach(i=>$(i).addEventListener("input", tfMailtextVorschau));
   $("btnTfGenerieren").addEventListener("click", tfGenOeffnen);
   $("btnTfGenErzeugen").addEventListener("click", tfGenErzeugen);
   tfLade();
@@ -2284,7 +2372,9 @@ function tfListePruefen(feldId,ausgabeId){
   const el=$(ausgabeId);
   const liste=$(feldId).value.split(/[\s,;]+/).map(x=>x.trim().toUpperCase()).filter(x=>x);
   if(liste.length===0){
-    el.innerHTML='<span class="hinw">Leer lassen = alle dürfen sich eintragen.</span>';
+    el.innerHTML = feldId.endsWith("-verantw")
+      ? '<span class="hinw">Noch niemand eingetragen – dann geht keine Mail raus.</span>'
+      : '<span class="hinw">Leer lassen = alle dürfen sich eintragen.</span>';
     return;
   }
   const doppelt={};
@@ -2321,6 +2411,12 @@ async function tfFormular(a){
     <input id="${id}-name" type="text" value="${escHtml(d.name)}" placeholder="z. B. TLF-Ausbildung">
     <label for="${id}-beschreibung" style="margin-top:.75rem">Beschreibung (optional)</label>
     <input id="${id}-beschreibung" type="text" value="${escHtml(d.beschreibung||"")}">
+    <label for="${id}-verantw" style="margin-top:.75rem">Ausbildungsverantwortlicher (Kürzel)</label>
+    <input id="${id}-verantw" type="text" maxlength="4" style="max-width:140px;text-transform:uppercase"
+      value="${escHtml(d.verantwortlich||"")}" oninput="tfListePruefen('${id}-verantw','${id}-verantw-info')">
+    <div id="${id}-verantw-info" style="margin-top:6px"></div>
+    <div class="hinw" style="margin-top:4px">Erhält die Mail, sobald genügend Termine gefunden sind.
+      Wird nach dem Login-Umbau automatisch mit dem angemeldeten Kürzel vorbelegt.</div>
     <label for="${id}-benoetigt" style="margin-top:.75rem">Benötigte Termine</label>
     <input id="${id}-benoetigt" type="number" min="0" max="100" value="${d.benoetigteTermine||0}" style="max-width:120px">
     <div class="hinw" style="margin-top:4px">
@@ -2375,6 +2471,7 @@ async function tfFormular(a){
   $("tfListe").innerHTML=html;
   tfListePruefen(id+"-tl",id+"-tl-info");
   tfListePruefen(id+"-al",id+"-al-info");
+  tfListePruefen(id+"-verantw",id+"-verantw-info");
   $(id+"-name").focus();
 }
 
@@ -2389,7 +2486,7 @@ async function tfSpeichern(id){
       minAusbildner:$(f+"-minA").value, maxAusbildner:$(f+"-maxA").value,
       fahrzeug:$(f+"-fahrzeug").value, status:$(f+"-status").value,
       teilnehmerListe:$(f+"-tl").value, ausbildnerListe:$(f+"-al").value,
-      benoetigteTermine:$(f+"-benoetigt").value});
+      benoetigteTermine:$(f+"-benoetigt").value, verantwortlich:$(f+"-verantw").value});
     if(r.ok){ tfLade(); }
     else if(r.error==="NAME_LEER"){ st.className="status-msg err-msg"; st.textContent="Bitte eine Bezeichnung eingeben."; }
     else if(r.error==="TEILNEHMER_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Mindestzahl Teilnehmer darf die Plätze nicht übersteigen."; }
@@ -2426,7 +2523,16 @@ function tfZurueck(){ TF_AKTUELL=null; tfLade(); }
 
 function tfFortschrittKarte(){
   const f=TF_FORTSCHRITT;
-  if(!f||!f.benoetigt) return "";
+  if(!f||!f.benoetigt){
+    const fest=TF_TERMINE.filter(t=>t.definitiv.length>0).length;
+    if(!fest) return "";
+    return `<div class="card" style="border-top-color:var(--gray-mid)">
+      <h2>Festgelegte Termine</h2>
+      <p class="hinw">${fest} Termin${fest!==1?"e":""} festgelegt. Für einen Fortschritt unter «Bearbeiten» die benötigten Termine angeben.</p>
+      <div class="entry-actions" style="justify-content:flex-start;margin-top:.75rem">
+        <button class="btn btn-klein" onclick="tfInfoOeffnen()">Beteiligte informieren</button></div>
+    </div>`;
+  }
   const anteil=Math.min(100,Math.round(f.gefunden/f.benoetigt*100));
   return `<div class="card" style="border-top-color:${f.genuegend?"var(--green)":"var(--orange)"}">
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
@@ -2439,7 +2545,13 @@ function tfFortschrittKarte(){
     <div class="hinw" style="margin-top:6px">
       ${f.gefunden} Termin${f.gefunden!==1?"e":""} mit Mindestbesetzung · davon ${f.festgelegt} festgelegt
       ${f.genuegend&&f.festgelegt<f.benoetigt?` – jetzt unten unter «Geeignete Termine» die ${f.benoetigt} gewünschten festlegen.`:""}
+      ${f.abgeschlossen?" – alle festgelegt, die vorläufigen Termine sind aus den Kalender-Abos entfernt.":""}
     </div>
+    ${TF_AKTUELL.verantwortlich
+      ? `<div class="hinw" style="margin-top:4px">Verantwortlich: <b>${escHtml(TF_AKTUELL.verantwortlich)}</b>${TF_AKTUELL.genugGemeldet?" · über «genügend gefunden» informiert":""}</div>`
+      : `<div class="hinw" style="margin-top:4px;color:var(--red)">Kein Ausbildungsverantwortlicher hinterlegt – unter «Bearbeiten» ergänzen, damit er benachrichtigt wird.</div>`}
+    ${f.festgelegt>0?`<div class="entry-actions" style="justify-content:flex-start;margin-top:.75rem">
+      <button class="btn btn-klein${f.abgeschlossen?" btn-red":""}" onclick="tfInfoOeffnen()">Beteiligte informieren</button></div>`:""}
   </div>`;
 }
 
@@ -2560,6 +2672,8 @@ async function tfMailtextLaden(){
     if(!r.ok){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler beim Laden."; return; }
     $("tfEinlBetreff").value=r.einlBetreff; $("tfEinlText").value=r.einlText;
     $("tfErinnBetreff").value=r.erinnBetreff; $("tfErinnText").value=r.erinnText;
+    $("tfGenugBetreff").value=r.genugBetreff||""; $("tfGenugText").value=r.genugText||"";
+    $("tfInfoBetreffV").value=r.infoBetreff||""; $("tfInfoTextV").value=r.infoText||"";
     TF_MAILTEXT_STANDARD=r.standard; TF_MAIL_VERSION=r.version||""; if(r.link) TF_MAIL_LINK=r.link;
     tfMailtextVorschau();
   }catch(e){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+e.message; }
@@ -2574,6 +2688,13 @@ function tfMailtextVorschau(){
   $("tfPvEinlText").innerHTML=escHtml(f($("tfEinlText").value)).replace(/\n/g,"<br>");
   $("tfPvErinnBetreff").textContent=f($("tfErinnBetreff").value);
   $("tfPvErinnText").innerHTML=escHtml(f($("tfErinnText").value)).replace(/\n/g,"<br>");
+  Object.assign(d,{gefunden:"4",benoetigt:"4",adminLink:"https://mwd.feuerwehrmeilen.ch",
+    termine:"Di 22.09.2026, 19:00–21:00 (Teilnehmer)\nDi 06.10.2026, 19:00–21:00 (Teilnehmer)",
+    anzahl:"2",fahrzeug:"ULF"});
+  $("tfPvGenugBetreff").textContent=f($("tfGenugBetreff").value);
+  $("tfPvGenugText").innerHTML=escHtml(f($("tfGenugText").value)).replace(/\n/g,"<br>");
+  $("tfPvInfoBetreff").textContent=f($("tfInfoBetreffV").value);
+  $("tfPvInfoText").innerHTML=escHtml(f($("tfInfoTextV").value)).replace(/\n/g,"<br>");
 }
 
 async function tfMailtextSpeichern(){
@@ -2582,7 +2703,9 @@ async function tfMailtextSpeichern(){
   try{
     const r=await ftCallAdmin({type:"admin_tf_mail_set",password:PASS,
       einlBetreff:$("tfEinlBetreff").value, einlText:$("tfEinlText").value,
-      erinnBetreff:$("tfErinnBetreff").value, erinnText:$("tfErinnText").value});
+      erinnBetreff:$("tfErinnBetreff").value, erinnText:$("tfErinnText").value,
+      genugBetreff:$("tfGenugBetreff").value, genugText:$("tfGenugText").value,
+      infoBetreff:$("tfInfoBetreffV").value, infoText:$("tfInfoTextV").value});
     if(r.ok){ st.className="status-msg ok-msg"; st.textContent="Gespeichert."; }
     else { st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
@@ -2593,7 +2716,9 @@ async function tfMailtextAlsStandard(){
   const st=$("tfMailtextStatus");
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
   const werte={einlBetreff:$("tfEinlBetreff").value, einlText:$("tfEinlText").value,
-    erinnBetreff:$("tfErinnBetreff").value, erinnText:$("tfErinnText").value};
+    erinnBetreff:$("tfErinnBetreff").value, erinnText:$("tfErinnText").value,
+    genugBetreff:$("tfGenugBetreff").value, genugText:$("tfGenugText").value,
+    infoBetreff:$("tfInfoBetreffV").value, infoText:$("tfInfoTextV").value};
   try{
     const r=await ftCallAdmin(Object.assign({type:"admin_tf_mail_set_standard",password:PASS},werte));
     if(r.ok){
@@ -2607,6 +2732,8 @@ function tfMailtextReset(){
   if(!TF_MAILTEXT_STANDARD) return;
   $("tfEinlBetreff").value=TF_MAILTEXT_STANDARD.einlBetreff; $("tfEinlText").value=TF_MAILTEXT_STANDARD.einlText;
   $("tfErinnBetreff").value=TF_MAILTEXT_STANDARD.erinnBetreff; $("tfErinnText").value=TF_MAILTEXT_STANDARD.erinnText;
+  $("tfGenugBetreff").value=TF_MAILTEXT_STANDARD.genugBetreff||""; $("tfGenugText").value=TF_MAILTEXT_STANDARD.genugText||"";
+  $("tfInfoBetreffV").value=TF_MAILTEXT_STANDARD.infoBetreff||""; $("tfInfoTextV").value=TF_MAILTEXT_STANDARD.infoText||"";
   tfMailtextVorschau();
   const st=$("tfMailtextStatus");
   st.className="status-msg"; st.style.display="block";
@@ -2665,6 +2792,70 @@ async function tfMailSenden(){
       const s=$("tfMailStatus");
       s.className="status-msg ok-msg"; s.style.display="block";
       s.textContent=`${r.gesendet} Mail${r.gesendet!==1?"s":""} versendet.`
+        +((r.fehler||[]).length?` Fehler bei: ${r.fehler.join(", ")}.`:"");
+    } else { st.className="status-msg err-msg"; st.textContent="Fehler beim Senden."; btn.disabled=false; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; btn.disabled=false; }
+}
+
+/* ── Beteiligte informieren ── */
+let TF_INFO_BEISPIEL=null;
+
+function tfFuelleClient(v,d){
+  return String(v).replace(/\{(\w+)\}/g,(m,k)=>d[k]!==undefined?d[k]:m);
+}
+function tfInfoVorschau(){
+  const d=TF_INFO_BEISPIEL;
+  if(!d){ $("tfInfoPvBetreff").textContent=""; $("tfInfoPvText").textContent="Keine Empfänger."; return; }
+  $("tfInfoPvBetreff").textContent=tfFuelleClient($("tfInfoBetreff").value,d);
+  $("tfInfoPvText").innerHTML=escHtml(tfFuelleClient($("tfInfoText").value,d)).replace(/\n/g,"<br>");
+}
+
+async function tfInfoOeffnen(){
+  const st=$("tfTerminStatus");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Empfänger werden ermittelt…";
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_info_senden",password:PASS,ausbildung:TF_AKTUELL.id});
+    st.style.display="none";
+    if(!r.ok){
+      st.className="status-msg err-msg"; st.style.display="block";
+      st.textContent=r.error==="NICHTS_FESTGELEGT"?"Es ist noch kein Termin festgelegt.":"Fehler beim Ermitteln.";
+      return;
+    }
+    const e=r.empfaenger||[], o=r.ohneMail||[];
+    $("tfInfoKopf").innerHTML=`${r.festgelegt} festgelegte Termin${r.festgelegt!==1?"e":""}`
+      +(r.benoetigt?` von ${r.benoetigt} benötigten`:"")
+      +(r.benoetigt&&!r.abgeschlossen?' – <b style="color:var(--orange)">noch nicht alle festgelegt</b>':"")
+      +`. Jede Person erhält eine Mail mit ihren eigenen Terminen und ihrer Rolle.`;
+    $("tfInfoEmpf").innerHTML=`<div style="font-weight:700;font-size:13px;margin-bottom:6px">${e.length} Empfänger</div>
+      <div style="max-height:170px;overflow-y:auto;border:1px solid var(--gray-mid)">${e.map(p=>
+        `<div style="padding:5px 10px;border-bottom:1px solid var(--gray-mid);font-size:13px">
+          <b>${escHtml(p.kuerzel)}</b> ${escHtml(p.name)} <span class="hinw">· ${p.anzahl} Termin${p.anzahl!==1?"e":""}</span></div>`).join("")}</div>`
+      +(o.length?`<div class="warnung" style="margin-top:.75rem">Ohne Mailadresse, erhalten nichts: ${o.map(escHtml).join(", ")}</div>`:"");
+    $("tfInfoBetreff").value=r.betreff||"";
+    $("tfInfoText").value=r.text||"";
+    TF_INFO_BEISPIEL=r.beispiel?r.beispiel.daten:null;
+    $("tfInfoPvTitel").textContent=r.beispiel?`Vorschau für ${r.beispiel.kuerzel}`:"Vorschau";
+    tfInfoVorschau();
+    $("tfInfoStatus").style.display="none";
+    $("btnTfInfoSenden").disabled=e.length===0;
+    $("btnTfInfoSenden").textContent=`${e.length} Mail${e.length!==1?"s":""} senden`;
+    $("tfInfoBg").style.display="flex";
+  }catch(err){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+err.message; }
+}
+
+async function tfInfoSenden(){
+  const st=$("tfInfoStatus"), btn=$("btnTfInfoSenden");
+  btn.disabled=true;
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gesendet…";
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_info_senden",password:PASS,ausbildung:TF_AKTUELL.id,
+      senden:true,betreff:$("tfInfoBetreff").value,text:$("tfInfoText").value,
+      anfrageId:Date.now()+"-"+Math.random()});
+    if(r.ok){
+      $("tfInfoBg").style.display="none";
+      const s=$("tfTerminStatus");
+      s.className="status-msg ok-msg"; s.style.display="block";
+      s.textContent=`${r.gesendet} Mail${r.gesendet!==1?"s":""} an die Beteiligten versendet.`
         +((r.fehler||[]).length?` Fehler bei: ${r.fehler.join(", ")}.`:"");
     } else { st.className="status-msg err-msg"; st.textContent="Fehler beim Senden."; btn.disabled=false; }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; btn.disabled=false; }
@@ -2856,9 +3047,7 @@ function tfDefinitivOeffnen(terminId){
         <input type="checkbox" class="tf-def" value="${escHtml(k)}" ${t.definitiv.indexOf(k)>=0?"checked":""} style="width:auto;margin:0"> ${escHtml(k)}
       </label>`).join("")}
     </div>
-    <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px">
-      <input type="checkbox" id="tfDefMail" checked style="width:auto;margin:0"> Alle Beteiligten per Mail informieren
-    </label>
+    <div class="hinw" style="margin-bottom:.5rem">Die Beteiligten informierst du danach gesammelt über «Beteiligte informieren».</div>
     ${TF_AKTUELL.fahrzeug?`<label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px;margin-top:.5rem">
       <input type="checkbox" id="tfDefRes" checked style="width:auto;margin:0"> ${escHtml(TF_AKTUELL.fahrzeug)} im Kalender reservieren
     </label>`:""}
@@ -2882,7 +3071,7 @@ async function tfDefinitivSetzen(terminId){
   try{
     const resEl=$("tfDefRes");
     const r=await ftCallAdmin({type:"admin_tf_definitiv",password:PASS,terminId,
-      definitiv:def, mailSenden:$("tfDefMail").checked, reservieren: resEl?resEl.checked:false});
+      definitiv:def, mailSenden:false, reservieren: resEl?resEl.checked:false});
     if(r.ok){
       const b=r.bericht||{};
       let txt=`Termin festgelegt mit ${b.gesetzt} Ausbildner${b.gesetzt!==1?"n":""}.`;
@@ -3439,7 +3628,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.57";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.58";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -3808,7 +3997,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.57", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.58", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -4541,13 +4730,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.57`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.58`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.57";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.58";
 
 async function soApi(payload){
   try{ return await fwAufruf(SO_EXEC_URL, payload, {seite:"Admin SoSi"}); }
