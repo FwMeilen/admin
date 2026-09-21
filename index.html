@@ -1491,7 +1491,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.62</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.63</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten ──
@@ -1631,7 +1631,9 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
 const FT_EXEC_URL="https://script.google.com/macros/s/AKfycbwvTL3yecdyTvSV5ZPgGslm5K-3UFjW9zc4A2qn_zUk50CcSIpXEaBE1hMiaU3GnNEQ/exec";
-const SO_EXEC_URL="https://script.google.com/macros/s/AKfycbz0mGY8B8I__4UV8HoMT6Jih-Aw_m_YIWvSyzpR8PP1avfnDZRtDTNU8ufKtPSrTg8sNg/exec";
+// SoSi läuft seit CLv1.63 im gemeinsamen Script; bis zur Übernahme weicht soApi ans alte aus
+const SO_EXEC_URL=FT_EXEC_URL;
+const SO_EXEC_URL_ALT="https://script.google.com/macros/s/AKfycbz0mGY8B8I__4UV8HoMT6Jih-Aw_m_YIWvSyzpR8PP1avfnDZRtDTNU8ufKtPSrTg8sNg/exec";
 
 let PASS="";
 let FT_OK=false, SO_OK=false;
@@ -1872,7 +1874,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.62";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.63";
 
 let GAB_NT_ID=null;
 
@@ -2892,9 +2894,22 @@ function scAnzeigen(r){
         <div style="font-size:13px;font-weight:700">${escHtml(p.titel)}</div>
         ${p.grund?`<div class="hinw" style="font-size:12px">${escHtml(p.grund)}</div>`:""}
         ${!p.ok&&p.loesung?`<div style="font-size:12px;margin-top:3px"><b>Lösung:</b> ${escHtml(p.loesung)}</div>`:""}
+        ${p.id==="sosi_uebernahme"&&!p.ok?`<button class="btn btn-red btn-klein" style="margin-top:8px" onclick="sosiUebernehmen(this)">SoSi übernehmen</button>`:""}
       </div></div>`;
   }).join("")+`<div class="hinw" style="margin-top:.75rem">Stand: ${escHtml(zeit)}${r.ausCache?" (zwischengespeichert)":""} · Server ${escHtml(r.version||"")}</div>`;
 }
+async function sosiUebernehmen(btn){
+  if(!confirm("SoSi-Einstellungen (Mailtexte, Erinnerungen, Gültigkeit, Erinnerungs-Protokoll) aus dem alten Script übernehmen?\n\nDanach beantwortet das gemeinsame Script alle SoSi-Aufrufe.")) return;
+  btn.disabled=true; btn.textContent="Wird übernommen …";
+  try{
+    const r=await fwAufruf(FT_EXEC_URL,{type:"admin_sosi_uebernehmen",password:PASS},{seite:"Admin",nachfragen:[0,30000],hinweisNach:15000});
+    if(r.ok){
+      alert(`Übernommen: ${r.anzahl} Einstellungen.\n\nWichtig: Im ALTEN SoSi-Script jetzt den Auslöser «taeglicherErinnerungsCheck» löschen, sonst gehen Erinnerungen doppelt raus.`);
+      scLaden(true);
+    } else { alert("Übernahme fehlgeschlagen: "+(r.detail||r.error)); btn.disabled=false; btn.textContent="SoSi übernehmen"; }
+  }catch(e){ alert("Fehler: "+e.message); btn.disabled=false; btn.textContent="SoSi übernehmen"; }
+}
+
 function scWarnungSetzen(r){
   const w=$("scWarnung");
   if(!w) return;
@@ -3929,7 +3944,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.62";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.63";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -4298,7 +4313,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.62", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.63", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -5031,16 +5046,21 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.62`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.63`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.62";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.63";
 
 async function soApi(payload){
-  try{ return await fwAufruf(SO_EXEC_URL, payload, {seite:"Admin SoSi"}); }
+  try{
+    const r=await fwAufruf(SO_EXEC_URL, payload, {seite:"Admin SoSi"});
+    if(r&&(r.error==="SOSI_NICHT_UEBERNOMMEN"||r.error==="UNBEKANNTER_AUFRUF"))
+      return await fwAufruf(SO_EXEC_URL_ALT, payload, {seite:"Admin SoSi (altes Script)"});
+    return r;
+  }
   catch(e){ return {ok:false,error:"NETZWERK",detail:String(e&&e.message||e)}; }
 }
 function soFehlerHtml(prefix,r){
