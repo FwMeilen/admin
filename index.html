@@ -69,6 +69,15 @@ select{appearance:none;-webkit-appearance:none;padding-right:28px;background-ima
 .start-link span{display:block;font-size:11px;font-weight:400;color:var(--text3);margin-top:2px;}
 .start-leer{color:var(--text3);font-weight:400;font-size:13px;}
 .start-verwalten{align-self:flex-start;margin-top:auto;}
+.bv-matrix{border-collapse:collapse;font-size:13px;min-width:100%;}
+.bv-matrix th,.bv-matrix td{border-bottom:1px solid var(--gray-mid);padding:6px 8px;text-align:center;white-space:nowrap;}
+.bv-matrix td:first-child,.bv-matrix th:first-child{text-align:left;position:sticky;left:0;background:#fff;z-index:1;}
+.bv-matrix thead th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;vertical-align:bottom;}
+.bv-matrix tr.bv-tool td{background:var(--bg2);font-weight:700;font-size:12px;}
+.bv-matrix tr.bv-tool td:first-child{background:var(--bg2);}
+.bv-matrix input{width:auto;margin:0;cursor:pointer;}
+.bv-matrix td.geaendert{background:#fff7e0;}
+.bv-toolknopf{cursor:pointer;color:var(--red);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:none;border:none;padding:0;}
 .tf-kopf{padding:1rem 1.25rem;cursor:pointer;display:flex;gap:12px;align-items:center;}
 .tf-kopf:hover{background:var(--bg2);}
 .tf-pfeil{transition:transform .15s;color:var(--gray);font-size:11px;flex-shrink:0;}
@@ -229,6 +238,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         <option value="gatlf">TLF Grundausbildung</option>
         <option value="tf">Terminfindung</option>
         <option value="backup">Admin</option>
+        <option value="benutzer">Benutzerverwaltung</option>
       </select>
     </div>
     <div class="warnung" id="authWarnung" style="display:none"></div>
@@ -1089,18 +1099,6 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         </details>
       </div>
 
-      <div class="card" id="buKarte">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-          <h2 style="margin:0">Benutzer</h2>
-          <button class="btn btn-green btn-klein" id="btnBuNeu">+ Neuer Benutzer</button>
-        </div>
-        <p class="hinw" style="margin:.5rem 0 1rem">Persönliche Zugänge mit Kürzel und Passwort. Neue Benutzer erhalten eine
-          Einladungsmail, mit der sie ihr Passwort selbst festlegen. <b>Vollzugriff</b> darf alles inklusive dieser Verwaltung;
-          <b>Ausbildner</b> nur die angehakten Bereiche – ihre Anmeldung wird mit der Rechteprüfung freigeschaltet.</p>
-        <div id="buForm" style="display:none;margin-bottom:1rem"></div>
-        <div id="buListe"><div class="loading">Lade …</div></div>
-        <div class="status-msg" id="buStatus"></div>
-      </div>
 
       <div class="card">
         <h2>Grundlagen</h2>
@@ -1228,6 +1226,46 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
             <div id="bkListe" style="margin-top:1rem"></div>
           </div>
         </details>
+      </div>
+    </div>
+
+    <!-- ═══════════ BENUTZERVERWALTUNG ═══════════ -->
+    <div id="toolBenutzer" style="display:none">
+
+      <div class="card">
+        <h2>Benutzer hinzufügen</h2>
+        <p class="hinw" style="margin-bottom:1rem"><b>Admins</b> dürfen alles, auch «Admin» und diese Benutzerverwaltung.
+          <b>User</b> sehen nur die Funktionen, die unten in der Tabelle angehakt sind.</p>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+          <div style="width:130px"><label for="bvKuerzel">Kürzel</label>
+            <input id="bvKuerzel" type="text" maxlength="4" style="text-transform:uppercase" oninput="tfListePruefen('bvKuerzel','bvKuerzel-info')"></div>
+          <div style="width:150px"><label for="bvRolle">Rolle</label>
+            <select id="bvRolle"><option value="user">User</option><option value="admin">Admin</option></select></div>
+          <button class="btn btn-green" id="btnBvHinzu">Hinzufügen</button>
+        </div>
+        <div id="bvKuerzel-info" style="margin-top:6px"></div>
+        <div class="status-msg" id="bvHinzuStatus"></div>
+      </div>
+
+      <div class="card">
+        <h2>Benutzer</h2>
+        <div id="bvListe"><div class="loading">Lade …</div></div>
+        <div class="status-msg" id="bvStatus"></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+          <h2 style="margin:0">Rechte der User</h2>
+          <div style="display:flex;gap:10px;align-items:center">
+            <span class="hinw" id="bvAenderungen"></span>
+            <button class="btn btn-red btn-klein" id="btnBvRechte" disabled>Änderungen speichern</button>
+          </div>
+        </div>
+        <p class="hinw" style="margin:.5rem 0 1rem">Haken = der User sieht diese Funktion im Menü und darf sie benutzen.
+          Ein Klick auf einen Toolnamen setzt oder entfernt alle Haken des Tools für diese Person.
+          Die Rechte greifen, sobald die Anmeldung für User freigeschaltet ist.</p>
+        <div id="bvMatrix" class="tblwrap"></div>
+        <div class="status-msg" id="bvRechteStatus"></div>
       </div>
     </div>
 
@@ -1530,7 +1568,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.64</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.65</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten ──
@@ -1670,7 +1708,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
 const FT_EXEC_URL="https://script.google.com/macros/s/AKfycbwvTL3yecdyTvSV5ZPgGslm5K-3UFjW9zc4A2qn_zUk50CcSIpXEaBE1hMiaU3GnNEQ/exec";
-// SoSi läuft seit CLv1.64 im gemeinsamen Script; bis zur Übernahme weicht soApi ans alte aus
+// SoSi läuft seit CLv1.65 im gemeinsamen Script; bis zur Übernahme weicht soApi ans alte aus
 const SO_EXEC_URL=FT_EXEC_URL;
 const SO_EXEC_URL_ALT="https://script.google.com/macros/s/AKfycbz0mGY8B8I__4UV8HoMT6Jih-Aw_m_YIWvSyzpR8PP1avfnDZRtDTNU8ufKtPSrTg8sNg/exec";
 
@@ -1721,7 +1759,7 @@ async function login(){
         const m={FALSCH:"Kürzel oder Passwort falsch.",
           GESPERRT:`Zu viele Fehlversuche – bitte in ${r.minuten} Minuten erneut versuchen.`,
           KEIN_PASSWORT:"Für dieses Kürzel ist noch kein Passwort festgelegt. Bitte den Link aus der Einladungsmail verwenden.",
-          RECHTE_FOLGEN:"Dein Zugang ist eingerichtet. Die Anmeldung für Ausbildner wird in Kürze freigeschaltet.",
+          RECHTE_FOLGEN:"Dein Zugang ist eingerichtet. Die Anmeldung für User wird in Kürze freigeschaltet.",
           UNBEKANNTER_AUFRUF:"Die Anmeldung mit Kürzel ist erst nach dem Deployen der neuen Code.gs verfügbar. Bitte vorerst ohne Kürzel mit dem Sammelpasswort anmelden."};
         fehlerEl.textContent=m[r.error]||"Anmeldung fehlgeschlagen.";
         fehlerEl.style.display="block";
@@ -1770,7 +1808,7 @@ async function panelOeffnen(p, benutzer){
 
 function ichLeisteZeigen(){
   const el=$("ichLeiste");
-  const rolle=ICH?(ICH.rolle==="voll"?"Vollzugriff":"Ausbildner"):"";
+  const rolle=ICH?(ICH.rolle==="voll"?"Admin":"User"):"";
   el.innerHTML=(ICH
       ? `Angemeldet als <b>${escHtml(ICH.kuerzel)}</b>${ICH.name?" · "+escHtml(ICH.name):""} (${rolle})`
       : `Angemeldet mit dem Sammelpasswort`)
@@ -1918,6 +1956,7 @@ function switchTool(){
   $("toolGab").style.display = tool==="gab" ? "block" : "none";
   $("toolGatlf").style.display = tool==="gatlf" ? "block" : "none";
   $("toolTf").style.display = tool==="tf" ? "block" : "none";
+  $("toolBenutzer").style.display = tool==="benutzer" ? "block" : "none";
   const hinweis=(name,st)=> st==="offline"
     ? `${name}-Backend antwortet gerade nicht. Oben auf «Erneut verbinden» klicken.`
     : `${name}-Backend ist nicht angemeldet (Passwort nicht synchron).`;
@@ -1928,6 +1967,7 @@ function switchTool(){
   if(tool==="backup" && FT_OK && !BACKUP_INIT) initBackup();
   if(tool==="gab" && FT_OK && !GAB_INIT) initGab();
   if(tool==="tf" && FT_OK && !TF_INIT) initTf();
+  if(tool==="benutzer" && FT_OK && !BV_INIT) initBv();
 }
 
 /* ══════════════════ FAHRTRAINING ══════════════════ */
@@ -2044,7 +2084,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.64";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.65";
 
 let GAB_NT_ID=null;
 
@@ -2730,7 +2770,7 @@ function tfListePruefen(feldId,ausgabeId){
   const el=$(ausgabeId);
   const liste=$(feldId).value.split(/[\s,;]+/).map(x=>x.trim().toUpperCase()).filter(x=>x);
   if(liste.length===0){
-    if(feldId==="buK"){ el.innerHTML=""; return; }
+    if(feldId==="bvKuerzel"){ el.innerHTML=""; return; }
     el.innerHTML = feldId.endsWith("-verantw")
       ? '<span class="hinw">Noch niemand eingetragen – dann geht keine Mail raus.</span>'
       : '<span class="hinw">Leer lassen = alle dürfen sich eintragen.</span>';
@@ -3036,140 +3076,187 @@ async function wkPruefen(){
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
 }
 
-/* ── Benutzerverwaltung ── */
-const BU_BEREICHE={fahrtraining:"Fahrtraining",sosi:"SoSi-Prüfung",reservationen:"Fahrzeugreservationen",
-  grundausbildung_b:"B Grundausbildung",grundausbildung_tlf:"TLF Grundausbildung",terminfindung:"Terminfindung"};
-let BU_LISTE=[], BU_ICH="";
+/* ── Benutzerverwaltung (eigenes Tool) ── */
+let BV_INIT=false, BV_LISTE=[], BV_ICH="", BV_FUNKTIONEN=[], BV_ENTWURF={};
+const BV_ROLLE=r=>r==="voll"?"Admin":"User";
+function bvDatum(ms){ return ms?new Date(ms).toLocaleDateString("de-CH",{day:"2-digit",month:"2-digit",year:"numeric"}):""; }
 
-function buDatum(ms){ return ms?new Date(ms).toLocaleDateString("de-CH",{day:"2-digit",month:"2-digit",year:"numeric"}):""; }
+function initBv(){
+  BV_INIT=true;
+  $("btnBvHinzu").addEventListener("click", bvHinzufuegen);
+  $("bvKuerzel").addEventListener("keydown", e=>{ if(e.key==="Enter") bvHinzufuegen(); });
+  $("btnBvRechte").addEventListener("click", bvRechteSpeichern);
+  tfMitgliederSicherstellen();
+  bvLaden();
+}
 
-async function buLaden(){
-  const el=$("buListe");
+async function bvLaden(){
+  const el=$("bvListe");
   try{
     const r=await ftCallAdmin({type:"admin_benutzer_liste",password:PASS});
-    if(r.error==="auth"){ el.innerHTML='<div class="empty">Nur mit Vollzugriff oder dem Sammelpasswort sichtbar.</div>'; $("btnBuNeu").style.display="none"; return; }
-    if(!r.ok){ el.innerHTML=`<div class="empty">${r.error==="UNBEKANNTER_AUFRUF"?"Verfügbar nach dem Deployen der neuen Code.gs.":"Fehler beim Laden."}</div>`; return; }
-    BU_LISTE=r.benutzer||[]; BU_ICH=r.ich||"";
-    if(!BU_LISTE.length){ el.innerHTML='<div class="empty">Noch keine Benutzer. Mit «+ Neuer Benutzer» anlegen.</div>'; return; }
-    el.innerHTML=BU_LISTE.map(b=>{
-      const status = !b.aktiv ? '<span class="badge" style="background:#888">Inaktiv</span>'
-        : b.gesperrtBis ? '<span class="badge" style="background:var(--red)">Gesperrt</span>'
-        : b.passwortGesetzt ? '<span class="badge" style="background:#2d6a1f">Aktiv</span>'
-        : '<span class="badge" style="background:var(--orange)">Eingeladen</span>';
-      const bereiche = b.rolle==="voll" ? "alle Bereiche" : (b.bereiche.map(x=>BU_BEREICHE[x]||x).join(", ")||"keine Bereiche");
-      const info=[];
-      if(!b.passwortGesetzt) info.push(b.eingeladen?`eingeladen am ${buDatum(b.eingeladen)}`:"noch nicht eingeladen");
-      if(b.letzteAnmeldung) info.push(`zuletzt angemeldet ${buDatum(b.letzteAnmeldung)}`);
-      if(!b.email) info.push('<span style="color:var(--red)">keine Mailadresse</span>');
-      return `<div class="frage-row" style="align-items:flex-start;gap:12px;padding:10px 0;flex-wrap:wrap">
-        <div style="flex:1;min-width:220px">
-          <div style="font-size:14px;font-weight:700">${escHtml(b.kuerzel)} <span style="font-weight:400">${escHtml(b.name)}</span> ${status}
-            ${b.kuerzel===BU_ICH?'<span class="hinw" style="font-size:11px">· du</span>':""}</div>
-          <div class="hinw" style="font-size:12px">${b.rolle==="voll"?"Vollzugriff":"Ausbildner"} · ${escHtml(bereiche)}</div>
-          ${info.length?`<div class="hinw" style="font-size:11px">${info.join(" · ")}</div>`:""}
-        </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn btn-klein" onclick="buFormular('${escHtml(b.kuerzel)}')">Bearbeiten</button>
-          <button class="btn btn-klein" onclick="buEinladen('${escHtml(b.kuerzel)}',${b.passwortGesetzt})">${b.passwortGesetzt?"Passwort zurücksetzen":(b.eingeladen?"Erneut einladen":"Einladen")}</button>
-          ${b.kuerzel!==BU_ICH?`<button class="btn btn-klein" onclick="buLoeschen('${escHtml(b.kuerzel)}')">Löschen</button>`:""}
-        </div>
-      </div>`;
-    }).join("");
+    if(r.error==="auth"){ el.innerHTML='<div class="empty">Nur für Admins.</div>'; $("bvMatrix").innerHTML=""; return; }
+    if(!r.ok){ el.innerHTML=`<div class="empty">${r.error==="UNBEKANNTER_AUFRUF"?"Verfügbar nach dem Deployen der neuen Code.gs und Benutzer.gs.":"Fehler beim Laden."}</div>`; return; }
+    BV_LISTE=r.benutzer||[]; BV_ICH=r.ich||""; BV_FUNKTIONEN=r.funktionen||[]; BV_ENTWURF={};
+    bvListeZeigen(); bvMatrixZeigen();
   }catch(e){ el.innerHTML=`<div class="empty">Fehler: ${escHtml(e.message)}</div>`; }
 }
 
-async function buFormular(kuerzel){
-  await tfMitgliederSicherstellen();
-  const b=kuerzel?BU_LISTE.find(x=>x.kuerzel===kuerzel):null;
-  const d=b||{kuerzel:"",rolle:"ausbildner",bereiche:[],aktiv:true};
-  const f=$("buForm");
-  f.style.display="block";
-  f.innerHTML=`<div style="background:var(--bg2);border-left:3px solid var(--green);padding:1rem">
-    <div style="font-weight:700;margin-bottom:.75rem">${b?"Benutzer bearbeiten":"Neuer Benutzer"}</div>
-    <label for="buK">Kürzel</label>
-    <input id="buK" type="text" maxlength="4" style="max-width:140px;text-transform:uppercase" value="${escHtml(d.kuerzel)}" ${b?"disabled":""}
-      oninput="tfListePruefen('buK','buK-info')">
-    <div id="buK-info" style="margin-top:6px"></div>
-    <label style="margin-top:.75rem">Rolle</label>
-    <div style="display:flex;gap:1.25rem;flex-wrap:wrap;font-size:13px;margin-top:4px">
-      <label style="display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px;margin:0">
-        <input type="radio" name="buRolle" value="voll" ${d.rolle==="voll"?"checked":""} style="width:auto;margin:0" onchange="buRolleWechsel()"> Vollzugriff</label>
-      <label style="display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px;margin:0">
-        <input type="radio" name="buRolle" value="ausbildner" ${d.rolle!=="voll"?"checked":""} style="width:auto;margin:0" onchange="buRolleWechsel()"> Ausbildner</label>
-    </div>
-    <div id="buBereiche" style="margin-top:.75rem">
-      <label>Bereiche</label>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px;margin-top:4px">
-        ${Object.keys(BU_BEREICHE).map(k=>`<label style="display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px;margin:0">
-          <input type="checkbox" class="bu-bereich" value="${k}" ${d.bereiche.indexOf(k)>=0?"checked":""} style="width:auto;margin:0"> ${BU_BEREICHE[k]}</label>`).join("")}
-      </div>
-    </div>
-    <label style="display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px;margin-top:.75rem">
-      <input type="checkbox" id="buAktiv" ${d.aktiv?"checked":""} style="width:auto;margin:0"> Aktiv (inaktive Benutzer können sich nicht anmelden)</label>
-    <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
-      <button class="btn btn-green btn-klein" onclick="buSpeichern(${b?"true":"false"})">Speichern</button>
-      <button class="btn btn-klein" onclick="$('buForm').style.display='none'">Abbrechen</button>
-    </div>
-  </div>`;
-  tfListePruefen("buK","buK-info");
-  buRolleWechsel();
-  if(!b) $("buK").focus();
-  f.scrollIntoView({behavior:"smooth",block:"center"});
-}
-function buRolleWechsel(){
-  const voll=(document.querySelector('input[name="buRolle"]:checked')||{}).value==="voll";
-  $("buBereiche").style.display=voll?"none":"block";
+function bvListeZeigen(){
+  const el=$("bvListe");
+  if(!BV_LISTE.length){ el.innerHTML='<div class="empty">Noch keine Benutzer.</div>'; return; }
+  el.innerHTML=`<div class="tblwrap"><table class="l5"><thead><tr>
+    <th>Kürzel</th><th>Name</th><th>Rolle</th><th>Status</th><th>Zuletzt angemeldet</th><th></th></tr></thead><tbody>`
+  +BV_LISTE.map(b=>{
+    const ich=b.kuerzel===BV_ICH;
+    const status = !b.aktiv ? '<span class="badge" style="background:#888">Inaktiv</span>'
+      : b.gesperrtBis ? '<span class="badge" style="background:var(--red)">Gesperrt</span>'
+      : b.passwortGesetzt ? '<span class="badge" style="background:#2d6a1f">Aktiv</span>'
+      : `<span class="badge" style="background:var(--orange)">${b.eingeladen?"Eingeladen":"Nicht eingeladen"}</span>`;
+    const k=escHtml(b.kuerzel);
+    return `<tr>
+      <td><b>${k}</b>${ich?' <span class="hinw" style="font-size:11px">· du</span>':""}</td>
+      <td>${escHtml(b.name)}${b.email?"":' <span style="color:var(--red);font-size:11px">· keine Mail</span>'}</td>
+      <td><select onchange="bvAendern('${k}',{rolle:this.value})" ${ich?"disabled":""} style="padding:4px 6px;font-size:12px;width:auto">
+        <option value="user" ${b.rolle!=="voll"?"selected":""}>User</option>
+        <option value="admin" ${b.rolle==="voll"?"selected":""}>Admin</option></select></td>
+      <td>${status}</td>
+      <td class="hinw">${bvDatum(b.letzteAnmeldung)||"–"}</td>
+      <td style="white-space:nowrap;text-align:right">
+        <button class="btn btn-klein" onclick="bvEinladen('${k}',${b.passwortGesetzt})">${b.passwortGesetzt?"Passwort zurücksetzen":(b.eingeladen?"Erneut einladen":"Einladen")}</button>
+        ${ich?"":`<button class="btn btn-klein" onclick="bvAendern('${k}',{aktiv:${!b.aktiv}})">${b.aktiv?"Deaktivieren":"Aktivieren"}</button>
+        <button class="btn btn-klein" onclick="bvLoeschen('${k}')">Löschen</button>`}
+      </td></tr>`;
+  }).join("")+`</tbody></table></div>`;
 }
 
-async function buSpeichern(bestehend){
-  const st=$("buStatus");
-  const k=$("buK").value.trim().toUpperCase();
-  const rolle=(document.querySelector('input[name="buRolle"]:checked')||{}).value||"ausbildner";
-  const bereiche=[...document.querySelectorAll(".bu-bereich:checked")].map(x=>x.value);
+/* Rechte-Tabelle: Zeilen = Funktionen (nach Tool gruppiert), Spalten = User */
+function bvUser(){ return BV_LISTE.filter(b=>b.rolle!=="voll"); }
+function bvRechte(k){ if(BV_ENTWURF[k]) return BV_ENTWURF[k]; const b=BV_LISTE.find(x=>x.kuerzel===k); return b?b.rechte:[]; }
+function bvGeaendert(k){
+  if(!BV_ENTWURF[k]) return false;
+  const alt=(BV_LISTE.find(x=>x.kuerzel===k)||{}).rechte||[];
+  const n=BV_ENTWURF[k];
+  return n.length!==alt.length||n.some(x=>alt.indexOf(x)<0);
+}
+
+function bvMatrixZeigen(){
+  const el=$("bvMatrix"), user=bvUser();
+  if(!user.length){ el.innerHTML='<div class="empty">Noch keine User. Admins brauchen keine Haken – sie dürfen alles.</div>'; bvZaehler(); return; }
+  const tools=[]; BV_FUNKTIONEN.forEach(f=>{ if(tools.indexOf(f.tool)<0) tools.push(f.tool); });
+  let h=`<table class="bv-matrix"><thead><tr><th>Funktion</th>`
+    +user.map(b=>`<th title="${escHtml(b.name)}">${escHtml(b.kuerzel)}${b.aktiv?"":'<br><span style="font-weight:400;text-transform:none">inaktiv</span>'}</th>`).join("")+`</tr></thead><tbody>`;
+  tools.forEach(tool=>{
+    const fs=BV_FUNKTIONEN.filter(f=>f.tool===tool);
+    h+=`<tr class="bv-tool"><td>${escHtml(tool)}</td>`+user.map(b=>{
+      const r=bvRechte(b.kuerzel), n=fs.filter(f=>r.indexOf(f.id)>=0).length;
+      return `<td><button class="bv-toolknopf" onclick="bvToolUmschalten('${escHtml(b.kuerzel)}','${escHtml(tool)}')">${n===fs.length?"alle":n===0?"keine":n+"/"+fs.length}</button></td>`;
+    }).join("")+`</tr>`;
+    fs.forEach(f=>{
+      h+=`<tr><td style="padding-left:1.25rem">${escHtml(f.name)}</td>`+user.map(b=>{
+        const an=bvRechte(b.kuerzel).indexOf(f.id)>=0;
+        const alt=((BV_LISTE.find(x=>x.kuerzel===b.kuerzel)||{}).rechte||[]).indexOf(f.id)>=0;
+        return `<td class="${an!==alt?"geaendert":""}"><input type="checkbox" ${an?"checked":""}
+          onchange="bvHaken('${escHtml(b.kuerzel)}','${f.id}',this.checked)"></td>`;
+      }).join("")+`</tr>`;
+    });
+  });
+  h+=`<tr class="bv-tool"><td>Admin · Benutzerverwaltung</td>`+user.map(()=>'<td class="hinw" style="font-weight:400">nur Admins</td>').join("")+`</tr>`;
+  el.innerHTML=h+`</tbody></table>`;
+  bvZaehler();
+}
+
+function bvHaken(k,id,an){
+  const r=bvRechte(k).slice();
+  const i=r.indexOf(id);
+  if(an&&i<0) r.push(id); if(!an&&i>=0) r.splice(i,1);
+  BV_ENTWURF[k]=r;
+  bvMatrixZeigen();
+}
+function bvToolUmschalten(k,tool){
+  const ids=BV_FUNKTIONEN.filter(f=>f.tool===tool).map(f=>f.id);
+  const r=bvRechte(k);
+  const alle=ids.every(id=>r.indexOf(id)>=0);
+  BV_ENTWURF[k]=alle ? r.filter(x=>ids.indexOf(x)<0) : r.concat(ids.filter(id=>r.indexOf(id)<0));
+  bvMatrixZeigen();
+}
+function bvZaehler(){
+  const n=Object.keys(BV_ENTWURF).filter(bvGeaendert).length;
+  $("btnBvRechte").disabled=n===0;
+  $("bvAenderungen").textContent=n?`${n} Person${n!==1?"en":""} geändert`:"";
+}
+
+async function bvRechteSpeichern(){
+  const st=$("bvRechteStatus"), btn=$("btnBvRechte");
+  const aenderungen=Object.keys(BV_ENTWURF).filter(bvGeaendert).map(k=>({kuerzel:k,rechte:BV_ENTWURF[k]}));
+  if(!aenderungen.length) return;
+  btn.disabled=true;
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
   try{
-    const r=await ftCallAdmin({type:"admin_benutzer_speichern",password:PASS,kuerzel:k,rolle,bereiche,aktiv:$("buAktiv").checked});
+    const r=await ftCallAdmin({type:"admin_benutzer_rechte",password:PASS,aenderungen});
+    if(r.ok){ st.className="status-msg ok-msg"; st.textContent=`Rechte gespeichert (${r.gespeichert} Person${r.gespeichert!==1?"en":""}).`; await bvLaden(); }
+    else { st.className="status-msg err-msg"; st.textContent=r.error==="auth"?"Keine Berechtigung.":"Fehler beim Speichern."; btn.disabled=false; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; btn.disabled=false; }
+}
+
+async function bvHinzufuegen(){
+  const st=$("bvHinzuStatus");
+  const k=$("bvKuerzel").value.trim().toUpperCase();
+  if(!k) return;
+  if(BV_LISTE.some(b=>b.kuerzel===k)){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent=`${k} ist schon erfasst.`; return; }
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird angelegt…";
+  try{
+    const r=await ftCallAdmin({type:"admin_benutzer_speichern",password:PASS,kuerzel:k,rolle:$("bvRolle").value,aktiv:true,rechte:[]});
     if(!r.ok){
       const m={KUERZEL_UNGUELTIG:"Das Kürzel muss aus 2–4 Buchstaben bestehen.",
-        NICHT_IN_MITGLIEDERLISTE:"Dieses Kürzel steht nicht in der Mitgliederliste.",
-        SELBST:"Du kannst dir nicht selbst den Vollzugriff entziehen oder dich deaktivieren."};
-      st.className="status-msg err-msg"; st.textContent=m[r.error]||(r.error==="auth"?"Keine Berechtigung.":"Fehler beim Speichern.");
+        NICHT_IN_MITGLIEDERLISTE:"Dieses Kürzel steht nicht in der Mitgliederliste."};
+      st.className="status-msg err-msg"; st.textContent=m[r.error]||(r.error==="auth"?"Keine Berechtigung.":"Fehler beim Anlegen.");
       return;
     }
-    $("buForm").style.display="none";
-    st.className="status-msg ok-msg"; st.textContent=`${k} gespeichert.`;
-    await buLaden();
-    if(r.neu&&r.benutzer&&r.benutzer.email&&confirm(`${k} jetzt per Mail einladen?\n\nDie Mail enthält einen Link, mit dem ${k} das Passwort selbst festlegt.`)){
-      buEinladen(k,false,true);
+    $("bvKuerzel").value=""; $("bvKuerzel-info").innerHTML="";
+    st.className="status-msg ok-msg";
+    st.textContent=`${k} als ${BV_ROLLE(r.benutzer.rolle)} angelegt.`+(r.benutzer.rolle!=="voll"?" Jetzt unten die Rechte anhaken.":"");
+    await bvLaden();
+    if(r.benutzer.email&&confirm(`${k} jetzt per Mail einladen?\n\nDie Mail enthält einen Link, mit dem ${k} das Passwort selbst festlegt.`)){
+      bvEinladen(k,false,true);
     }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
 }
 
-async function buEinladen(k,hatPasswort,ohneRueckfrage){
+async function bvAendern(k,werte){
+  const b=BV_LISTE.find(x=>x.kuerzel===k); if(!b) return;
+  if(werte.aktiv===false&&!confirm(`${k} deaktivieren?\n\n${k} wird sofort abgemeldet und kann sich nicht mehr anmelden.`)){ bvListeZeigen(); return; }
+  const st=$("bvStatus");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
+  try{
+    const r=await ftCallAdmin(Object.assign({type:"admin_benutzer_speichern",password:PASS,kuerzel:k,
+      rolle:b.rolle==="voll"?"admin":"user",aktiv:b.aktiv},werte));
+    if(r.ok){ st.className="status-msg ok-msg"; st.textContent=`${k} gespeichert.`; await bvLaden(); }
+    else { st.className="status-msg err-msg"; st.textContent=r.error==="SELBST"?"Du kannst dir nicht selbst die Admin-Rolle entziehen oder dich deaktivieren.":"Fehler beim Speichern."; bvListeZeigen(); }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+async function bvEinladen(k,hatPasswort,ohneRueckfrage){
   if(!ohneRueckfrage&&!confirm(hatPasswort
       ? `${k} einen Link zum Zurücksetzen des Passworts schicken?\n\nDas bisherige Passwort bleibt gültig, bis ein neues festgelegt ist.`
       : `${k} eine Einladungsmail schicken?`)) return;
-  const st=$("buStatus");
+  const st=$("bvStatus");
   st.className="status-msg"; st.style.display="block"; st.textContent="Mail wird gesendet…";
   try{
     const r=await ftCallAdmin({type:"admin_benutzer_einladen",password:PASS,kuerzel:k,anfrageId:Date.now()+"-"+Math.random()});
-    if(r.ok){ st.className="status-msg ok-msg"; st.textContent=`Mail an ${k} verschickt.`; buLaden(); }
-    else {
-      st.className="status-msg err-msg";
-      st.textContent = r.error==="KEINE_EMAIL" ? `Für ${k} ist in der Mitgliederliste keine Mailadresse hinterlegt.`
-        : "Senden fehlgeschlagen"+(r.detail?": "+r.detail:".");
-    }
+    if(r.ok){ st.className="status-msg ok-msg"; st.textContent=`Mail an ${k} verschickt.`; bvLaden(); }
+    else { st.className="status-msg err-msg";
+      st.textContent = r.error==="KEINE_EMAIL" ? `Für ${k} ist in der Mitgliederliste keine Mailadresse hinterlegt.` : "Senden fehlgeschlagen"+(r.detail?": "+r.detail:"."); }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
 }
 
-async function buLoeschen(k){
+async function bvLoeschen(k){
   if(!confirm(`Benutzer ${k} löschen?\n\n${k} kann sich danach nicht mehr anmelden.`)) return;
-  const st=$("buStatus");
+  const st=$("bvStatus");
   try{
     const r=await ftCallAdmin({type:"admin_benutzer_loeschen",password:PASS,kuerzel:k});
     st.style.display="block";
-    if(r.ok){ st.className="status-msg ok-msg"; st.textContent=`${k} gelöscht.`; buLaden(); }
-    else { st.className="status-msg err-msg"; st.textContent=r.error==="SELBST"?"Du kannst dich nicht selbst löschen.":"Löschen fehlgeschlagen."; }
+    if(r.ok){ st.className="status-msg ok-msg"; st.textContent=`${k} gelöscht.`; bvLaden(); }
+    else { st.className="status-msg err-msg"; st.textContent="Löschen fehlgeschlagen."; }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
 }
 
@@ -3917,8 +4004,7 @@ function initBackup(){
   $("btnWkPruefen").addEventListener("click", wkPruefen);
   $("wkDetails").addEventListener("toggle", ()=>{ if($("wkDetails").open) wkLaden(); });
   if(SC_LETZT) scAnzeigen(SC_LETZT); else scLaden(false);
-  $("btnBuNeu").addEventListener("click", ()=>buFormular(null));
-  buLaden();
+
   scEmpfLaden();
   $("mvDetails").addEventListener("toggle", ()=>{ if($("mvDetails").open) mvLaden(); });
   $("btnMessungOhne").addEventListener("click", ()=>messungStarten(false));
@@ -4254,7 +4340,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.64";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.65";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -4623,7 +4709,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.64", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.65", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -5356,13 +5442,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.64`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.65`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.64";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.65";
 
 async function soApi(payload){
   try{
