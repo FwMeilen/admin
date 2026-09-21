@@ -181,11 +181,36 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   <div id="scLogin" class="login-wrap">
     <div class="card">
       <h2>Admin-Anmeldung</h2>
-      <p class="hinw" style="margin-bottom:1rem">Ein Login für Fahrtraining und SoSi-Prüfung.</p>
-      <label for="pass">Passwort</label>
-      <input id="pass" type="password" autocomplete="off">
+      <p class="hinw" style="margin-bottom:1rem">Mit deinem Kürzel und deinem Passwort.</p>
+      <label for="loginKuerzel">Kürzel</label>
+      <input id="loginKuerzel" type="text" maxlength="4" autocomplete="username" style="text-transform:uppercase">
+      <label for="pass" style="margin-top:.75rem">Passwort</label>
+      <input id="pass" type="password" autocomplete="current-password">
       <div style="margin-top:1rem"><button class="btn btn-red" id="btnLogin" style="width:100%">Anmelden</button></div>
       <div class="error" id="loginFehler"></div>
+      <div class="status-msg" id="loginInfo"></div>
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:1rem;font-size:12px">
+        <a href="#" id="lnkPwVergessen" style="color:var(--red);font-weight:600">Passwort vergessen?</a>
+        <span class="hinw" style="font-size:11px">Übergangszeit: Kürzel leer lassen = Sammelpasswort</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASSWORT FESTLEGEN (Link aus Einladung oder «vergessen») -->
+  <div id="scPasswort" class="login-wrap" style="display:none">
+    <div class="card">
+      <h2>Passwort festlegen</h2>
+      <p class="hinw" id="pwKopf" style="margin-bottom:1rem">Link wird geprüft …</p>
+      <div id="pwFormular" style="display:none">
+        <label for="pwNeu1">Neues Passwort</label>
+        <input id="pwNeu1" type="password" autocomplete="new-password">
+        <label for="pwNeu2" style="margin-top:.75rem">Wiederholen</label>
+        <input id="pwNeu2" type="password" autocomplete="new-password">
+        <ul id="pwRegeln" style="list-style:none;margin:.75rem 0 0;font-size:12px;line-height:1.9"></ul>
+        <div style="margin-top:1rem"><button class="btn btn-red" id="btnPwSetzen" style="width:100%" disabled>Passwort speichern</button></div>
+      </div>
+      <div class="error" id="pwFehler"></div>
+      <div class="status-msg" id="pwInfo"></div>
     </div>
   </div>
 
@@ -193,6 +218,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   <div id="scPanel" style="display:none">
 
     <div class="card" style="padding:1rem 1.25rem">
+      <div id="ichLeiste" class="hinw" style="display:none;justify-content:flex-end;gap:10px;margin-bottom:.5rem;font-size:12px"></div>
       <label for="toolSelect" style="margin-bottom:6px">Tool</label>
       <select id="toolSelect" style="max-width:300px">
         <option value="start">Übersicht</option>
@@ -1063,6 +1089,19 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         </details>
       </div>
 
+      <div class="card" id="buKarte">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+          <h2 style="margin:0">Benutzer</h2>
+          <button class="btn btn-green btn-klein" id="btnBuNeu">+ Neuer Benutzer</button>
+        </div>
+        <p class="hinw" style="margin:.5rem 0 1rem">Persönliche Zugänge mit Kürzel und Passwort. Neue Benutzer erhalten eine
+          Einladungsmail, mit der sie ihr Passwort selbst festlegen. <b>Vollzugriff</b> darf alles inklusive dieser Verwaltung;
+          <b>Ausbildner</b> nur die angehakten Bereiche – ihre Anmeldung wird mit der Rechteprüfung freigeschaltet.</p>
+        <div id="buForm" style="display:none;margin-bottom:1rem"></div>
+        <div id="buListe"><div class="loading">Lade …</div></div>
+        <div class="status-msg" id="buStatus"></div>
+      </div>
+
       <div class="card">
         <h2>Grundlagen</h2>
         <details id="grDetails">
@@ -1491,7 +1530,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.63</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.64</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten ──
@@ -1631,7 +1670,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
 const FT_EXEC_URL="https://script.google.com/macros/s/AKfycbwvTL3yecdyTvSV5ZPgGslm5K-3UFjW9zc4A2qn_zUk50CcSIpXEaBE1hMiaU3GnNEQ/exec";
-// SoSi läuft seit CLv1.63 im gemeinsamen Script; bis zur Übernahme weicht soApi ans alte aus
+// SoSi läuft seit CLv1.64 im gemeinsamen Script; bis zur Übernahme weicht soApi ans alte aus
 const SO_EXEC_URL=FT_EXEC_URL;
 const SO_EXEC_URL_ALT="https://script.google.com/macros/s/AKfycbz0mGY8B8I__4UV8HoMT6Jih-Aw_m_YIWvSyzpR8PP1avfnDZRtDTNU8ufKtPSrTg8sNg/exec";
 
@@ -1661,13 +1700,50 @@ function escHtml(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/
 $("btnLogin").addEventListener("click", login);
 $("pass").addEventListener("keydown", e=>{ if(e.key==="Enter") login(); });
 
+/* ── Anmeldung ──
+ * Mit Kürzel: Benutzerkonto, Sitzung "SITZUNG:<schlüssel>" ersetzt das Passwort
+ * in allen bestehenden Aufrufen. Ohne Kürzel: Sammelpasswort (Übergangszeit).
+ */
+let ICH=null;
+const SITZUNG_SPEICHER="mwd_sitzung";
+
 async function login(){
+  const k=$("loginKuerzel").value.trim().toUpperCase();
   const p=$("pass").value;
   const fehlerEl=$("loginFehler");
-  fehlerEl.style.display="none";
+  fehlerEl.style.display="none"; $("loginInfo").style.display="none";
   if(!p) return;
   $("btnLogin").disabled=true; $("btnLogin").textContent="Prüfe …";
   try{
+    if(k){
+      const r=await fwAufruf(FT_EXEC_URL,{type:"auth_login",kuerzel:k,passwort:p},{seite:"Admin Anmeldung"});
+      if(!r.ok){
+        const m={FALSCH:"Kürzel oder Passwort falsch.",
+          GESPERRT:`Zu viele Fehlversuche – bitte in ${r.minuten} Minuten erneut versuchen.`,
+          KEIN_PASSWORT:"Für dieses Kürzel ist noch kein Passwort festgelegt. Bitte den Link aus der Einladungsmail verwenden.",
+          RECHTE_FOLGEN:"Dein Zugang ist eingerichtet. Die Anmeldung für Ausbildner wird in Kürze freigeschaltet.",
+          UNBEKANNTER_AUFRUF:"Die Anmeldung mit Kürzel ist erst nach dem Deployen der neuen Code.gs verfügbar. Bitte vorerst ohne Kürzel mit dem Sammelpasswort anmelden."};
+        fehlerEl.textContent=m[r.error]||"Anmeldung fehlgeschlagen.";
+        fehlerEl.style.display="block";
+        return;
+      }
+      try{ sessionStorage.setItem(SITZUNG_SPEICHER,r.token); }catch(e){}
+      await panelOeffnen("SITZUNG:"+r.token, r.benutzer);
+      return;
+    }
+    await panelOeffnen(p, null);
+  }catch(e){
+    fehlerEl.textContent="Verbindung fehlgeschlagen.";
+    fehlerEl.style.display="block";
+  }finally{
+    $("btnLogin").disabled=false; $("btnLogin").textContent="Anmelden";
+  }
+}
+
+/** Gemeinsamer Teil nach erfolgreicher Anmeldung (oder beim Wiederherstellen der Sitzung) */
+async function panelOeffnen(p, benutzer){
+  const fehlerEl=$("loginFehler");
+  {
     // Wiederholungen bei Kaltstart übernimmt fwAufruf
     const [ft, so] = await Promise.all([pruefeFt(p), pruefeSo(p)]);
     FT_STATUS=ft; SO_STATUS=so;
@@ -1679,22 +1755,116 @@ async function login(){
       fehlerEl.style.display="block";
       return;
     }
-    PASS=p;
+    PASS=p; ICH=benutzer;
     $("scLogin").style.display="none";
     $("scPanel").style.display="block";
+    ichLeisteZeigen();
     updateAuthWarnung();
     initFt();
     // Systemcheck im Hintergrund – meldet sich nur bei Problemen
     if(FT_OK) fwAufruf(FT_EXEC_URL,{type:"admin_systemcheck",password:PASS},
         {seite:"Admin Systemcheck",still:true,nachfragen:[0,25000]})
       .then(r=>{ if(r&&r.ok){ SC_LETZT=r; scWarnungSetzen(r); } }).catch(()=>{});
-  }catch(e){
-    fehlerEl.textContent="Verbindung fehlgeschlagen.";
-    fehlerEl.style.display="block";
-  }finally{
-    $("btnLogin").disabled=false; $("btnLogin").textContent="Anmelden";
   }
 }
+
+function ichLeisteZeigen(){
+  const el=$("ichLeiste");
+  const rolle=ICH?(ICH.rolle==="voll"?"Vollzugriff":"Ausbildner"):"";
+  el.innerHTML=(ICH
+      ? `Angemeldet als <b>${escHtml(ICH.kuerzel)}</b>${ICH.name?" · "+escHtml(ICH.name):""} (${rolle})`
+      : `Angemeldet mit dem Sammelpasswort`)
+    +` · <a href="#" id="btnAbmelden" style="color:var(--red);font-weight:600">Abmelden</a>`;
+  el.style.display="flex";
+  $("btnAbmelden").addEventListener("click",e=>{ e.preventDefault(); abmelden(); });
+}
+
+async function abmelden(){
+  let t=""; try{ t=sessionStorage.getItem(SITZUNG_SPEICHER)||""; sessionStorage.removeItem(SITZUNG_SPEICHER); }catch(e){}
+  if(t) fwAufruf(FT_EXEC_URL,{type:"auth_logout",token:t},{seite:"Admin",still:true}).catch(()=>{});
+  setTimeout(()=>location.replace(location.pathname),150);
+}
+
+async function pwVergessen(e){
+  e.preventDefault();
+  const k=$("loginKuerzel").value.trim().toUpperCase();
+  const info=$("loginInfo"), fehler=$("loginFehler");
+  fehler.style.display="none";
+  if(!k){ fehler.textContent="Bitte zuerst oben dein Kürzel eintragen."; fehler.style.display="block"; return; }
+  info.className="status-msg"; info.style.display="block"; info.textContent="Wird gesendet …";
+  try{
+    await fwAufruf(FT_EXEC_URL,{type:"auth_pw_vergessen",kuerzel:k},{seite:"Admin Anmeldung"});
+    info.className="status-msg ok-msg";
+    info.textContent="Falls für dieses Kürzel ein Zugang besteht, ist eine Mail mit einem Link unterwegs. Der Link ist eine Stunde gültig.";
+  }catch(x){ info.className="status-msg err-msg"; info.textContent="Senden nicht möglich: "+x.message; }
+}
+
+/* ── Passwort festlegen ── */
+let PW_TOKEN="";
+function pwRegelnPruefen(){
+  const a=$("pwNeu1").value, b=$("pwNeu2").value;
+  const regeln=[
+    [a.length>=10,"mindestens 10 Zeichen"],
+    [/\d/.test(a),"mindestens eine Zahl"],
+    [/[^A-Za-z0-9]/.test(a),"mindestens ein Sonderzeichen"],
+    [a.length>0&&a===b,"beide Eingaben gleich"]];
+  $("pwRegeln").innerHTML=regeln.map(([ok,t])=>
+    `<li style="color:${ok?"var(--green)":"var(--text3)"}">${ok?"✓":"○"} ${t}</li>`).join("");
+  $("btnPwSetzen").disabled=!regeln.every(r=>r[0]);
+}
+async function pwSeiteStarten(token){
+  PW_TOKEN=token;
+  $("scLogin").style.display="none";
+  $("scPasswort").style.display="block";
+  try{
+    const r=await fwAufruf(FT_EXEC_URL,{type:"auth_pw_pruefen",pwToken:token},{seite:"Admin Passwort"});
+    if(!r.ok){
+      $("pwKopf").innerHTML="Dieser Link ist abgelaufen oder wurde schon verwendet. Auf der Anmeldeseite kannst du über «Passwort vergessen?» einen neuen anfordern."
+        +'<br><br><a href="'+location.pathname+'" style="color:var(--red);font-weight:600">Zur Anmeldung</a>';
+      return;
+    }
+    $("pwKopf").innerHTML=`Für <b>${escHtml(r.kuerzel)}</b>${r.name?" · "+escHtml(r.name):""}. `
+      +"Das Passwort braucht mindestens 10 Zeichen, davon mindestens eine Zahl und ein Sonderzeichen.";
+    $("pwFormular").style.display="block";
+    pwRegelnPruefen();
+    $("pwNeu1").focus();
+  }catch(e){ $("pwKopf").textContent="Der Link konnte nicht geprüft werden: "+e.message; }
+}
+async function pwSetzen(){
+  const f=$("pwFehler"), info=$("pwInfo"), btn=$("btnPwSetzen");
+  f.style.display="none"; btn.disabled=true;
+  try{
+    const r=await fwAufruf(FT_EXEC_URL,{type:"auth_pw_setzen",pwToken:PW_TOKEN,passwort:$("pwNeu1").value},{seite:"Admin Passwort"});
+    if(r.ok){
+      $("pwFormular").style.display="none";
+      info.className="status-msg ok-msg"; info.style.display="block";
+      info.innerHTML=`Passwort gespeichert. Du kannst dich jetzt mit deinem Kürzel <b>${escHtml(r.kuerzel)}</b> anmelden.`
+        +`<br><br><a href="${location.pathname}?k=${encodeURIComponent(r.kuerzel)}" style="color:var(--red);font-weight:700">Zur Anmeldung</a>`;
+    } else {
+      f.textContent = r.error==="REGELN" ? "Es fehlt noch: "+(r.fehlt||[]).join(", ")+"."
+        : "Der Link ist abgelaufen oder wurde schon verwendet.";
+      f.style.display="block"; btn.disabled=false;
+    }
+  }catch(e){ f.textContent="Speichern nicht möglich: "+e.message; f.style.display="block"; btn.disabled=false; }
+}
+
+/* ── Beim Laden: Passwort-Link, gespeicherte Sitzung, vorbelegtes Kürzel ── */
+(async function start(){
+  const q=new URLSearchParams(location.search);
+  $("lnkPwVergessen").addEventListener("click",pwVergessen);
+  $("loginKuerzel").addEventListener("keydown",e=>{ if(e.key==="Enter") $("pass").focus(); });
+  ["pwNeu1","pwNeu2"].forEach(i=>$(i).addEventListener("input",pwRegelnPruefen));
+  $("btnPwSetzen").addEventListener("click",pwSetzen);
+  if(q.get("pw")){ history.replaceState(null,"",location.pathname); pwSeiteStarten(q.get("pw")); return; }
+  if(q.get("k")){ $("loginKuerzel").value=q.get("k"); history.replaceState(null,"",location.pathname); $("pass").focus(); }
+  let t=""; try{ t=sessionStorage.getItem(SITZUNG_SPEICHER)||""; }catch(e){}
+  if(!t) return;
+  try{
+    const r=await fwAufruf(FT_EXEC_URL,{type:"auth_ich",token:t},{seite:"Admin Anmeldung",still:true});
+    if(r.ok) await panelOeffnen("SITZUNG:"+t, r.benutzer);
+    else { try{ sessionStorage.removeItem(SITZUNG_SPEICHER); }catch(e){} }
+  }catch(e){ /* dann eben normal anmelden */ }
+})();
 
 function updateAuthWarnung(){
   const w=$("authWarnung");
@@ -1874,7 +2044,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.63";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.64";
 
 let GAB_NT_ID=null;
 
@@ -2560,6 +2730,7 @@ function tfListePruefen(feldId,ausgabeId){
   const el=$(ausgabeId);
   const liste=$(feldId).value.split(/[\s,;]+/).map(x=>x.trim().toUpperCase()).filter(x=>x);
   if(liste.length===0){
+    if(feldId==="buK"){ el.innerHTML=""; return; }
     el.innerHTML = feldId.endsWith("-verantw")
       ? '<span class="hinw">Noch niemand eingetragen – dann geht keine Mail raus.</span>'
       : '<span class="hinw">Leer lassen = alle dürfen sich eintragen.</span>';
@@ -2862,6 +3033,143 @@ async function wkPruefen(){
     if(r.aktuell){ st.className="status-msg ok-msg"; st.textContent=`Worker antwortet (${escHtml(r.text)}, ${r.ms} ms) – alles in Ordnung.`; }
     else if(r.code===400){ st.className="status-msg err-msg"; st.textContent="Worker antwortet, läuft aber noch mit altem Code. Bitte den aktuellen kalender-worker.js bei Cloudflare einfügen."; }
     else { st.className="status-msg err-msg"; st.textContent=`Unerwartete Antwort ${r.code}: ${r.text}`; }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+/* ── Benutzerverwaltung ── */
+const BU_BEREICHE={fahrtraining:"Fahrtraining",sosi:"SoSi-Prüfung",reservationen:"Fahrzeugreservationen",
+  grundausbildung_b:"B Grundausbildung",grundausbildung_tlf:"TLF Grundausbildung",terminfindung:"Terminfindung"};
+let BU_LISTE=[], BU_ICH="";
+
+function buDatum(ms){ return ms?new Date(ms).toLocaleDateString("de-CH",{day:"2-digit",month:"2-digit",year:"numeric"}):""; }
+
+async function buLaden(){
+  const el=$("buListe");
+  try{
+    const r=await ftCallAdmin({type:"admin_benutzer_liste",password:PASS});
+    if(r.error==="auth"){ el.innerHTML='<div class="empty">Nur mit Vollzugriff oder dem Sammelpasswort sichtbar.</div>'; $("btnBuNeu").style.display="none"; return; }
+    if(!r.ok){ el.innerHTML=`<div class="empty">${r.error==="UNBEKANNTER_AUFRUF"?"Verfügbar nach dem Deployen der neuen Code.gs.":"Fehler beim Laden."}</div>`; return; }
+    BU_LISTE=r.benutzer||[]; BU_ICH=r.ich||"";
+    if(!BU_LISTE.length){ el.innerHTML='<div class="empty">Noch keine Benutzer. Mit «+ Neuer Benutzer» anlegen.</div>'; return; }
+    el.innerHTML=BU_LISTE.map(b=>{
+      const status = !b.aktiv ? '<span class="badge" style="background:#888">Inaktiv</span>'
+        : b.gesperrtBis ? '<span class="badge" style="background:var(--red)">Gesperrt</span>'
+        : b.passwortGesetzt ? '<span class="badge" style="background:#2d6a1f">Aktiv</span>'
+        : '<span class="badge" style="background:var(--orange)">Eingeladen</span>';
+      const bereiche = b.rolle==="voll" ? "alle Bereiche" : (b.bereiche.map(x=>BU_BEREICHE[x]||x).join(", ")||"keine Bereiche");
+      const info=[];
+      if(!b.passwortGesetzt) info.push(b.eingeladen?`eingeladen am ${buDatum(b.eingeladen)}`:"noch nicht eingeladen");
+      if(b.letzteAnmeldung) info.push(`zuletzt angemeldet ${buDatum(b.letzteAnmeldung)}`);
+      if(!b.email) info.push('<span style="color:var(--red)">keine Mailadresse</span>');
+      return `<div class="frage-row" style="align-items:flex-start;gap:12px;padding:10px 0;flex-wrap:wrap">
+        <div style="flex:1;min-width:220px">
+          <div style="font-size:14px;font-weight:700">${escHtml(b.kuerzel)} <span style="font-weight:400">${escHtml(b.name)}</span> ${status}
+            ${b.kuerzel===BU_ICH?'<span class="hinw" style="font-size:11px">· du</span>':""}</div>
+          <div class="hinw" style="font-size:12px">${b.rolle==="voll"?"Vollzugriff":"Ausbildner"} · ${escHtml(bereiche)}</div>
+          ${info.length?`<div class="hinw" style="font-size:11px">${info.join(" · ")}</div>`:""}
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-klein" onclick="buFormular('${escHtml(b.kuerzel)}')">Bearbeiten</button>
+          <button class="btn btn-klein" onclick="buEinladen('${escHtml(b.kuerzel)}',${b.passwortGesetzt})">${b.passwortGesetzt?"Passwort zurücksetzen":(b.eingeladen?"Erneut einladen":"Einladen")}</button>
+          ${b.kuerzel!==BU_ICH?`<button class="btn btn-klein" onclick="buLoeschen('${escHtml(b.kuerzel)}')">Löschen</button>`:""}
+        </div>
+      </div>`;
+    }).join("");
+  }catch(e){ el.innerHTML=`<div class="empty">Fehler: ${escHtml(e.message)}</div>`; }
+}
+
+async function buFormular(kuerzel){
+  await tfMitgliederSicherstellen();
+  const b=kuerzel?BU_LISTE.find(x=>x.kuerzel===kuerzel):null;
+  const d=b||{kuerzel:"",rolle:"ausbildner",bereiche:[],aktiv:true};
+  const f=$("buForm");
+  f.style.display="block";
+  f.innerHTML=`<div style="background:var(--bg2);border-left:3px solid var(--green);padding:1rem">
+    <div style="font-weight:700;margin-bottom:.75rem">${b?"Benutzer bearbeiten":"Neuer Benutzer"}</div>
+    <label for="buK">Kürzel</label>
+    <input id="buK" type="text" maxlength="4" style="max-width:140px;text-transform:uppercase" value="${escHtml(d.kuerzel)}" ${b?"disabled":""}
+      oninput="tfListePruefen('buK','buK-info')">
+    <div id="buK-info" style="margin-top:6px"></div>
+    <label style="margin-top:.75rem">Rolle</label>
+    <div style="display:flex;gap:1.25rem;flex-wrap:wrap;font-size:13px;margin-top:4px">
+      <label style="display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px;margin:0">
+        <input type="radio" name="buRolle" value="voll" ${d.rolle==="voll"?"checked":""} style="width:auto;margin:0" onchange="buRolleWechsel()"> Vollzugriff</label>
+      <label style="display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px;margin:0">
+        <input type="radio" name="buRolle" value="ausbildner" ${d.rolle!=="voll"?"checked":""} style="width:auto;margin:0" onchange="buRolleWechsel()"> Ausbildner</label>
+    </div>
+    <div id="buBereiche" style="margin-top:.75rem">
+      <label>Bereiche</label>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px;margin-top:4px">
+        ${Object.keys(BU_BEREICHE).map(k=>`<label style="display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px;margin:0">
+          <input type="checkbox" class="bu-bereich" value="${k}" ${d.bereiche.indexOf(k)>=0?"checked":""} style="width:auto;margin:0"> ${BU_BEREICHE[k]}</label>`).join("")}
+      </div>
+    </div>
+    <label style="display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;color:var(--text);font-size:13px;margin-top:.75rem">
+      <input type="checkbox" id="buAktiv" ${d.aktiv?"checked":""} style="width:auto;margin:0"> Aktiv (inaktive Benutzer können sich nicht anmelden)</label>
+    <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+      <button class="btn btn-green btn-klein" onclick="buSpeichern(${b?"true":"false"})">Speichern</button>
+      <button class="btn btn-klein" onclick="$('buForm').style.display='none'">Abbrechen</button>
+    </div>
+  </div>`;
+  tfListePruefen("buK","buK-info");
+  buRolleWechsel();
+  if(!b) $("buK").focus();
+  f.scrollIntoView({behavior:"smooth",block:"center"});
+}
+function buRolleWechsel(){
+  const voll=(document.querySelector('input[name="buRolle"]:checked')||{}).value==="voll";
+  $("buBereiche").style.display=voll?"none":"block";
+}
+
+async function buSpeichern(bestehend){
+  const st=$("buStatus");
+  const k=$("buK").value.trim().toUpperCase();
+  const rolle=(document.querySelector('input[name="buRolle"]:checked')||{}).value||"ausbildner";
+  const bereiche=[...document.querySelectorAll(".bu-bereich:checked")].map(x=>x.value);
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
+  try{
+    const r=await ftCallAdmin({type:"admin_benutzer_speichern",password:PASS,kuerzel:k,rolle,bereiche,aktiv:$("buAktiv").checked});
+    if(!r.ok){
+      const m={KUERZEL_UNGUELTIG:"Das Kürzel muss aus 2–4 Buchstaben bestehen.",
+        NICHT_IN_MITGLIEDERLISTE:"Dieses Kürzel steht nicht in der Mitgliederliste.",
+        SELBST:"Du kannst dir nicht selbst den Vollzugriff entziehen oder dich deaktivieren."};
+      st.className="status-msg err-msg"; st.textContent=m[r.error]||(r.error==="auth"?"Keine Berechtigung.":"Fehler beim Speichern.");
+      return;
+    }
+    $("buForm").style.display="none";
+    st.className="status-msg ok-msg"; st.textContent=`${k} gespeichert.`;
+    await buLaden();
+    if(r.neu&&r.benutzer&&r.benutzer.email&&confirm(`${k} jetzt per Mail einladen?\n\nDie Mail enthält einen Link, mit dem ${k} das Passwort selbst festlegt.`)){
+      buEinladen(k,false,true);
+    }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+async function buEinladen(k,hatPasswort,ohneRueckfrage){
+  if(!ohneRueckfrage&&!confirm(hatPasswort
+      ? `${k} einen Link zum Zurücksetzen des Passworts schicken?\n\nDas bisherige Passwort bleibt gültig, bis ein neues festgelegt ist.`
+      : `${k} eine Einladungsmail schicken?`)) return;
+  const st=$("buStatus");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Mail wird gesendet…";
+  try{
+    const r=await ftCallAdmin({type:"admin_benutzer_einladen",password:PASS,kuerzel:k,anfrageId:Date.now()+"-"+Math.random()});
+    if(r.ok){ st.className="status-msg ok-msg"; st.textContent=`Mail an ${k} verschickt.`; buLaden(); }
+    else {
+      st.className="status-msg err-msg";
+      st.textContent = r.error==="KEINE_EMAIL" ? `Für ${k} ist in der Mitgliederliste keine Mailadresse hinterlegt.`
+        : "Senden fehlgeschlagen"+(r.detail?": "+r.detail:".");
+    }
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+async function buLoeschen(k){
+  if(!confirm(`Benutzer ${k} löschen?\n\n${k} kann sich danach nicht mehr anmelden.`)) return;
+  const st=$("buStatus");
+  try{
+    const r=await ftCallAdmin({type:"admin_benutzer_loeschen",password:PASS,kuerzel:k});
+    st.style.display="block";
+    if(r.ok){ st.className="status-msg ok-msg"; st.textContent=`${k} gelöscht.`; buLaden(); }
+    else { st.className="status-msg err-msg"; st.textContent=r.error==="SELBST"?"Du kannst dich nicht selbst löschen.":"Löschen fehlgeschlagen."; }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
 }
 
@@ -3609,6 +3917,8 @@ function initBackup(){
   $("btnWkPruefen").addEventListener("click", wkPruefen);
   $("wkDetails").addEventListener("toggle", ()=>{ if($("wkDetails").open) wkLaden(); });
   if(SC_LETZT) scAnzeigen(SC_LETZT); else scLaden(false);
+  $("btnBuNeu").addEventListener("click", ()=>buFormular(null));
+  buLaden();
   scEmpfLaden();
   $("mvDetails").addEventListener("toggle", ()=>{ if($("mvDetails").open) mvLaden(); });
   $("btnMessungOhne").addEventListener("click", ()=>messungStarten(false));
@@ -3944,7 +4254,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.63";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.64";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -4313,7 +4623,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.63", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.64", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -5046,13 +5356,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.63`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.64`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.63";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.64";
 
 async function soApi(payload){
   try{
