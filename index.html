@@ -1038,6 +1038,14 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       </div>
 
       <div class="card">
+        <h2>Mailversand</h2>
+        <details id="mvDetails">
+          <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Mailversand prüfen</summary>
+          <div style="margin-top:0.75rem" id="mvInhalt"><div class="loading">Lade …</div></div>
+        </details>
+      </div>
+
+      <div class="card">
         <h2>Aussetzer</h2>
         <details id="axDetails">
           <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Aussetzer der letzten 7 Tage</summary>
@@ -1409,7 +1417,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.58</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.59</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten ──
@@ -1785,7 +1793,7 @@ function initGab(){
   gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.58";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.59";
 
 let GAB_NT_ID=null;
 
@@ -2170,6 +2178,25 @@ function gabRendern(){
         <td>${badge}</td>
       </tr>`;
     }).join("")+`</tbody></table></div></div>`;
+}
+
+async function mvLaden(){
+  const el=$("mvInhalt");
+  el.innerHTML='<div class="loading">Wird geprüft …</div>';
+  try{
+    const r=await ftCallAdmin({type:"admin_mail_status",password:PASS});
+    if(!r.ok){ el.innerHTML='<div class="empty">Fehler beim Prüfen.</div>'; return; }
+    const zeile=(ok,titel,text)=>`<div class="frage-row" style="align-items:flex-start;gap:10px;padding:10px 0">
+      <span style="width:11px;height:11px;border-radius:50%;background:${ok?"var(--green)":"var(--red)"};flex-shrink:0;margin-top:4px"></span>
+      <div><div style="font-size:13px;font-weight:700">${titel}</div><div class="hinw" style="font-size:12px">${text}</div></div></div>`;
+    const k=r.kontingent;
+    el.innerHTML=
+      zeile(r.absenderOk, `Absender ${escHtml(r.absender)}`,
+        r.absenderOk ? "Im Konto als «Senden als»-Adresse bestätigt."
+          : escHtml(r.absenderGrund||"Nicht verfügbar.")
+            +"<br>Fehlt eine Berechtigung, die aktuelle appsscript.json einspielen und im Editor eine Funktion einmal von Hand ausführen, um sie zu bestätigen.")
+      +zeile(k>20, "Tageskontingent", k<0?"Unbekannt.":`Heute noch <b>${k}</b> Mails möglich. Google begrenzt den Versand pro Tag; das Kontingent erneuert sich nach 24 Stunden.`);
+  }catch(e){ el.innerHTML=`<div class="empty">Fehler: ${escHtml(e.message)}</div>`; }
 }
 
 async function axLaden(){
@@ -2772,6 +2799,7 @@ async function tfMailVorschau(art){
     if(o.length){
       h+=`<div class="warnung" style="margin-top:.75rem">Ohne Mailadresse, erhalten nichts: ${o.map(p=>escHtml(p.kuerzel)).join(", ")}</div>`;
     }
+    h+=tfKontingentHinweis(r.kontingent, e.length);
     $("tfMailInhalt").innerHTML=h;
     $("tfMailDlgStatus").style.display="none";
     $("btnTfMailSenden").disabled=e.length===0;
@@ -2792,9 +2820,18 @@ async function tfMailSenden(){
       const s=$("tfMailStatus");
       s.className="status-msg ok-msg"; s.style.display="block";
       s.textContent=`${r.gesendet} Mail${r.gesendet!==1?"s":""} versendet.`
-        +((r.fehler||[]).length?` Fehler bei: ${r.fehler.join(", ")}.`:"");
+        +((r.fehler||[]).length?` Fehler bei: ${r.fehler.join(", ")}.`:"")
+        +(r.grund?` Grund: ${r.grund}`:"")
+        +(r.kontingent>=0?` Heute noch ${r.kontingent} Mails möglich.`:"");
+      if((r.fehler||[]).length) s.className="status-msg err-msg";
     } else { st.className="status-msg err-msg"; st.textContent="Fehler beim Senden."; btn.disabled=false; }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; btn.disabled=false; }
+}
+
+function tfKontingentHinweis(k,anzahl){
+  if(k===undefined||k===null||k<0) return "";
+  if(k<anzahl) return `<div class="warnung" style="margin-top:.75rem;border-color:var(--red)"><b>Heute nur noch ${k} Mails möglich</b> – Google begrenzt den täglichen Versand. ${anzahl-k} Empfänger würden nichts erhalten. Morgen erneut senden.</div>`;
+  return `<div class="hinw" style="margin-top:.6rem">Heute noch ${k} Mails möglich.</div>`;
 }
 
 /* ── Beteiligte informieren ── */
@@ -2830,7 +2867,8 @@ async function tfInfoOeffnen(){
       <div style="max-height:170px;overflow-y:auto;border:1px solid var(--gray-mid)">${e.map(p=>
         `<div style="padding:5px 10px;border-bottom:1px solid var(--gray-mid);font-size:13px">
           <b>${escHtml(p.kuerzel)}</b> ${escHtml(p.name)} <span class="hinw">· ${p.anzahl} Termin${p.anzahl!==1?"e":""}</span></div>`).join("")}</div>`
-      +(o.length?`<div class="warnung" style="margin-top:.75rem">Ohne Mailadresse, erhalten nichts: ${o.map(escHtml).join(", ")}</div>`:"");
+      +(o.length?`<div class="warnung" style="margin-top:.75rem">Ohne Mailadresse, erhalten nichts: ${o.map(escHtml).join(", ")}</div>`:"")
+      +tfKontingentHinweis(r.kontingent, e.length);
     $("tfInfoBetreff").value=r.betreff||"";
     $("tfInfoText").value=r.text||"";
     TF_INFO_BEISPIEL=r.beispiel?r.beispiel.daten:null;
@@ -2856,7 +2894,10 @@ async function tfInfoSenden(){
       const s=$("tfTerminStatus");
       s.className="status-msg ok-msg"; s.style.display="block";
       s.textContent=`${r.gesendet} Mail${r.gesendet!==1?"s":""} an die Beteiligten versendet.`
-        +((r.fehler||[]).length?` Fehler bei: ${r.fehler.join(", ")}.`:"");
+        +((r.fehler||[]).length?` Fehler bei: ${r.fehler.join(", ")}.`:"")
+        +(r.grund?` Grund: ${r.grund}`:"")
+        +(r.kontingent>=0?` Heute noch ${r.kontingent} Mails möglich.`:"");
+      if((r.fehler||[]).length) s.className="status-msg err-msg";
     } else { st.className="status-msg err-msg"; st.textContent="Fehler beim Senden."; btn.disabled=false; }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; btn.disabled=false; }
 }
@@ -3310,6 +3351,7 @@ function initBackup(){
   $("btnCacheLeeren").addEventListener("click", cacheLeeren);
   $("btnMessungCache").addEventListener("click", ()=>messungStarten(true));
   $("axDetails").addEventListener("toggle", ()=>{ if($("axDetails").open) axLaden(); });
+  $("mvDetails").addEventListener("toggle", ()=>{ if($("mvDetails").open) mvLaden(); });
   $("btnMessungOhne").addEventListener("click", ()=>messungStarten(false));
   $("grDetails").addEventListener("toggle", ()=>{
     if($("grDetails").open) grLadeGrundlagen();
@@ -3628,7 +3670,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.58";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.59";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -3997,7 +4039,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.58", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.59", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -4730,13 +4772,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.58`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.59`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.58";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.59";
 
 async function soApi(payload){
   try{ return await fwAufruf(SO_EXEC_URL, payload, {seite:"Admin SoSi"}); }
