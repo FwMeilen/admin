@@ -471,8 +471,8 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Empfänger &amp; Intervall</summary>
           <div style="margin-top:0.75rem">
           <p class="hinw" style="margin-bottom:1rem">Alle Fahrtraining-Bestätigungen werden automatisch im Drive archiviert. Zusätzlich können sie in einem festen Intervall als ZIP per Mail verschickt werden.</p>
-          <label for="ftArchivEmpf">Empfänger — mehrere mit Komma trennen</label>
-          <input id="ftArchivEmpf" type="text" placeholder="z. B. kdt@example.ch, ausbildung@example.ch">
+          <label for="ftArchivEmpf">Empfänger — Kürzel oder Adressen, mehrere mit Komma trennen</label>
+          <input id="ftArchivEmpf" type="text" placeholder="z. B. TOM, ausbildung@example.ch">
           <label for="ftArchivIntervall">Versand-Intervall</label>
           <select id="ftArchivIntervall" style="max-width:260px">
             <option value="woche">Wöchentlich</option>
@@ -892,8 +892,8 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
               </div>
               <label for="svFahrten" style="margin-top:0.75rem">Nötige Fahrtrainings als Fahrer</label>
               <input id="svFahrten" type="number" min="1" max="50" step="1" style="max-width:120px">
-              <label for="svCc" style="margin-top:0.75rem">CC-Empfänger (optional, mehrere mit Komma)</label>
-              <input id="svCc" type="text" placeholder="z. B. mwd@feuerwehrmeilen.ch">
+              <label for="svCc" style="margin-top:0.75rem">CC-Empfänger (optional, Kürzel oder Adressen, mehrere mit Komma)</label>
+              <input id="svCc" type="text" placeholder="z. B. LOL, mwd@feuerwehrmeilen.ch">
               <div class="hinw" style="margin-top:8px">
                 Die Mail geht immer an die betroffene Person. Wer bereits die SoSi-Prüfung
                 bestanden hat, erhält keine Mails mehr. Jede Mail wird pro Person nur einmal versendet.
@@ -1804,7 +1804,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.70</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.71</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand CLv1.69) ──
@@ -2432,7 +2432,7 @@ function initGab(){
   if(darf("gab.resultate")) gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.70";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.71";
 
 let GAB_NT_ID=null;
 
@@ -3071,7 +3071,8 @@ async function tlfcErfassen(senden){
   $("btnTlfcSenden").disabled=senden;
   try{
     const p=Object.assign({type:"admin_tlfc_erfassen",password:PASS},tlfcDaten());
-    if(senden) Object.assign(p,{senden:true,betreff:$("tlfcBetreff").value,text:$("tlfcText").value,anfrageId:Date.now()+"-"+Math.random()});
+    if(senden) Object.assign(p,{senden:true,betreff:$("tlfcBetreff").value,text:$("tlfcText").value,
+      an:empfTokens($("tlfcAn").value),cc:empfTokens($("tlfcCc").value),anfrageId:Date.now()+"-"+Math.random()});
     const r=await ftCallAdmin(p);
     if(!r.ok){ st.className="status-msg err-msg"; st.textContent=tlfcFehler(r); $("btnTlfcSenden").disabled=false; return; }
     if(!senden){
@@ -3081,13 +3082,14 @@ async function tlfcErfassen(senden){
         <b>${escHtml(r.name)}: ${r.bestanden?"bestanden":"nicht bestanden"}</b> · ${r.total} / 100 ·
         ${r.bestanden?"gültig bis "+escHtml(r.gueltigBis):"Fahrberechtigung TLF entzogen, neuer Check bis "+escHtml(r.nachpruefungBis)}
         ${r.grund?`<div class="hinw" style="margin-top:4px">${escHtml(r.grund)}</div>`:""}</div>
-        <div style="font-size:13px;line-height:1.8"><div>An: ${(r.an||[]).map(person).join(", ")||'<span style="color:var(--red)">keine Mailadresse – es geht keine Mail raus, PDF wird trotzdem erstellt</span>'}</div>
-        <div>Kopie: ${(r.cc||[]).map(person).join(", ")||'<span class="hinw">keine</span>'}</div></div>`
-        +((r.warnungen||[]).length?`<div class="warnung" style="margin-top:.75rem;border-color:var(--red)">${r.warnungen.map(escHtml).join("<br>")}</div>`:"")
+        ${empfFeld("tlfcAn","An",r.vorgabeAn||(r.an||[]).map(empfWert))}
+        ${empfFeld("tlfcCc","Kopie",r.vorgabeCc||(r.cc||[]).map(empfWert),"Kürzel oder Adressen. Ohne Empfänger wird das PDF trotzdem erstellt.")}`
+        +empfWarnungen(r.warnungen)
         +tfKontingentHinweis(r.kontingent,1);
       $("tlfcBetreff").value=r.betreff; $("tlfcText").value=r.text; tlfcVorschauText();
       $("tlfcSendStatus").style.display="none"; $("btnTlfcSenden").disabled=false;
       $("tlfcVorschauKarte").style.display="block"; $("tlfcVorschauKarte").scrollIntoView({behavior:"smooth"});
+      await tfMitgliederSicherstellen(); empfPruefen("tlfcAn"); empfPruefen("tlfcCc");
       return;
     }
     if(r.pdfBase64) tlfcPdfLaden(r.pdfBase64,r.pdfName);
@@ -3498,8 +3500,8 @@ async function tfMitgliederSicherstellen(){
   if(TF_MITGLIEDER) return;
   try{
     const r=await ftCallAdmin({type:"admin_mitglieder",password:PASS});
-    TF_MITGLIEDER={};
-    (r.mitglieder||[]).forEach(m=>{ TF_MITGLIEDER[m.kuerzel]=m.name; });
+    TF_MITGLIEDER={}; TF_MIT_MAIL={};
+    (r.mitglieder||[]).forEach(m=>{ TF_MITGLIEDER[m.kuerzel]=m.name; TF_MIT_MAIL[m.kuerzel]=m.email!==false; });
   }catch(e){ TF_MITGLIEDER=null; }
 }
 
@@ -4169,23 +4171,16 @@ async function tfMailVorschau(art){
       ? "Geht an alle vorgesehenen Personen."
       : "Geht nur an Personen, die sich noch bei keinem Termin eingetragen haben."}
       ${r.anzahlTermine===0?'<br><b style="color:var(--red)">Achtung: Es sind noch keine Termine erfasst.</b>':""}</p>`;
-    if(e.length===0){
-      h+='<div class="empty">Keine Empfänger.</div>';
-    } else {
-      h+=`<div style="font-weight:700;font-size:13px;margin-bottom:6px">${e.length} Empfänger</div>
-        <div style="max-height:260px;overflow-y:auto;border:1px solid var(--gray-mid)">${e.map(p=>
-          `<div style="padding:6px 10px;border-bottom:1px solid var(--gray-mid);font-size:13px">
-            <b>${escHtml(p.kuerzel)}</b> ${escHtml(p.name)} <span class="hinw">· ${escHtml(p.rolle)}</span></div>`).join("")}</div>`;
-    }
+    h+=empfFeld("tfMailEmpf","Empfänger – je eine persönliche Mail",e.map(empfWert),
+      "Kürzel oder Adressen, mit Komma getrennt. Du kannst Personen streichen oder ergänzen.");
     if(o.length){
       h+=`<div class="warnung" style="margin-top:.75rem">Ohne Mailadresse, erhalten nichts: ${o.map(p=>escHtml(p.kuerzel)).join(", ")}</div>`;
     }
     h+=tfKontingentHinweis(r.kontingent, e.length);
     $("tfMailInhalt").innerHTML=h;
     $("tfMailDlgStatus").style.display="none";
-    $("btnTfMailSenden").disabled=e.length===0;
-    $("btnTfMailSenden").textContent=`${e.length} Mail${e.length!==1?"s":""} senden`;
     $("tfMailBg").style.display="flex";
+    await tfMitgliederSicherstellen(); empfPruefen("tfMailEmpf");
   }catch(err){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+err.message; }
 }
 
@@ -4195,7 +4190,8 @@ async function tfMailSenden(){
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gesendet…";
   try{
     const r=await ftCallAdmin({type:"admin_tf_mail_senden",password:PASS,
-      ausbildung:TF_AKTUELL.id,art:TF_MAIL_ART,senden:true,anfrageId:Date.now()+"-"+Math.random()});
+      ausbildung:TF_AKTUELL.id,art:TF_MAIL_ART,senden:true,empfaenger:empfTokens($("tfMailEmpf").value),
+      anfrageId:Date.now()+"-"+Math.random()});
     if(r.ok){
       $("tfMailBg").style.display="none";
       const s=$("tfMailStatus");
@@ -4208,6 +4204,36 @@ async function tfMailSenden(){
     } else { st.className="status-msg err-msg"; st.textContent="Fehler beim Senden."; btn.disabled=false; }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; btn.disabled=false; }
 }
+
+/* ── Empfängerfelder (seit CLv1.71): Kürzel aus der Mitgliederliste oder freie Adressen ── */
+let TF_MIT_MAIL={};
+function empfTokens(v){ return String(v||"").split(/[\s,;]+/).map(x=>x.trim()).filter(x=>x); }
+function empfWert(e){ return e.kuerzel||e.email||""; }
+function empfFeld(id,label,werte,hinweis){
+  return `<label for="${id}" style="margin-top:.5rem">${label}</label>
+    <input id="${id}" type="text" value="${escHtml((werte||[]).filter(x=>x).join(", "))}" oninput="empfPruefen('${id}')">
+    <div id="${id}-info" style="margin-top:4px"></div>${hinweis?`<div class="hinw" style="margin-top:2px">${hinweis}</div>`:""}`;
+}
+function empfPruefen(id){
+  const el=$(id+"-info"); if(!el) return;
+  const t=empfTokens($(id).value);
+  const chip=(inhalt,schlecht)=>`<span style="display:inline-block;padding:2px 7px;margin:2px 4px 2px 0;font-size:11px;background:${schlecht?"#fdecea":"var(--bg2)"};color:${schlecht?"var(--red)":"inherit"}">${inhalt}</span>`;
+  el.innerHTML=t.length?t.map(x=>{
+    if(x.includes("@")) return chip(`${escHtml(x)} · Adresse`,!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x));
+    const k=x.toUpperCase();
+    if(!TF_MITGLIEDER) return chip(`<b>${escHtml(k)}</b>`,false);
+    if(!TF_MITGLIEDER[k]) return chip(`<b>${escHtml(k)}</b> · unbekannt`,true);
+    return chip(`<b>${escHtml(k)}</b> · ${escHtml(TF_MITGLIEDER[k])}${TF_MIT_MAIL[k]===false?" · keine Mailadresse":""}`,TF_MIT_MAIL[k]===false);
+  }).join(""):'<span class="hinw" style="color:var(--red)">Niemand eingetragen.</span>';
+  const knopf={tfMailEmpf:"btnTfMailSenden",tfInfoEmpfFeld:"btnTfInfoSenden"}[id];
+  // Nur gültige Empfänger zählen (bekanntes Kürzel mit Mailadresse oder gültige Adresse)
+  const gueltig=t.filter(x=>x.includes("@")?/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x)
+    :(!TF_MITGLIEDER||(TF_MITGLIEDER[x.toUpperCase()]&&TF_MIT_MAIL[x.toUpperCase()]!==false))).length;
+  if(knopf){ $(knopf).disabled=gueltig===0; $(knopf).textContent=`${gueltig} Mail${gueltig!==1?"s":""} senden`; }
+  if(id==="tfLodurAn"||id==="tfLodurCc"){ $("btnTfLodurSenden").disabled=empfTokens($("tfLodurAn").value).length===0; tfLodurVorschau(); }
+  if(id==="tlfcAn"||id==="tlfcCc") tlfcVorschauText();
+}
+function empfWarnungen(w){ return (w&&w.length)?`<div class="warnung" style="margin-top:.75rem;border-color:var(--red)">${w.map(escHtml).join("<br>")}</div>`:""; }
 
 function tfKontingentHinweis(k,anzahl){
   if(k===undefined||k===null||k<0) return "";
@@ -4236,7 +4262,9 @@ function tfLodurFuelle(v,d){
 }
 function tfLodurVorschau(){
   const r=TF_LODUR_DATEN; if(!r) return;
-  const d=r.daten||{};
+  const d=Object.assign({},r.daten||{});
+  const erster=$("tfLodurAn")?empfTokens($("tfLodurAn").value)[0]:"";
+  if(erster){ const k=erster.toUpperCase(); d.vorname=erster.includes("@")?"":((TF_MITGLIEDER&&TF_MITGLIEDER[k])||d.vorname||"").split(" ")[0]; }
   $("tfLodurPvBetreff").textContent=tfLodurFuelle($("tfLodurBetreff").value,d).replace(/\{termine\}/g,"");
   const marke="\u0001TERMINE\u0001";
   const text=tfLodurFuelle($("tfLodurText").value,d).replace(/\{termine\}/g,marke);
@@ -4266,19 +4294,17 @@ async function tfLodurOeffnen(){
       teile.push(aend.length?`seither: ${aend.join(", ")} (in der Mail kursiv bzw. durchgestrichen)`:"seither unverändert");
     }
     $("tfLodurKopf").innerHTML=teile.join(" · ")+".";
-    $("tfLodurEmpf").innerHTML=`<div style="font-size:13px;line-height:1.8">
-        <div>An: ${(r.an||[]).map(person).join(", ")||'<span style="color:var(--red)">niemand</span>'}</div>
-        <div>Kopie: ${(r.cc||[]).map(person).join(", ")||'<span class="hinw">keine</span>'}</div></div>`
-      +((r.warnungen||[]).length?`<div class="warnung" style="margin-top:.75rem;border-color:var(--red)">${r.warnungen.map(escHtml).join("<br>")}</div>`:"")
+    $("tfLodurEmpf").innerHTML=empfFeld("tfLodurAn","An",r.vorgabeAn||(r.an||[]).map(empfWert))
+      +empfFeld("tfLodurCc","Kopie",r.vorgabeCc||(r.cc||[]).map(empfWert),"Kürzel oder Adressen, mit Komma getrennt.")
+      +empfWarnungen(r.warnungen)
       +tfKontingentHinweis(r.kontingent, 1);
     $("tfLodurBetreff").value=r.betreff||"";
     $("tfLodurText").value=r.text||"";
     tfLodurVorschau();
     $("tfLodurStatus").style.display="none";
-    const sendbar=(r.an||[]).length>0&&(r.an||[]).every(p=>p.email);
-    $("btnTfLodurSenden").disabled=!sendbar;
     $("btnTfLodurSenden").textContent="Senden";
     $("tfLodurBg").style.display="flex";
+    await tfMitgliederSicherstellen(); empfPruefen("tfLodurAn"); empfPruefen("tfLodurCc");
   }catch(err){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+err.message; }
 }
 async function tfLodurSenden(){
@@ -4287,7 +4313,8 @@ async function tfLodurSenden(){
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gesendet…";
   try{
     const r=await ftCallAdmin({type:"admin_tf_lodur",password:PASS,ausbildung:TF_AKTUELL.id,senden:true,
-      betreff:$("tfLodurBetreff").value,text:$("tfLodurText").value,anfrageId:Date.now()+"-"+Math.random()});
+      betreff:$("tfLodurBetreff").value,text:$("tfLodurText").value,
+      an:empfTokens($("tfLodurAn").value),cc:empfTokens($("tfLodurCc").value),anfrageId:Date.now()+"-"+Math.random()});
     if(r.ok&&r.gesendet){
       $("tfLodurBg").style.display="none";
       TF_LODUR=r.status||TF_LODUR;
@@ -4297,7 +4324,7 @@ async function tfLodurSenden(){
       s.textContent="Mail an die Lodur-Verantwortlichen versendet.";
     } else {
       st.className="status-msg err-msg";
-      st.textContent=r.error==="KEIN_EMPFAENGER"?"Empfänger ohne Mailadresse – bitte unter Einstellungen prüfen."
+      st.textContent=r.error==="KEIN_EMPFAENGER"?"Mindestens ein Empfänger hat keine gültige Mailadresse – bitte «An» prüfen."
         :"Fehler beim Senden"+(r.detail?": "+r.detail:".");
       btn.disabled=false;
     }
@@ -4367,10 +4394,8 @@ async function tfInfoOeffnen(){
       +(r.benoetigt?` von ${r.benoetigt} benötigten`:"")
       +(r.benoetigt&&!r.abgeschlossen?' – <b style="color:var(--orange)">noch nicht alle festgelegt</b>':"")
       +`. Jede Person erhält eine Mail mit ihren eigenen Terminen und ihrer Rolle.`;
-    $("tfInfoEmpf").innerHTML=`<div style="font-weight:700;font-size:13px;margin-bottom:6px">${e.length} Empfänger</div>
-      <div style="max-height:170px;overflow-y:auto;border:1px solid var(--gray-mid)">${e.map(p=>
-        `<div style="padding:5px 10px;border-bottom:1px solid var(--gray-mid);font-size:13px">
-          <b>${escHtml(p.kuerzel)}</b> ${escHtml(p.name)} <span class="hinw">· ${p.anzahl} Termin${p.anzahl!==1?"e":""}</span></div>`).join("")}</div>`
+    $("tfInfoEmpf").innerHTML=empfFeld("tfInfoEmpfFeld","Empfänger – je eine persönliche Mail",e.map(empfWert),
+        "Kürzel oder Adressen. Wer nicht beteiligt ist, erhält alle festgelegten Termine.")
       +(o.length?`<div class="warnung" style="margin-top:.75rem">Ohne Mailadresse, erhalten nichts: ${o.map(escHtml).join(", ")}</div>`:"")
       +tfKontingentHinweis(r.kontingent, e.length);
     $("tfInfoBetreff").value=r.betreff||"";
@@ -4379,9 +4404,8 @@ async function tfInfoOeffnen(){
     $("tfInfoPvTitel").textContent=r.beispiel?`Vorschau für ${r.beispiel.kuerzel}`:"Vorschau";
     tfInfoVorschau();
     $("tfInfoStatus").style.display="none";
-    $("btnTfInfoSenden").disabled=e.length===0;
-    $("btnTfInfoSenden").textContent=`${e.length} Mail${e.length!==1?"s":""} senden`;
     $("tfInfoBg").style.display="flex";
+    await tfMitgliederSicherstellen(); empfPruefen("tfInfoEmpfFeld");
   }catch(err){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+err.message; }
 }
 
@@ -4391,7 +4415,7 @@ async function tfInfoSenden(){
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gesendet…";
   try{
     const r=await ftCallAdmin({type:"admin_tf_info_senden",password:PASS,ausbildung:TF_AKTUELL.id,
-      senden:true,betreff:$("tfInfoBetreff").value,text:$("tfInfoText").value,
+      senden:true,betreff:$("tfInfoBetreff").value,text:$("tfInfoText").value,empfaenger:empfTokens($("tfInfoEmpfFeld").value),
       anfrageId:Date.now()+"-"+Math.random()});
     if(r.ok){
       $("tfInfoBg").style.display="none";
@@ -4721,7 +4745,7 @@ function grBaueHtml(ft,so){
 
   // Quellcode
   html+=grAbschnitt("Quellcode (GitHub, Organisation FwMeilen)",
-    grZeile("Fahrtraining + Dashboard + Rückmeldungen","FwMeilen/Uebungsfahrten","https://github.com/FwMeilen/Uebungsfahrten")
+    grZeile("Fahrtraining + Dashboard + Rückmeldungen","FwMeilen/uebungsfahrten","https://github.com/FwMeilen/uebungsfahrten")
     +grZeile("SoSi-Prüfungstool","FwMeilen/sosi","https://github.com/FwMeilen/sosi")
     +grZeile("Admin-Panel","FwMeilen/admin","https://github.com/FwMeilen/admin")
     +grZeile("Grundausbildung","FwMeilen/grundausbildung","https://github.com/FwMeilen/grundausbildung")
@@ -5197,7 +5221,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.70";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.71";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -5566,7 +5590,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.70", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.71", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -5648,13 +5672,15 @@ async function ftSpeichereArchiv(){
 }
 
 async function ftArchivJetztSenden(){
-  if(!confirm("ZIP mit allen PDFs seit dem letzten Versand jetzt verschicken?")) return;
+  const empf=prompt("ZIP mit allen PDFs seit dem letzten Versand jetzt verschicken an\n(Kürzel oder Adressen, mit Komma getrennt – gilt nur für diesen Versand):",$("ftArchivEmpf").value||"");
+  if(empf===null) return;
+  if(!empfTokens(empf).length){ alert("Keine Empfänger angegeben."); return; }
   const st=$("ftArchivStatus");
   const btn=$("btnFtArchivJetzt");
   btn.disabled=true;
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gesendet…";
   try{
-    const res=await ftCallAdmin({type:"admin_archiv_jetzt_senden",password:PASS});
+    const res=await ftCallAdmin({type:"admin_archiv_jetzt_senden",password:PASS,empfaenger:empfTokens(empf)});
     if(res.ok){
       st.className="status-msg ok-msg";
       st.textContent=`ZIP mit ${res.anzahl} PDF${res.anzahl!==1?"s":""} versendet.`;
@@ -6299,13 +6325,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.70`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.71`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.70";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.71";
 
 async function soApi(payload){
   try{
