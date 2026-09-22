@@ -61,6 +61,8 @@ select{appearance:none;-webkit-appearance:none;padding-right:28px;background-ima
 
 /* Zeilen-Listen (Fahrer, Fragen, Hilfe) */
 .frage-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--gray-mid);font-size:13px;}
+.start-block{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gray);margin:1.25rem 0 .5rem;}
+.tlfc-status{display:inline-block;padding:2px 8px;font-size:11px;font-weight:700;border-radius:2px;white-space:nowrap;}
 .start-raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:1rem;}
 .start-kachel{background:var(--bg);border:1px solid var(--gray-mid);border-top:3px solid var(--red);padding:1.1rem 1.25rem;display:flex;flex-direction:column;gap:8px;}
 .start-titel{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
@@ -234,7 +236,9 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         <option value="so">SoSi-Prüfung</option>
         <option value="res">Fahrzeugreservationen</option>
         <option value="gab">B Grundausbildung</option>
+        <option value="tlfc">TLF-Check</option>
         <option value="gatlf">TLF Grundausbildung</option>
+        <option value="gaulf">ULF Grundausbildung</option>
         <option value="tf">Terminfindung</option>
         <option value="backup">Admin</option>
         <option value="benutzer">Benutzerverwaltung</option>
@@ -250,8 +254,9 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         <p class="hinw">Alle Werkzeuge auf einen Blick. Die Links öffnen die Seiten, wie sie die Angehörigen der Feuerwehr sehen – «Verwalten» führt zum jeweiligen Bereich hier im Panel.</p>
       </div>
 
+      <div class="start-gruppe">
+      <div class="start-block">Fahren &amp; Fahrzeuge</div>
       <div class="start-raster">
-
         <div class="start-kachel">
           <div class="start-titel">Fahrtraining</div>
           <a class="start-link" href="https://fahrtraining.feuerwehrmeilen.ch" target="_blank" rel="noopener">Fahrtraining erfassen<span>fahrtraining.feuerwehrmeilen.ch</span></a>
@@ -259,44 +264,69 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           <a class="start-link" href="https://fahrtraining.feuerwehrmeilen.ch/rueckmeldungen.html" target="_blank" rel="noopener">Zufahrts-Rückmeldungen<span>…/rueckmeldungen.html</span></a>
           <button class="btn btn-klein start-verwalten" data-ziel="ft">Verwalten →</button>
         </div>
-
         <div class="start-kachel">
           <div class="start-titel">Fahrzeugreservationen</div>
           <a class="start-link" href="https://fahrtraining.feuerwehrmeilen.ch" target="_blank" rel="noopener">Fahrzeug reservieren<span>fahrtraining.feuerwehrmeilen.ch → «Fahrzeug reservieren»</span></a>
           <button class="btn btn-klein start-verwalten" data-ziel="res">Verwalten →</button>
         </div>
-
+      </div>
+      </div>
+      <div class="start-gruppe">
+      <div class="start-block">Prüfungen</div>
+      <div class="start-raster">
         <div class="start-kachel">
           <div class="start-titel">SoSi-Prüfung</div>
           <a class="start-link" href="https://sosi.feuerwehrmeilen.ch" target="_blank" rel="noopener">Prüfung ablegen<span>sosi.feuerwehrmeilen.ch</span></a>
           <button class="btn btn-klein start-verwalten" data-ziel="so">Verwalten →</button>
         </div>
-
+        <div class="start-kachel">
+          <div class="start-titel">TLF-Check</div>
+          <div class="start-link start-leer">Wiederholungsprüfung TLF-Maschinisten alle 3 Jahre – Erfassung durch die Experten hier im Panel</div>
+          <button class="btn btn-klein start-verwalten" data-ziel="tlfc">Verwalten →</button>
+        </div>
+      </div>
+      </div>
+      <div class="start-gruppe">
+      <div class="start-block">Ausbildung</div>
+      <div class="start-raster">
+        <div class="start-kachel">
+          <div class="start-titel">Terminfindung</div>
+          <a class="start-link" href="https://terminfindung.feuerwehrmeilen.ch" target="_blank" rel="noopener">Für Ausbildungen eintragen<span>terminfindung.feuerwehrmeilen.ch</span></a>
+          <button class="btn btn-klein start-verwalten" data-ziel="tf">Verwalten →</button>
+        </div>
         <div class="start-kachel">
           <div class="start-titel">Grundausbildung B</div>
           <a class="start-link" href="https://grundausbildung.feuerwehrmeilen.ch/BGrund/" target="_blank" rel="noopener">Ausbildungsinhalte<span>grundausbildung.feuerwehrmeilen.ch/BGrund</span></a>
           <a class="start-link" href="https://grundausbildung.feuerwehrmeilen.ch/BTest/" target="_blank" rel="noopener">Schlusstest<span>grundausbildung.feuerwehrmeilen.ch/BTest</span></a>
           <button class="btn btn-klein start-verwalten" data-ziel="gab">Verwalten →</button>
         </div>
-
         <div class="start-kachel">
           <div class="start-titel">Grundausbildung TLF</div>
-          <div class="start-link start-leer">In Vorbereitung</div>
+          <a class="start-link" href="https://grundausbildung.feuerwehrmeilen.ch/TLFGrund/" target="_blank" rel="noopener">Ausbildungsinhalte<span>grundausbildung.feuerwehrmeilen.ch/TLFGrund</span></a>
+          <a class="start-link" href="https://grundausbildung.feuerwehrmeilen.ch/TLF_Bedienungsanleitung.pdf" target="_blank" rel="noopener">Bedienungsanleitung (PDF)<span>…/TLF_Bedienungsanleitung.pdf</span></a>
           <button class="btn btn-klein start-verwalten" data-ziel="gatlf">Verwalten →</button>
         </div>
-
         <div class="start-kachel">
-          <div class="start-titel">Terminfindung</div>
-          <a class="start-link" href="https://terminfindung.feuerwehrmeilen.ch" target="_blank" rel="noopener">Für Ausbildungen eintragen<span>terminfindung.feuerwehrmeilen.ch</span></a>
-          <button class="btn btn-klein start-verwalten" data-ziel="tf">Verwalten →</button>
+          <div class="start-titel">Grundausbildung ULF</div>
+          <a class="start-link" href="https://grundausbildung.feuerwehrmeilen.ch/ULFGrund/" target="_blank" rel="noopener">Ausbildungsinhalte<span>grundausbildung.feuerwehrmeilen.ch/ULFGrund</span></a>
+          <button class="btn btn-klein start-verwalten" data-ziel="gaulf">Verwalten →</button>
         </div>
-
+      </div>
+      </div>
+      <div class="start-gruppe">
+      <div class="start-block">Verwaltung</div>
+      <div class="start-raster">
         <div class="start-kachel">
           <div class="start-titel">System</div>
           <div class="start-link start-leer">Systemübersicht, Backup, Zwischenspeicher, Ladezeiten</div>
           <button class="btn btn-klein start-verwalten" data-ziel="backup">Verwalten →</button>
         </div>
-
+        <div class="start-kachel">
+          <div class="start-titel">Benutzerverwaltung</div>
+          <div class="start-link start-leer">Zugänge, Rollen und Rechte</div>
+          <button class="btn btn-klein start-verwalten" data-ziel="benutzer">Verwalten →</button>
+        </div>
+      </div>
       </div>
     </div>
 
@@ -954,6 +984,155 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         <p class="hinw" style="margin-bottom:1rem">«Anleitung-Seite» ist die gedruckte Seitenzahl der Bedienungsanleitung –
           auf der Seite erscheint dann ein Link, der das PDF direkt dort öffnet.</p>
         <div id="gaEdTLF"><div class="loading">Lade …</div></div>
+      </div>
+    </div>
+
+    <div id="toolGaulf" style="display:none">
+      <div class="card">
+        <h2>ULF Grundausbildung</h2>
+        <div class="entry-actions" style="justify-content:flex-start">
+          <a class="btn btn-klein" href="https://grundausbildung.feuerwehrmeilen.ch/ULFGrund/" target="_blank" rel="noopener" style="text-decoration:none">Ausbildungsinhalte ansehen</a>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Ausbildungsinhalte ULF</h2>
+        <div id="gaEdULF"><div class="loading">Lade …</div></div>
+      </div>
+    </div>
+
+    <!-- ═══════════ TLF-CHECK ═══════════ -->
+    <div id="toolTlfc" style="display:none">
+      <div class="tabs">
+        <button class="tab aktiv" data-tlfctab="uebersicht">Übersicht</button>
+        <button class="tab" data-tlfctab="erfassen">Erfassen</button>
+        <button class="tab" data-tlfctab="nachtragen">Nachtragen</button>
+        <button class="tab" data-tlfctab="liste">Prüfungsliste</button>
+        <button class="tab" data-tlfctab="erinnerung">Erinnerungsmails</button>
+        <button class="tab" data-tlfctab="einstellungen">Einstellungen</button>
+      </div>
+
+      <div id="tlfcTabUebersicht">
+        <div class="card">
+          <h2>TLF-Maschinisten</h2>
+          <p class="hinw" style="margin-bottom:1rem">Status aus dem jeweils letzten Check. Wer noch keinen Check hat, erscheint erst nach dem ersten Eintrag (Erfassen oder Nachtragen).</p>
+          <div id="tlfcZahlen" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem"></div>
+          <input id="tlfcSuche" type="text" placeholder="Suche nach Kürzel oder Name" style="max-width:320px;margin-bottom:.75rem" oninput="tlfcUebersichtZeigen()">
+          <div id="tlfcUebersicht"><div class="loading">Lade …</div></div>
+        </div>
+      </div>
+
+      <div id="tlfcTabErfassen" style="display:none">
+        <div class="card">
+          <h2>TLF-Check erfassen</h2>
+          <p class="hinw" style="margin-bottom:1rem">Die Experten bewerten auf dem Papierbogen und tragen hier die Punkte je Block ein.
+            Bestanden: mindestens <b id="tlfcGrenze">80</b> von 100 Punkten und kein No-Go.</p>
+          <div class="entry-row2">
+            <div><label for="tlfcKuerzel">Maschinist (Kürzel)</label><input id="tlfcKuerzel" type="text" style="text-transform:uppercase" oninput="tfListePruefen('tlfcKuerzel','tlfcKuerzel-info')"><div id="tlfcKuerzel-info" style="margin-top:4px"></div></div>
+            <div><label for="tlfcDatum">Datum</label><input id="tlfcDatum" type="date"></div>
+          </div>
+          <div class="entry-row2" style="margin-top:.5rem">
+            <div><label for="tlfcExp1">Experte 1 (Kürzel)</label><input id="tlfcExp1" type="text" style="text-transform:uppercase" oninput="tfListePruefen('tlfcExp1','tlfcExp1-info')"><div id="tlfcExp1-info" style="margin-top:4px"></div></div>
+            <div><label for="tlfcExp2">Experte 2 (Kürzel)</label><input id="tlfcExp2" type="text" style="text-transform:uppercase" oninput="tfListePruefen('tlfcExp2','tlfcExp2-info')"><div id="tlfcExp2-info" style="margin-top:4px"></div></div>
+          </div>
+          <div class="entry-row2" style="margin-top:.5rem;align-items:end">
+            <div><label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:13px"><input id="tlfcFa" type="checkbox" style="width:auto"> Führerausweis kontrolliert</label></div>
+            <div><label for="tlfcFaBem">Bemerkung Führerausweis</label><input id="tlfcFaBem" type="text" placeholder="z.B. Einschränkungen"></div>
+          </div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:1.25rem 0 .5rem">Selbsteinschätzung (1–10)</div>
+          <div id="tlfcSelbst" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px"></div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:1.25rem 0 .5rem">Punkte je Block</div>
+          <div id="tlfcBloecke"></div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:1.25rem 0 .5rem">No-Go (sofort nicht bestanden)</div>
+          <div id="tlfcNogo"></div>
+          <label for="tlfcEmpf" style="margin-top:1rem">Übungs-/Trainings-Empfehlung</label>
+          <textarea id="tlfcEmpf" rows="3"></textarea>
+          <div id="tlfcErgebnis" style="margin-top:1rem"></div>
+          <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+            <button class="btn btn-red" id="btnTlfcVorschau">Vorschau &amp; senden</button>
+            <button class="btn" id="btnTlfcLeeren">Formular leeren</button>
+          </div>
+          <div class="status-msg" id="tlfcStatus"></div>
+        </div>
+        <div class="card" id="tlfcVorschauKarte" style="display:none">
+          <h2>Bestätigung prüfen</h2>
+          <div id="tlfcVorschauKopf"></div>
+          <label for="tlfcBetreff" style="margin-top:1rem">Betreff</label><input id="tlfcBetreff" type="text">
+          <label for="tlfcText" style="margin-top:.5rem">Text</label><textarea id="tlfcText" rows="10"></textarea>
+          <div class="hinw" style="margin-top:6px">Änderungen gelten nur für diesen Versand (Vorlagen unter Einstellungen). Das PDF geht als Anhang mit.</div>
+          <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem;font-size:13px;line-height:1.6">
+            <div style="font-weight:700;margin-bottom:6px">Betreff: <span id="tlfcPvBetreff" style="font-weight:400"></span></div><div id="tlfcPvText"></div></div>
+          <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+            <button class="btn btn-red" id="btnTlfcSenden">Speichern, PDF erstellen und senden</button>
+            <button class="btn" onclick="$('tlfcVorschauKarte').style.display='none'">Zurück</button>
+          </div>
+          <div class="status-msg" id="tlfcSendStatus"></div>
+        </div>
+      </div>
+
+      <div id="tlfcTabNachtragen" style="display:none">
+        <div class="card">
+          <h2>Bisherigen Check nachtragen</h2>
+          <p class="hinw" style="margin-bottom:1rem">Für Checks, die auf Papier gemacht wurden. Es wird keine Mail und kein PDF erstellt – der Eintrag zählt aber für die Übersicht und die Fristen.</p>
+          <div class="entry-row2">
+            <div><label for="tlfcNKuerzel">Maschinist (Kürzel)</label><input id="tlfcNKuerzel" type="text" style="text-transform:uppercase" oninput="tfListePruefen('tlfcNKuerzel','tlfcNKuerzel-info')"><div id="tlfcNKuerzel-info" style="margin-top:4px"></div></div>
+            <div><label for="tlfcNDatum">Datum des Checks</label><input id="tlfcNDatum" type="date"></div>
+          </div>
+          <div class="entry-row2" style="margin-top:.5rem">
+            <div><label for="tlfcNTotal">Punkte total (von 100)</label><input id="tlfcNTotal" type="number" min="0" max="100" step="0.5"></div>
+            <div><label for="tlfcNExp">Experten (Kürzel, optional)</label><input id="tlfcNExp" type="text" style="text-transform:uppercase"></div>
+          </div>
+          <label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:13px;margin-top:.75rem"><input id="tlfcNNogo" type="checkbox" style="width:auto"> Es gab ein No-Go (→ nicht bestanden)</label>
+          <label for="tlfcNBem" style="margin-top:.75rem">Bemerkung</label><input id="tlfcNBem" type="text">
+          <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem"><button class="btn btn-red" id="btnTlfcNachtragen">Nachtragen</button></div>
+          <div class="status-msg" id="tlfcNStatus"></div>
+        </div>
+      </div>
+
+      <div id="tlfcTabListe" style="display:none">
+        <div class="card">
+          <h2>Prüfungsliste</h2>
+          <div id="tlfcListe"><div class="loading">Lade …</div></div>
+        </div>
+      </div>
+
+      <div id="tlfcTabErinnerung" style="display:none">
+        <div class="card">
+          <h2>Erinnerungsmails</h2>
+          <p class="hinw">Folgt: automatische Erinnerung vor Ablauf des TLF-Checks, analog zur SoSi-Prüfung.</p>
+        </div>
+      </div>
+
+      <div id="tlfcTabEinstellungen" style="display:none">
+        <div class="card">
+          <h2>Regeln</h2>
+          <div class="entry-row2">
+            <div><label for="tlfcCGueltig">Gültigkeit (Jahre)</label><input id="tlfcCGueltig" type="number" min="1" max="10"></div>
+            <div><label for="tlfcCBestehen">Bestehensgrenze (Punkte von 100)</label><input id="tlfcCBestehen" type="number" min="0" max="100"></div>
+          </div>
+          <div class="entry-row2" style="margin-top:.5rem">
+            <div><label for="tlfcCNach">Neuer Check nach «nicht bestanden» innert (Monate)</label><input id="tlfcCNach" type="number" min="1" max="24"></div>
+            <div><label for="tlfcCWarn">«Läuft bald ab» ab (Tage vor Ablauf)</label><input id="tlfcCWarn" type="number" min="1" max="365"></div>
+          </div>
+          <label for="tlfcCKdo" style="margin-top:.5rem">Kommando – Kopie für den Lodur-Eintrag (Kürzel)</label>
+          <input id="tlfcCKdo" type="text" style="max-width:260px;text-transform:uppercase" oninput="tfListePruefen('tlfcCKdo','tlfcCKdo-info')"><div id="tlfcCKdo-info" style="margin-top:4px"></div>
+        </div>
+        <div class="card">
+          <h2>Mail «bestanden»</h2>
+          <label for="tlfcCBetrB">Betreff</label><input id="tlfcCBetrB" type="text">
+          <label for="tlfcCTextB" style="margin-top:.5rem">Text</label><textarea id="tlfcCTextB" rows="9"></textarea>
+        </div>
+        <div class="card">
+          <h2>Mail «nicht bestanden»</h2>
+          <label for="tlfcCBetrN">Betreff</label><input id="tlfcCBetrN" type="text">
+          <label for="tlfcCTextN" style="margin-top:.5rem">Text</label><textarea id="tlfcCTextN" rows="11"></textarea>
+          <div class="hinw" style="margin-top:6px">Platzhalter: <code>{vorname}</code> <code>{name}</code> <code>{kuerzel}</code> <code>{datum}</code> <code>{total}</code>
+            <code>{gueltigBis}</code> <code>{nachpruefungBis}</code> <code>{grund}</code> <code>{empfehlung}</code> <code>{experten}</code></div>
+          <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+            <button class="btn btn-green btn-klein" id="btnTlfcCSpeichern">Speichern</button>
+            <button class="btn btn-klein" id="btnTlfcCReset">Auf Standard</button>
+          </div>
+          <div class="status-msg" id="tlfcCStatus"></div>
+        </div>
       </div>
     </div>
 
@@ -1625,7 +1804,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.68</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.69</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten ──
@@ -1765,7 +1944,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 <script>
 /* ══════════════════ GEMEINSAM ══════════════════ */
 const FT_EXEC_URL="https://script.google.com/macros/s/AKfycbwvTL3yecdyTvSV5ZPgGslm5K-3UFjW9zc4A2qn_zUk50CcSIpXEaBE1hMiaU3GnNEQ/exec";
-// SoSi läuft im gemeinsamen Script (das alte SoSi-Script ist seit CLv1.68 stillgelegt)
+// SoSi läuft im gemeinsamen Script (das alte SoSi-Script ist seit CLv1.66 stillgelegt)
 const SO_EXEC_URL=FT_EXEC_URL;
 
 let PASS="";
@@ -1796,7 +1975,7 @@ $("pass").addEventListener("keydown", e=>{ if(e.key==="Enter") login(); });
 
 /* ── Anmeldung ──
  * Kürzel + Passwort → Sitzung "SITZUNG:<schlüssel>" ersetzt das Passwort in allen
- * Aufrufen. Das Sammelpasswort gibt es seit CLv1.68 nicht mehr.
+ * Aufrufen. Das Sammelpasswort gibt es seit CLv1.66 nicht mehr.
  */
 let ICH=null;
 const SITZUNG_SPEICHER="mwd_sitzung";
@@ -1851,19 +2030,20 @@ async function panelOeffnen(p, benutzer){
     .then(r=>{ if(r&&r.ok){ SC_LETZT=r; scWarnungSetzen(r); } }).catch(()=>{});
 }
 
-/* ── Rechte (seit CLv1.68) ──
+/* ── Rechte (seit CLv1.66) ──
  * Admins sehen alles. User sehen nur Tools, Reiter und Kacheln, für die sie ein
  * Recht haben. Durchgesetzt wird serverseitig – das Ausblenden ist nur Komfort.
  */
-const REITER_ATTR={ft:"fttab",so:"sotab",res:"restab",gab:"gabtab",tf:"tftab"};
+const REITER_ATTR={ft:"fttab",so:"sotab",res:"restab",gab:"gabtab",tf:"tftab",tlfc:"tlfctab"};
 function istAdmin(){ return !!ICH && ICH.rolle==="voll"; }
 // Reiter ohne eigenes Recht im Katalog → welches Recht sie brauchen
-const REITER_RECHT={"gab.inhalte":"gab.einstellungen"};
+const REITER_RECHT={"gab.inhalte":"gab.einstellungen","tlfc.nachtragen":"tlfc.erfassen"};
 function darf(id){ id=REITER_RECHT[id]||id; return istAdmin() || (!!ICH && Array.isArray(ICH.rechte) && ICH.rechte.indexOf(id)>=0); }
 function darfTool(tool){
   if(tool==="start") return true;
   if(tool==="backup"||tool==="benutzer") return istAdmin();
   if(tool==="gatlf") return darf("gatlf.alles");
+  if(tool==="gaulf") return darf("gaulf.alles");
   const attr=REITER_ATTR[tool];
   if(!attr) return istAdmin();
   return Array.from(document.querySelectorAll(`[data-${attr}]`)).some(t=>darf(tool+"."+t.dataset[attr]));
@@ -1882,6 +2062,10 @@ function rechteAnwenden(){
   // Kacheln auf der Übersicht
   document.querySelectorAll(".start-verwalten").forEach(b=>{
     const k=b.closest(".start-kachel"); if(k) k.style.display=darfTool(b.dataset.ziel)?"":"none";
+  });
+  // Blöcke ohne sichtbare Kachel ausblenden
+  document.querySelectorAll(".start-gruppe").forEach(g=>{
+    g.style.display=Array.from(g.querySelectorAll(".start-kachel")).some(k=>k.style.display!=="none")?"":"none";
   });
   // Reiter
   Object.keys(REITER_ATTR).forEach(tool=>{
@@ -2049,6 +2233,8 @@ function switchTool(){
   $("toolBackup").style.display = tool==="backup" ? "block" : "none";
   $("toolGab").style.display = tool==="gab" ? "block" : "none";
   $("toolGatlf").style.display = tool==="gatlf" ? "block" : "none";
+  $("toolGaulf").style.display = tool==="gaulf" ? "block" : "none";
+  $("toolTlfc").style.display = tool==="tlfc" ? "block" : "none";
   $("toolTf").style.display = tool==="tf" ? "block" : "none";
   $("toolBenutzer").style.display = tool==="benutzer" ? "block" : "none";
   const hinweis=(name,st)=> st==="offline"
@@ -2062,6 +2248,8 @@ function switchTool(){
   if(tool==="gab" && FT_OK && !GAB_INIT) initGab();
   if(tool==="tf" && FT_OK && !TF_INIT) initTf();
   if(tool==="gatlf" && FT_OK && !GA_ED.TLF) gaEditorOeffnen("TLF");
+  if(tool==="gaulf" && FT_OK && !GA_ED.ULF) gaEditorOeffnen("ULF");
+  if(tool==="tlfc" && FT_OK && !TLFC_INIT) initTlfc();
   if(tool==="benutzer" && FT_OK && !BV_INIT) initBv();
   ersterErlaubterReiter(tool);
 }
@@ -2182,12 +2370,12 @@ function initGab(){
   $("btnGabLaden").addEventListener("click", gabLadeResultate);
   $("gabSuche").addEventListener("input", gabRendern);
   $("gabFilter").addEventListener("change", gabRendern);
-  // gabSheetLink gibt es im Panel nicht mehr – ohne Prüfung brach initGab hier ab (behoben CLv1.68)
+  // gabSheetLink gibt es im Panel nicht mehr – ohne Prüfung brach initGab hier ab (behoben CLv1.67)
   if($("gabSheetLink")) $("gabSheetLink").href="https://docs.google.com/spreadsheets/d/"+GAB_FRAGEN_SHEET+"/edit";
   if(darf("gab.resultate")) gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.68";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.69";
 
 let GAB_NT_ID=null;
 
@@ -2705,14 +2893,240 @@ async function cacheLeeren(){
 }
 
 /* ══════════════════ TERMINFINDUNG ══════════════════ */
-/* ══════════════════ AUSBILDUNGSINHALTE B / TLF (seit CLv1.68) ══════════════════
+/* ══════════════════ TLF-CHECK (seit CLv1.69) ══════════════════
+ * Wiederholungsprüfung der TLF-Maschinisten, aufgebaut wie SoSi. Server: admin_tlfc_*.
+ */
+const TLFC_BLOECKE=[{id:"bedien",name:"Fahrzeugbezogene Bedienungselemente",max:16},{id:"anfahren",name:"Anfahren, Einweisen, Fahrzeug absichern",max:10},
+  {id:"pumpe",name:"Pumpe / Wasserabgabe / Zubringer",max:25},{id:"leiter",name:"Leiterlift / Lüfterlift",max:8},
+  {id:"licht",name:"Licht / Generator / Strom",max:21},{id:"material",name:"Material",max:20}];
+const TLFC_SELBST=["Fahrzeugbezogene Bedienungselemente","Pumpe / Wasserabgabe / Zubringer","Leiterlift / Lüfterlift","Beleuchtung","Licht / Generator / Strom","Material"];
+const TLFC_NOGO=["Motor abgestellt und nicht via Touchscreen wieder gestartet (Zündung ein)","Federspeicher nicht gesetzt / Gang nicht auf «N»"];
+const TLFC_STATUS={gueltig:["gültig","#2e7d32","#e8f5e9"],bald:["läuft bald ab","#8a5a00","#fff4e0"],abgelaufen:["abgelaufen","#c8102e","#fdecea"],entzogen:["Fahrberechtigung entzogen","#fff","#c8102e"]};
+let TLFC_INIT=false, TLFC_PERSONEN=[], TLFC_GRENZE=80, TLFC_VORSCHAU=null, TLFC_CFG_STD=null;
+function tlfcHeute(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function tlfcFehler(r){ return r.error==="KEIN_RECHT"?"Dafür fehlt dir das Recht."
+  :r.error==="UNBEKANNTER_AUFRUF"?"Erst nach dem Deployen von Code.gs CLv1.68 verfügbar."
+  :r.error==="UNGUELTIG"?"Bitte prüfen: "+(r.fehler||[]).join(" "):"Fehler: "+(r.detail||r.error||"unbekannt"); }
+function tlfcPdfLaden(b64,name){
+  const bytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"})); a.download=name||"TLF-Check.pdf"; a.click();
+}
+
+function initTlfc(){
+  TLFC_INIT=true;
+  document.querySelectorAll("[data-tlfctab]").forEach(t=>t.addEventListener("click",()=>{
+    document.querySelectorAll("[data-tlfctab]").forEach(x=>x.classList.toggle("aktiv",x===t));
+    const tab=t.dataset.tlfctab;
+    ["uebersicht","erfassen","nachtragen","liste","erinnerung","einstellungen"].forEach(n=>{
+      $("tlfcTab"+n.charAt(0).toUpperCase()+n.slice(1)).style.display=n===tab?"block":"none"; });
+    if(tab==="uebersicht") tlfcUebersichtLaden();
+    if(tab==="liste") tlfcListeLaden();
+    if(tab==="einstellungen") tlfcCfgLaden();
+    if(tab==="erfassen"||tab==="nachtragen") tfMitgliederSicherstellen();
+  }));
+  $("tlfcSelbst").innerHTML=TLFC_SELBST.map((t,i)=>`<div><label for="tlfcS${i}">${escHtml(t)}</label>
+    <select id="tlfcS${i}"><option value="">–</option>${[1,2,3,4,5,6,7,8,9,10].map(n=>`<option>${n}</option>`).join("")}</select></div>`).join("");
+  $("tlfcBloecke").innerHTML=TLFC_BLOECKE.map(b=>`<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;border-top:1px solid var(--gray-mid);padding:.5rem 0">
+      <div style="flex:1;min-width:200px;font-weight:600;font-size:13px;padding-bottom:10px">${escHtml(b.name)}</div>
+      <div style="width:120px"><label for="tlfcP_${b.id}">Punkte / ${b.max}</label><input id="tlfcP_${b.id}" type="number" min="0" max="${b.max}" step="0.5"></div>
+      <div style="flex:2;min-width:200px"><label for="tlfcB_${b.id}">Bemerkung</label><input id="tlfcB_${b.id}" type="text"></div>
+    </div>`).join("");
+  $("tlfcNogo").innerHTML=TLFC_NOGO.map((t,i)=>`<label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:13px;margin-bottom:6px">
+    <input id="tlfcN${i}" type="checkbox" style="width:auto"> ${escHtml(t)}</label>`).join("");
+  TLFC_BLOECKE.forEach(b=>$("tlfcP_"+b.id).addEventListener("input",tlfcRechnen));
+  TLFC_NOGO.forEach((_,i)=>$("tlfcN"+i).addEventListener("change",tlfcRechnen));
+  $("tlfcDatum").value=tlfcHeute();
+  $("btnTlfcVorschau").addEventListener("click",()=>tlfcErfassen(false));
+  $("btnTlfcSenden").addEventListener("click",()=>tlfcErfassen(true));
+  $("btnTlfcLeeren").addEventListener("click",tlfcLeeren);
+  $("btnTlfcNachtragen").addEventListener("click",tlfcNachtragen);
+  $("btnTlfcCSpeichern").addEventListener("click",tlfcCfgSpeichern);
+  $("btnTlfcCReset").addEventListener("click",tlfcCfgReset);
+  ["tlfcBetreff","tlfcText"].forEach(i=>$(i).addEventListener("input",tlfcVorschauText));
+  tlfcRechnen();
+  if(darf("tlfc.uebersicht")) tlfcUebersichtLaden();
+}
+
+async function tlfcUebersichtLaden(){
+  const el=$("tlfcUebersicht");
+  try{
+    const r=await ftCallAdmin({type:"admin_tlfc_uebersicht",password:PASS});
+    if(!r.ok){ el.innerHTML=`<div class="error" style="display:block">${escHtml(tlfcFehler(r))}</div>`; return; }
+    TLFC_PERSONEN=r.personen||[]; if(r.cfg){ TLFC_GRENZE=r.cfg.bestehen; $("tlfcGrenze").textContent=TLFC_GRENZE; tlfcRechnen(); }
+    const z={}; TLFC_PERSONEN.forEach(p=>{ z[p.status]=(z[p.status]||0)+1; });
+    $("tlfcZahlen").innerHTML=Object.keys(TLFC_STATUS).map(k=>`<span class="tlfc-status" style="color:${TLFC_STATUS[k][1]};background:${TLFC_STATUS[k][2]}">${TLFC_STATUS[k][0]}: ${z[k]||0}</span>`).join("");
+    tlfcUebersichtZeigen();
+  }catch(e){ el.innerHTML=`<div class="error" style="display:block">Fehler: ${escHtml(e.message)}</div>`; }
+}
+function tlfcUebersichtZeigen(){
+  const q=$("tlfcSuche").value.trim().toLowerCase(), el=$("tlfcUebersicht");
+  const liste=TLFC_PERSONEN.filter(p=>!q||(p.kuerzel+" "+p.name).toLowerCase().includes(q));
+  if(!liste.length){ el.innerHTML='<div class="empty">Noch keine Checks erfasst.</div>'; return; }
+  const rang={entzogen:0,abgelaufen:1,bald:2,gueltig:3};
+  liste.sort((a,b)=>rang[a.status]-rang[b.status]||a.kuerzel.localeCompare(b.kuerzel));
+  el.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+    <tr style="text-align:left;border-bottom:2px solid var(--gray-mid)"><th style="padding:6px">Kürzel</th><th style="padding:6px">Name</th><th style="padding:6px">Letzter Check</th><th style="padding:6px">Punkte</th><th style="padding:6px">Status</th><th style="padding:6px">Frist</th></tr>
+    ${liste.map(p=>{ const s=TLFC_STATUS[p.status];
+      const frist=p.status==="entzogen"?`neuer Check bis <b>${escHtml(p.nachpruefungBis)}</b>`:`gültig bis ${escHtml(p.gueltigBis)}`+(p.tage>=0?` <span class="hinw">(${p.tage} Tage)</span>`:"");
+      return `<tr style="border-bottom:1px solid var(--gray-mid)"><td style="padding:6px;font-weight:700">${escHtml(p.kuerzel)}</td><td style="padding:6px">${escHtml(p.name)}</td>
+        <td style="padding:6px">${escHtml(p.datum)}${p.art==="Nachtrag"?' <span class="hinw">(nachgetragen)</span>':""}</td><td style="padding:6px">${p.total}</td>
+        <td style="padding:6px"><span class="tlfc-status" style="color:${s[1]};background:${s[2]}">${s[0]}</span></td><td style="padding:6px">${frist}</td></tr>`; }).join("")}
+  </table></div>`;
+}
+
+function tlfcDaten(){
+  const punkte={}, bemerkungen={};
+  TLFC_BLOECKE.forEach(b=>{ punkte[b.id]=$("tlfcP_"+b.id).value===""?null:Number($("tlfcP_"+b.id).value); bemerkungen[b.id]=$("tlfcB_"+b.id).value; });
+  return {kuerzel:$("tlfcKuerzel").value.trim().toUpperCase(), datum:$("tlfcDatum").value,
+    experten:[$("tlfcExp1").value,$("tlfcExp2").value].map(x=>x.trim().toUpperCase()).filter(x=>x),
+    fuehrerausweis:$("tlfcFa").checked, faBemerkung:$("tlfcFaBem").value,
+    selbst:TLFC_SELBST.map((_,i)=>$("tlfcS"+i).value), punkte, bemerkungen,
+    nogo:TLFC_NOGO.map((_,i)=>$("tlfcN"+i).checked), empfehlung:$("tlfcEmpf").value};
+}
+function tlfcRechnen(){
+  const d=tlfcDaten(); let total=0, offen=0;
+  TLFC_BLOECKE.forEach(b=>{ const v=d.punkte[b.id]; if(v===null||isNaN(v)) offen++; else total+=v; });
+  const nogo=d.nogo.some(x=>x);
+  const ok=!nogo&&total>=TLFC_GRENZE;
+  $("tlfcErgebnis").innerHTML=`<div style="padding:10px 12px;border-left:4px solid ${offen&&!nogo?"var(--gray-mid)":ok?"#2e7d32":"var(--red)"};background:var(--bg2);font-size:14px">
+    <b>Total ${total} / 100</b>${offen?` <span class="hinw">(${offen} Block${offen>1?"e":""} noch leer)</span>`:""} ·
+    ${nogo?'<b style="color:var(--red)">No-Go → nicht bestanden</b>':offen?"":ok?'<b style="color:#2e7d32">bestanden</b>':`<b style="color:var(--red)">nicht bestanden</b> (nötig ${TLFC_GRENZE})`}</div>`;
+}
+function tlfcLeeren(){
+  ["tlfcKuerzel","tlfcExp1","tlfcExp2","tlfcFaBem","tlfcEmpf"].forEach(i=>$(i).value="");
+  ["tlfcKuerzel-info","tlfcExp1-info","tlfcExp2-info"].forEach(i=>$(i).innerHTML="");
+  $("tlfcFa").checked=false; $("tlfcDatum").value=tlfcHeute();
+  TLFC_SELBST.forEach((_,i)=>$("tlfcS"+i).value="");
+  TLFC_BLOECKE.forEach(b=>{ $("tlfcP_"+b.id).value=""; $("tlfcB_"+b.id).value=""; });
+  TLFC_NOGO.forEach((_,i)=>$("tlfcN"+i).checked=false);
+  $("tlfcVorschauKarte").style.display="none"; $("tlfcStatus").style.display="none"; tlfcRechnen();
+}
+function tlfcVorschauText(){
+  const d=(TLFC_VORSCHAU&&TLFC_VORSCHAU.daten)||{};
+  const f=v=>String(v).replace(/\{(\w+)\}/g,(m,k)=>d[k]!==undefined?d[k]:m);
+  $("tlfcPvBetreff").textContent=f($("tlfcBetreff").value);
+  $("tlfcPvText").innerHTML=escHtml(f($("tlfcText").value)).replace(/\n/g,"<br>");
+}
+async function tlfcErfassen(senden){
+  const st=senden?$("tlfcSendStatus"):$("tlfcStatus");
+  if(senden&&!confirm("Check speichern, PDF erstellen und die Mail senden?")) return;
+  st.className="status-msg"; st.style.display="block"; st.textContent=senden?"Wird gespeichert und gesendet …":"Wird geprüft …";
+  $("btnTlfcSenden").disabled=senden;
+  try{
+    const p=Object.assign({type:"admin_tlfc_erfassen",password:PASS},tlfcDaten());
+    if(senden) Object.assign(p,{senden:true,betreff:$("tlfcBetreff").value,text:$("tlfcText").value,anfrageId:Date.now()+"-"+Math.random()});
+    const r=await ftCallAdmin(p);
+    if(!r.ok){ st.className="status-msg err-msg"; st.textContent=tlfcFehler(r); $("btnTlfcSenden").disabled=false; return; }
+    if(!senden){
+      TLFC_VORSCHAU=r; st.style.display="none";
+      const person=x=>`<b>${escHtml(x.kuerzel)}</b> ${escHtml(x.name)} <span class="hinw">· ${escHtml(x.email)}</span>`;
+      $("tlfcVorschauKopf").innerHTML=`<div style="padding:10px 12px;border-left:4px solid ${r.bestanden?"#2e7d32":"var(--red)"};background:var(--bg2);font-size:14px;margin-bottom:.75rem">
+        <b>${escHtml(r.name)}: ${r.bestanden?"bestanden":"nicht bestanden"}</b> · ${r.total} / 100 ·
+        ${r.bestanden?"gültig bis "+escHtml(r.gueltigBis):"Fahrberechtigung TLF entzogen, neuer Check bis "+escHtml(r.nachpruefungBis)}
+        ${r.grund?`<div class="hinw" style="margin-top:4px">${escHtml(r.grund)}</div>`:""}</div>
+        <div style="font-size:13px;line-height:1.8"><div>An: ${(r.an||[]).map(person).join(", ")||'<span style="color:var(--red)">keine Mailadresse – es geht keine Mail raus, PDF wird trotzdem erstellt</span>'}</div>
+        <div>Kopie: ${(r.cc||[]).map(person).join(", ")||'<span class="hinw">keine</span>'}</div></div>`
+        +((r.warnungen||[]).length?`<div class="warnung" style="margin-top:.75rem;border-color:var(--red)">${r.warnungen.map(escHtml).join("<br>")}</div>`:"")
+        +tfKontingentHinweis(r.kontingent,1);
+      $("tlfcBetreff").value=r.betreff; $("tlfcText").value=r.text; tlfcVorschauText();
+      $("tlfcSendStatus").style.display="none"; $("btnTlfcSenden").disabled=false;
+      $("tlfcVorschauKarte").style.display="block"; $("tlfcVorschauKarte").scrollIntoView({behavior:"smooth"});
+      return;
+    }
+    if(r.pdfBase64) tlfcPdfLaden(r.pdfBase64,r.pdfName);
+    tlfcLeeren();
+    const s2=$("tlfcStatus"); s2.className="status-msg "+(r.gesendet?"ok-msg":"err-msg"); s2.style.display="block";
+    s2.textContent=r.gesendet?`Gespeichert, PDF erstellt und Mail gesendet (${r.bestanden?"bestanden":"nicht bestanden"}).`
+      :"Gespeichert und PDF erstellt, aber die Mail ging nicht raus"+(r.sendefehler?": "+r.sendefehler:" (keine Mailadresse).");
+    if(darf("tlfc.uebersicht")) tlfcUebersichtLaden();
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; $("btnTlfcSenden").disabled=false; }
+}
+async function tlfcNachtragen(){
+  const st=$("tlfcNStatus");
+  const t=$("tlfcNTotal").value;
+  const p={type:"admin_tlfc_nachtragen",password:PASS,kuerzel:$("tlfcNKuerzel").value.trim().toUpperCase(),datum:$("tlfcNDatum").value,
+    total:t===""?null:Number(t),nogo:[$("tlfcNNogo").checked,false],experten:$("tlfcNExp").value.split(/[\s,;]+/).filter(x=>x),bemerkung:$("tlfcNBem").value};
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird geprüft …";
+  try{
+    let r=await ftCallAdmin(p);
+    if(!r.ok){ st.className="status-msg err-msg"; st.textContent=tlfcFehler(r); return; }
+    if(!confirm(`${r.name}: ${r.total} Punkte am ${$("tlfcNDatum").value.split("-").reverse().join(".")} – ${r.bestanden?"bestanden, gültig bis "+r.gueltigBis:"nicht bestanden"}. Nachtragen?`)){ st.style.display="none"; return; }
+    r=await ftCallAdmin(Object.assign(p,{senden:true,anfrageId:Date.now()+"-"+Math.random()}));
+    if(!r.ok){ st.className="status-msg err-msg"; st.textContent=tlfcFehler(r); return; }
+    ["tlfcNKuerzel","tlfcNTotal","tlfcNExp","tlfcNBem","tlfcNDatum"].forEach(i=>$(i).value=""); $("tlfcNNogo").checked=false; $("tlfcNKuerzel-info").innerHTML="";
+    st.className="status-msg ok-msg"; st.textContent="Nachgetragen.";
+    if(darf("tlfc.uebersicht")) tlfcUebersichtLaden();
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+async function tlfcListeLaden(){
+  const el=$("tlfcListe");
+  try{
+    const r=await ftCallAdmin({type:"admin_tlfc_liste",password:PASS});
+    if(!r.ok){ el.innerHTML=`<div class="error" style="display:block">${escHtml(tlfcFehler(r))}</div>`; return; }
+    if(!(r.checks||[]).length){ el.innerHTML='<div class="empty">Noch keine Checks erfasst.</div>'; return; }
+    el.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+      <tr style="text-align:left;border-bottom:2px solid var(--gray-mid)"><th style="padding:6px">Datum</th><th style="padding:6px">Maschinist</th><th style="padding:6px">Experten</th><th style="padding:6px">Punkte</th><th style="padding:6px">Resultat</th><th style="padding:6px">Art</th><th style="padding:6px"></th></tr>
+      ${r.checks.map(c=>`<tr style="border-bottom:1px solid var(--gray-mid)"><td style="padding:6px">${escHtml(c.datum)}</td>
+        <td style="padding:6px"><b>${escHtml(c.kuerzel)}</b> ${escHtml(c.name)}</td><td style="padding:6px">${escHtml(c.experten)}</td><td style="padding:6px">${c.total}</td>
+        <td style="padding:6px">${c.bestanden?'<span style="color:#2e7d32;font-weight:700">bestanden</span>':'<span style="color:var(--red);font-weight:700">nicht bestanden</span>'}</td>
+        <td style="padding:6px">${escHtml(c.art)}${c.durch?` <span class="hinw">(${escHtml(c.durch)})</span>`:""}</td>
+        <td style="padding:6px;white-space:nowrap">${c.pdf?`<button class="btn btn-klein" onclick="tlfcPdf('${escHtml(c.id)}')">PDF</button>`:""}
+          ${istAdmin()?`<button class="btn btn-klein" onclick="tlfcLoeschen('${escHtml(c.id)}','${escHtml(c.kuerzel)}','${escHtml(c.datum)}')">Löschen</button>`:""}</td></tr>`).join("")}
+    </table></div>`;
+  }catch(e){ el.innerHTML=`<div class="error" style="display:block">Fehler: ${escHtml(e.message)}</div>`; }
+}
+async function tlfcPdf(id){
+  try{
+    const r=await ftCallAdmin({type:"admin_tlfc_pdf",password:PASS,id});
+    if(!r.ok){ alert(tlfcFehler(r)); return; }
+    tlfcPdfLaden(r.pdfBase64,r.name);
+  }catch(e){ alert("Fehler: "+e.message); }
+}
+async function tlfcLoeschen(id,k,d){
+  if(!confirm(`Check von ${k} vom ${d} löschen? Das PDF in Drive bleibt erhalten.`)) return;
+  const r=await ftCallAdmin({type:"admin_tlfc_loeschen",password:PASS,id});
+  if(!r.ok){ alert(tlfcFehler(r)); return; }
+  tlfcListeLaden();
+}
+const TLFC_CFG_FELDER={gueltigJahre:"tlfcCGueltig",bestehen:"tlfcCBestehen",nachpruefungMonate:"tlfcCNach",warnTage:"tlfcCWarn",kommando:"tlfcCKdo",
+  betreffBestanden:"tlfcCBetrB",textBestanden:"tlfcCTextB",betreffNicht:"tlfcCBetrN",textNicht:"tlfcCTextN"};
+async function tlfcCfgLaden(){
+  const st=$("tlfcCStatus");
+  try{
+    await tfMitgliederSicherstellen();
+    const r=await ftCallAdmin({type:"admin_tlfc_cfg_get",password:PASS});
+    if(!r.ok){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent=tlfcFehler(r); return; }
+    TLFC_CFG_STD=r.standard;
+    Object.keys(TLFC_CFG_FELDER).forEach(k=>{ $(TLFC_CFG_FELDER[k]).value=r[k]; });
+    tfListePruefen("tlfcCKdo","tlfcCKdo-info"); st.style.display="none";
+  }catch(e){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+e.message; }
+}
+async function tlfcCfgSpeichern(){
+  const st=$("tlfcCStatus"), p={type:"admin_tlfc_cfg_set",password:PASS};
+  Object.keys(TLFC_CFG_FELDER).forEach(k=>{ p[k]=$(TLFC_CFG_FELDER[k]).value; });
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert …";
+  try{
+    const r=await ftCallAdmin(p);
+    if(!r.ok){ st.className="status-msg err-msg"; st.textContent=tlfcFehler(r); return; }
+    Object.keys(TLFC_CFG_FELDER).forEach(k=>{ $(TLFC_CFG_FELDER[k]).value=r[k]; });
+    TLFC_GRENZE=r.bestehen; $("tlfcGrenze").textContent=TLFC_GRENZE; tlfcRechnen();
+    st.className="status-msg ok-msg"; st.textContent="Gespeichert.";
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+function tlfcCfgReset(){
+  if(!TLFC_CFG_STD) return;
+  Object.keys(TLFC_CFG_FELDER).forEach(k=>{ $(TLFC_CFG_FELDER[k]).value=TLFC_CFG_STD[k]; });
+  const st=$("tlfcCStatus"); st.className="status-msg"; st.style.display="block"; st.textContent="Standard eingesetzt – zum Übernehmen «Speichern».";
+}
+
+/* ══════════════════ AUSBILDUNGSINHALTE B / TLF / ULF (seit CLv1.67) ══════════════════
  * Gemeinsamer Editor für die Seiten BGrund und TLFGrund. Gespeichert wird im Sheet
  * «MWD Ausbildungsinhalte» (Server: ga_inhalte / admin_gab_inhalte_set / admin_gatlf_inhalte_set).
  */
-const GA_ED={}, GA_SPEICHERN={B:"admin_gab_inhalte_set",TLF:"admin_gatlf_inhalte_set"};
+const GA_ED={}, GA_SPEICHERN={B:"admin_gab_inhalte_set",TLF:"admin_gatlf_inhalte_set",ULF:"admin_gaulf_inhalte_set"};
 let GA_FOKUS=null;
-function gaNeueId(kat){ return (kat==="B"?"B":"T")+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
-function gaEl(kat){ return $(kat==="B"?"gaEdB":"gaEdTLF"); }
+function gaNeueId(kat){ return kat.charAt(0)+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function gaEl(kat){ return $("gaEd"+kat); }
 
 async function gaEditorOeffnen(kat, neu){
   if(GA_ED[kat] && !neu) return;
@@ -2723,19 +3137,21 @@ async function gaEditorOeffnen(kat, neu){
     if(!r.ok){
       el.innerHTML=r.error==="KEIN_SHEET"
         ? '<div class="warnung">Das Sheet für die Ausbildungsinhalte ist noch nicht eingerichtet. Im Apps-Script-Editor einmal die Funktion <b>ausbildungsinhalteEinrichten</b> ausführen, danach hier neu laden.</div>'
-        : r.error==="UNBEKANNTER_AUFRUF" ? '<div class="warnung">Erst nach dem Deployen von Code.gs CLv1.68 verfügbar.</div>'
+        : r.error==="UNBEKANNTER_AUFRUF" ? '<div class="warnung">Erst nach dem Deployen von Code.gs CLv1.67 verfügbar.</div>'
         : `<div class="error" style="display:block">Laden fehlgeschlagen (${escHtml(r.error||"")}${r.detail?": "+escHtml(r.detail):""}).</div>`;
       el.innerHTML+=`<div style="margin-top:.75rem"><button class="btn btn-klein" onclick="gaEditorOeffnen('${kat}',true)">Neu laden</button></div>`;
       return;
     }
     GA_ED[kat]={lektionen:r.lektionen||[], stand:r.stand||0, dirty:false, offen:{}};
     gaRendern(kat);
+    if(r.start){ const m=$("gaMeldung"+kat); m.className="status-msg"; m.style.display="block";
+      m.textContent="Das sind die Startinhalte – sie sind noch nicht gespeichert. Mit «Speichern» ins Sheet übernehmen."; }
   }catch(e){ el.innerHTML=`<div class="error" style="display:block">Fehler: ${escHtml(e.message)}</div>
     <div style="margin-top:.75rem"><button class="btn btn-klein" onclick="gaEditorOeffnen('${kat}',true)">Neu laden</button></div>`; }
 }
 
 function gaRendern(kat){
-  const ed=GA_ED[kat], el=gaEl(kat), tlf=kat==="TLF";
+  const ed=GA_ED[kat], el=gaEl(kat), tlf=kat==="TLF", besetzung=kat!=="B";
   // offene Lektionen merken
   el.querySelectorAll("details[data-lek]").forEach(d=>{ ed.offen[d.dataset.lek]=d.open; });
   const feld=(li,pi,f,wert,attr)=>`data-kat="${kat}" data-li="${li}" data-pi="${pi}" data-f="${f}" oninput="gaFeld(this)" ${attr||""}`;
@@ -2759,7 +3175,7 @@ function gaRendern(kat){
       <div style="padding:0 1rem 1rem">
         <div class="entry-row2">
           <div><label>Titel</label><input type="text" value="${escHtml(l.titel)}" ${feld(li,-1,"titel")}></div>
-          <div><label>${tlf?"Besetzung":"Dauer"}</label><input type="text" value="${escHtml(l.info)}" ${feld(li,-1,"info")}></div>
+          <div><label>${besetzung?"Besetzung / Dauer":"Dauer"}</label><input type="text" value="${escHtml(l.info)}" ${feld(li,-1,"info")}></div>
         </div>
         ${l.punkte.map((p,pi)=>`
         <div style="border-top:1px solid var(--gray-mid);margin-top:.75rem;padding-top:.75rem">
@@ -2856,7 +3272,7 @@ async function gaSpeichern(kat){
       m.className="status-msg err-msg";
       m.textContent=r.error==="VERALTET"?"Inzwischen hat jemand anders gespeichert. Bitte «Verwerfen» und die Änderungen neu machen, damit nichts überschrieben wird."
         :r.error==="KEIN_RECHT"?"Dafür fehlt dir das Recht."
-        :r.error==="UNBEKANNTER_AUFRUF"?"Erst nach dem Deployen von Code.gs CLv1.68 möglich."
+        :r.error==="UNBEKANNTER_AUFRUF"?"Erst nach dem Deployen von Code.gs CLv1.67 möglich."
         :"Speichern fehlgeschlagen: "+(r.detail||r.error||"unbekannt");
     }
   }catch(e){ m.className="status-msg err-msg"; m.textContent="Fehler: "+e.message; }
@@ -3742,7 +4158,7 @@ function tfKontingentHinweis(k,anzahl){
   return `<div class="hinw" style="margin-top:.6rem">Heute noch ${k} Mails möglich.</div>`;
 }
 
-/* ── Termine in Lodur reservieren (seit CLv1.68) ── */
+/* ── Termine in Lodur reservieren (seit CLv1.66) ── */
 let TF_LODUR_DATEN=null, TF_LODUR_STANDARD=null;
 
 function tfLodurKnopf(){
@@ -4724,7 +5140,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.68";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.69";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -5093,7 +5509,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.68", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.69", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -5826,13 +6242,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.68`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.69`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.68";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.69";
 
 async function soApi(payload){
   try{
