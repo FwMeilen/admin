@@ -1804,26 +1804,32 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.69</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.70</div>
 
 <script>
-/* ── Netzwerk-Baustein für alle MWD-Seiten ──
- * Google antwortet manchmal sofort, manchmal hängt eine Anfrage 30 Sekunden
- * oder liefert eine Fehlerseite. Deshalb:
- *  - Kommt nach 4 s keine Antwort, geht dieselbe Anfrage ein zweites Mal los
- *    (danach nach 9, 16, 25 s). Die erste gültige Antwort gewinnt.
- *  - Scheitert eine Anfrage (Fehlerseite), startet sofort die nächste.
- *  - Nach 3 s erscheint «Server braucht gerade länger …».
- *  - Nach 45 s ohne Erfolg: «Server nicht erreichbar» mit «Erneut versuchen».
- * Alle Anfragen tragen dieselbe Kennung – der Server führt Schreibvorgänge
- * dadurch nur einmal aus. Mehrfachanfragen werden fürs Aussetzer-Protokoll gemeldet.
+/* ── Netzwerk-Baustein für alle MWD-Seiten (Stand CLv1.69) ──
+ * Google antwortet manchmal sofort, manchmal hängt eine Anfrage oder liefert eine
+ * Fehlerseite. Seit CLv1.69:
+ *  - Aufrufe laufen über den MWD-Worker (Cloudflare). Er fragt bei Googles Fehlern
+ *    selbst sofort nach und hält öffentliche Lesedaten zwischengespeichert.
+ *    Antwortet der Worker nicht (oder ist er noch die alte Version W2), geht der
+ *    Aufruf direkt an Google.
+ *  - Höchstens 2 Anfragen gleichzeitig (vorher bis 5): die zweite nach 15 s,
+ *    und zwar direkt an Google. Nach einer Fehlerantwort startet sofort die nächste,
+ *    insgesamt höchstens 4.
+ *  - «Server braucht gerade länger …» erst nach 8 s (vorher 3 s).
+ *  - Nach 50 s ohne Erfolg: «Server nicht erreichbar» mit «Erneut versuchen».
+ * Alle Anfragen tragen dieselbe Kennung – der Server führt Schreibvorgänge nur
+ * einmal aus. Mehrfachanfragen werden fürs Aussetzer-Protokoll gemeldet.
  */
 (function(){
-  const NACHFRAGEN=[0,4000,9000,16000,25000];  // Startzeitpunkte der Anfragen
-  const HOECHSTENS=45000;                         // danach aufgeben und fragen
-  const HINWEIS_NACH=3000;
+  const NACHFRAGEN=[0,15000];     // geplante Startzeitpunkte
+  const MAX_VERSUCHE=4;           // inkl. Neustarts nach Fehlerantworten
+  const HOECHSTENS=50000;         // danach aufgeben und fragen
+  const HINWEIS_NACH=8000;
+  const WORKER="https://cal.stuetzpunktfeuerwehrmeilen.workers.dev/api";
   const MELDE_URL="https://script.google.com/macros/s/AKfycbwvTL3yecdyTvSV5ZPgGslm5K-3UFjW9zc4A2qn_zUk50CcSIpXEaBE1hMiaU3GnNEQ/exec";
-  let aktiv=0, entscheid=null;
+  let aktiv=0, entscheid=null, workerOk=null;   // null = unbekannt, false = nicht nutzen
 
   function banner(){
     let b=document.getElementById("fw-netz-banner");
@@ -1876,10 +1882,11 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
     try{ return JSON.parse(t); }catch(e){ return null; }
   }
 
-  /** Eine Runde: Anfragen gestaffelt starten, erste gültige Antwort gewinnt */
+  /** Eine Runde: erste Anfrage (Worker), nach 15 s eine zweite (direkt), erste gültige Antwort gewinnt */
   function runde(url,body,opts,aufruf){
     return new Promise(resolve=>{
       const start=Date.now();
+      const plan=opts.nachfragen||NACHFRAGEN;
       let gestartet=0, offen=0, fertig=false, zeigt=false;
       const abbrecher=[], uhren=[];
       const ende=(ok,daten)=>{
@@ -1894,27 +1901,36 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       };
       const starte=()=>{
         if(fertig) return;
-        if(gestartet>=(opts.nachfragen||NACHFRAGEN).length){ if(offen===0) ende(false); return; }
+        if(gestartet>=MAX_VERSUCHE){ if(offen===0) ende(false); return; }
         gestartet++; offen++;
+        // 1., 3. Versuch über den Worker, 2., 4. direkt an Google (falls der Worker selbst klemmt)
+        const ueberWorker=workerOk!==false && gestartet%2===1 && url.indexOf("script.google.com")>=0;
+        const ziel=ueberWorker?WORKER:url;
         const a=new AbortController(); abbrecher.push(a);
-        fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body,signal:a.signal})
-          .then(r=>r.text())
+        fetch(ziel,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body,signal:a.signal})
+          .then(r=>{
+            // Alte Worker-Version (W2) oder falscher Pfad → Worker nicht mehr verwenden
+            if(ueberWorker && (r.status===404||r.status===405)){ workerOk=false; gestartet--; }
+            return r.text();
+          })
           .then(text=>{
             offen--;
             if(fertig) return;
             const daten=lesen(text);
             if(daten && daten.error!=="BESCHAEFTIGT") return ende(true,daten);
-            if(!daten) console.warn("Keine gültige Antwort:",String(text).slice(0,160));
-            if(offen===0) uhren.push(setTimeout(starte,700));
+            if(!daten) console.warn("Keine gültige Antwort ("+(ueberWorker?"Worker":"Google")+"):",String(text).slice(0,120));
+            if(offen===0) uhren.push(setTimeout(starte,workerOk===false&&ueberWorker?0:700));
           })
           .catch(e=>{
             offen--;
             if(fertig) return;
-            if(offen===0) uhren.push(setTimeout(starte,700));
+            // Worker gar nicht erreichbar (oder alte Version ohne CORS) → sofort direkt an Google
+            let sofort=false;
+            if(ueberWorker && e && e.name!=="AbortError" && workerOk===null){ workerOk=false; gestartet--; sofort=true; }
+            if(offen===0) uhren.push(setTimeout(starte,sofort?0:700));
           });
       };
-      // Bewusst lange Aufrufe (z.B. Systemcheck) können eigene Zeitpunkte angeben
-      (opts.nachfragen||NACHFRAGEN).forEach(t=>uhren.push(setTimeout(starte,t)));
+      plan.forEach(t=>uhren.push(setTimeout(starte,t)));
       if(!opts.still) uhren.push(setTimeout(()=>{ if(!fertig){ zeigt=true; aktiv++; zeigeWarten(); } },opts.hinweisNach||HINWEIS_NACH));
       uhren.push(setTimeout(()=>ende(false),HOECHSTENS));
     });
@@ -2002,6 +2018,11 @@ async function login(){
         return;
       }
       try{ sessionStorage.setItem(SITZUNG_SPEICHER,r.token); }catch(e){}
+      if(SITZUNG_WEG){
+        // Nach abgelaufener Sitzung: Seite frisch laden (alle Tools neu), danach ins gleiche Tool zurück
+        try{ sessionStorage.setItem(SITZUNG_SPEICHER,r.token); if(WIEDER_TOOL) sessionStorage.setItem("mwd_wieder_tool",WIEDER_TOOL); }catch(e){}
+        location.reload(); return;
+      }
       await panelOeffnen("SITZUNG:"+r.token, r.benutzer);
     }
   }catch(e){
@@ -2023,11 +2044,43 @@ async function panelOeffnen(p, benutzer){
   ichLeisteZeigen();
   rechteAnwenden();
   updateAuthWarnung();
-  initFt();
-  // Systemcheck im Hintergrund – nur für Admins, meldet sich nur bei Problemen
-  if(istAdmin()) fwAufruf(FT_EXEC_URL,{type:"admin_systemcheck",password:PASS},
-      {seite:"Admin Systemcheck",still:true,nachfragen:[0,25000]})
-    .then(r=>{ if(r&&r.ok){ SC_LETZT=r; scWarnungSetzen(r); } }).catch(()=>{});
+  // Seit CLv1.70 gestaffelt: Fahrtraining lädt erst beim Öffnen des Tools,
+  // der Systemcheck nach 30 s – die Anmeldung selbst ist damit nur ein Aufruf.
+  try{ const w=sessionStorage.getItem("mwd_wieder_tool"); if(w){ sessionStorage.removeItem("mwd_wieder_tool");
+    if(darfTool(w)){ $("toolSelect").value=w; switchTool(); } } }catch(e){}
+  if(istAdmin() && !SC_GEPLANT){
+    SC_GEPLANT=true;
+    setTimeout(()=>fwAufruf(FT_EXEC_URL,{type:"admin_systemcheck",password:PASS},
+        {seite:"Admin Systemcheck",still:true,nachfragen:[0,25000]})
+      .then(r=>{ if(r&&r.ok){ SC_LETZT=r; scWarnungSetzen(r); } }).catch(()=>{}),30000);
+  }
+}
+let WIEDER_TOOL=null, SC_GEPLANT=false, FT_INIT=false, SITZUNG_WEG=false;
+
+/** Server kennt die Sitzung nicht mehr → zur Anmeldung, danach zurück ins gleiche Tool */
+function sitzungAbgelaufen(){
+  if(SITZUNG_WEG) return;
+  SITZUNG_WEG=true;
+  WIEDER_TOOL=$("toolSelect").value||null;
+  try{ sessionStorage.removeItem(SITZUNG_SPEICHER); }catch(e){}
+  $("scPanel").style.display="none";
+  $("scLogin").style.display="block";
+  if(ICH&&ICH.kuerzel) $("loginKuerzel").value=ICH.kuerzel;
+  $("pass").value="";
+  const f=$("loginFehler"); f.textContent="Deine Sitzung ist abgelaufen – bitte neu anmelden."; f.style.display="block";
+  $("btnLogin").disabled=false; $("btnLogin").textContent="Anmelden";
+  setTimeout(()=>$("pass").focus(),50);
+}
+/** Verständliche Fehlermeldung statt «Zugriff verweigert» */
+function fehlerText(r){
+  const e=r&&r.error;
+  if(e==="auth"||e==="AUTH") return "Sitzung abgelaufen – bitte neu anmelden.";
+  if(e==="KEIN_RECHT") return "Dafür fehlt dir das Recht.";
+  if(e==="UNBEKANNTER_AUFRUF") return "Diese Funktion gibt es auf dem Server noch nicht – Apps Script neu bereitstellen.";
+  if(e==="SERVERFEHLER") return "Serverfehler: "+(r.detail||"unbekannt");
+  if(e==="BESCHAEFTIGT") return "Der Server ist gerade beschäftigt – bitte nochmals versuchen.";
+  if(e==="NETZWERK") return "Server nicht erreichbar"+(r.detail?": "+r.detail:".");
+  return "Fehler: "+(e||"unbekannt")+(r&&r.detail?" – "+r.detail:"");
 }
 
 /* ── Rechte (seit CLv1.66) ──
@@ -2242,6 +2295,7 @@ function switchTool(){
     : `${name}-Backend ist nicht angemeldet (Passwort nicht synchron).`;
   if(tool==="ft" && !FT_OK) alert(hinweis("Fahrtraining",FT_STATUS));
   if(tool==="so" && !SO_OK) alert(hinweis("SoSi",SO_STATUS));
+  if(tool==="ft" && FT_OK && !FT_INIT) initFt();
   if(tool==="so" && SO_OK && !SO_INIT) initSo();
   if(tool==="res" && FT_OK && !RES_INIT) initRes();
   if(tool==="backup" && FT_OK && !BACKUP_INIT) initBackup();
@@ -2271,7 +2325,9 @@ function vollerName(kuerzel){
 
 /** Aufruf ans Fahrtraining-Backend – Wiederholung übernimmt fwAufruf */
 async function ftCallAdmin(payload){
-  return fwAufruf(FT_EXEC_URL, payload, {seite:"Admin"});
+  const r=await fwAufruf(FT_EXEC_URL, payload, {seite:"Admin"});
+  if(r && r.error==="auth" && String(PASS||"").indexOf("SITZUNG:")===0) sitzungAbgelaufen();
+  return r;
 }
 
 async function ftHoleFahrzeuge(){
@@ -2287,6 +2343,7 @@ async function ftHoleFahrzeuge(){
 }
 
 function initFt(){
+  FT_INIT=true;
   ftPopulateFahrzeugSelect();
   if(FT_OK){
     if(darf("ft.fragen")) ftHoleFahrzeuge().then(()=>ftLadeFragenAdmin());
@@ -2375,7 +2432,7 @@ function initGab(){
   if(darf("gab.resultate")) gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.69";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.70";
 
 let GAB_NT_ID=null;
 
@@ -2469,7 +2526,7 @@ async function svLadeConfig(){
   st.className="status-msg"; st.style.display="none";
   try{
     const r=await ftCallAdmin({type:"admin_sv_get",password:PASS});
-    if(r.error){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Zugriff verweigert."; return; }
+    if(r.error){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent=fehlerText(r); return; }
     $("svAktiv").checked=r.aktiv!==false;
     $("svMonateMin").value=r.monateMin;
     $("svMonateErinn").value=r.monateErinn;
@@ -2526,7 +2583,7 @@ async function svLadeStatus(){
   el.innerHTML='<div class="loading">Lade …</div>';
   try{
     const r=await ftCallAdmin({type:"admin_sv_status",password:PASS});
-    if(r.error){ el.innerHTML='<div class="empty">Zugriff verweigert.</div>'; return; }
+    if(r.error){ el.innerHTML='<div class="empty">'+escHtml(fehlerText(r))+'</div>'; return; }
     if(!r.ok){ el.innerHTML='<div class="empty">Fehler beim Laden.</div>'; return; }
     const liste=r.liste||[];
     if(liste.length===0){ el.innerHTML='<div class="empty">Noch niemand hat den B-Test bestanden.</div>'; return; }
@@ -2560,7 +2617,7 @@ async function gabLadeFragen(){
   el.innerHTML='<div class="loading">Wird geladen…</div>';
   try{
     const res=await ftCallAdmin({type:"admin_ga_b_fragen_list",password:PASS});
-    if(res.error){ el.innerHTML='<div class="empty">Zugriff verweigert.</div>'; return; }
+    if(res.error){ el.innerHTML='<div class="empty">'+escHtml(fehlerText(res))+'</div>'; return; }
     GAB_FRAGEN=res.rows||[];
     gabRenderFragen(GAB_FRAGEN);
   }catch(e){ el.innerHTML=`<div class="empty">Fehler beim Laden: ${escHtml(e.message)}</div>`; }
@@ -2672,7 +2729,7 @@ async function gabLadeParameter(){
   st.className="status-msg"; st.style.display="none";
   try{
     const r=await ftCallAdmin({type:"admin_ga_b_param_get",password:PASS});
-    if(r.error){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Zugriff verweigert."; return; }
+    if(r.error){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent=fehlerText(r); return; }
     $("gabAnzahl").value=r.anzahl;
     $("gabGrenze").value=r.grenze;
     $("gabMinuten").value=r.minuten;
@@ -2717,7 +2774,7 @@ async function gabLadeResultate(){
   el.innerHTML='<div class="loading">Lade …</div>';
   try{
     const res=await ftCallAdmin({type:"admin_ga_b_log",password:PASS});
-    if(res.error==="auth"){ el.innerHTML='<div class="empty">Zugriff verweigert.</div>'; return; }
+    if(res.error==="auth"){ el.innerHTML='<div class="empty">'+escHtml(fehlerText(res))+'</div>'; return; }
     if(!res.ok){ el.innerHTML='<div class="empty">Fehler beim Laden.</div>'; return; }
     GAB_EINTRAEGE=res.eintraege||[];
     gabRendern();
@@ -3340,7 +3397,7 @@ async function tfLade(offenId, reiter){
   el.innerHTML='<div class="loading">Lade …</div>';
   try{
     const r=await ftCallAdmin({type:"admin_tf_get",password:PASS});
-    if(r.error){ el.innerHTML='<div class="empty">Zugriff verweigert.</div>'; return; }
+    if(r.error){ el.innerHTML='<div class="empty">'+escHtml(fehlerText(r))+'</div>'; return; }
     TF_LISTE=r.ausbildungen||[];
     if(TF_LISTE.length===0){
       el.innerHTML='<div class="empty">Noch keine Ausbildung erfasst. Mit «+ Neue Ausbildung» anlegen.</div>';
@@ -4818,7 +4875,7 @@ async function bkLadeListe(){
   el.innerHTML='<div class="loading">Lade …</div>';
   try{
     const res=await ftCallAdmin({type:"admin_backup_liste",password:PASS});
-    if(res.error==="auth"){ el.innerHTML='<div class="empty">Zugriff verweigert.</div>'; return; }
+    if(res.error==="auth"){ el.innerHTML='<div class="empty">'+escHtml(fehlerText(res))+'</div>'; return; }
     if(!res.ok){ el.innerHTML=`<div class="empty">Fehler: ${escHtml(res.detail||res.error)}</div>`; return; }
     if(res.aufbewahrungTage) $("bkAufbewahrung").textContent=Math.round(res.aufbewahrungTage/30)+" Monate";
     const liste=res.liste||[];
@@ -4973,7 +5030,7 @@ async function resLadeEvents(){
   try{
     const res=await ftCallAdmin({type:"admin_kalender_events",password:PASS,
       von:$("resExpVon").value+"T00:00:00", bis:$("resExpBis").value+"T23:59:59"});
-    if(res.error==="auth"){ st.className="status-msg err-msg"; st.textContent="Zugriff verweigert."; return; }
+    if(res.error==="auth"){ st.className="status-msg err-msg"; st.textContent=fehlerText(res); return; }
     if(!res.ok){ st.className="status-msg err-msg"; st.textContent="Fehler: "+(res.detail||res.error); return; }
     RES_EVENTS=res.events||[];
     st.style.display="none";
@@ -5077,7 +5134,7 @@ async function ftLadeUebung(){
   st.className="status-msg"; st.style.display="none";
   try{
     const r=await ftCallAdmin({type:"admin_get_uebung",password:PASS});
-    if(r.error){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Zugriff verweigert."; return; }
+    if(r.error){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent=fehlerText(r); return; }
     $("ftUebungUrl").value=r.url||"";
     if(r.maxStunden!=null) $("ftUebungMax").value=r.maxStunden;
     ftZeigeUebung(r);
@@ -5140,7 +5197,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.69";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.70";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -5167,7 +5224,7 @@ async function ftLadeResMail(){
   st.className="status-msg"; st.style.display="none";
   try{
     const res=await ftCallAdmin({type:"admin_get_res_mail",password:PASS});
-    if(res.error){ st.className="status-msg err-msg"; st.textContent="Zugriff verweigert."; return; }
+    if(res.error){ st.className="status-msg err-msg"; st.textContent=fehlerText(res); return; }
     $("ftResMailBetreff").value=res.betreff||"";
     $("ftResMailText").value=res.text||"";
     FT_RES_MAIL_DEFAULTS=res.defaults||null;
@@ -5207,7 +5264,7 @@ async function ftLadeResTypen(){
   st.className="status-msg"; st.style.display="none";
   try{
     const res=await ftCallAdmin({type:"admin_get_res_typen",password:PASS});
-    if(res.error){ st.className="status-msg err-msg"; st.textContent="Zugriff verweigert."; return; }
+    if(res.error){ st.className="status-msg err-msg"; st.textContent=fehlerText(res); return; }
     $("ftResTypen").value=res.typen||"";
     if(res.standard) FT_RES_STANDARD=res.standard;
     ftResVorschau(res.alle);
@@ -5252,7 +5309,7 @@ async function ftLadeBestand(){
   el.innerHTML='<div class="loading">Wird geprüft…</div>';
   try{
     const res=await ftCallAdmin({type:"admin_fragen_pruefen",password:PASS});
-    if(res.error){ el.innerHTML='<div class="empty">Zugriff verweigert.</div>'; return; }
+    if(res.error){ el.innerHTML='<div class="empty">'+escHtml(fehlerText(res))+'</div>'; return; }
     const b=res.bericht||[];
     const ohne=b.filter(x=>x.fragen===0&&!x.keinFt);
     let kopf="";
@@ -5289,7 +5346,7 @@ async function ftLadeFahrzeuge(){
   st.className="status-msg"; st.style.display="none";
   try{
     const res=await ftCallAdmin({type:"admin_get_fahrzeuge",password:PASS});
-    if(res.error){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Zugriff verweigert."; return; }
+    if(res.error){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent=fehlerText(res); return; }
     FT_FZG_LISTE=res.liste||[];
     ftFuelleQuelleAuswahl();
     ftRenderFahrzeuge();
@@ -5509,7 +5566,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.69", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.70", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -5558,7 +5615,7 @@ async function ftLadeArchivEinstellungen(){
   st.className="status-msg"; st.style.display="none";
   try{
     const res=await ftCallAdmin({type:"admin_get_archiv",password:PASS});
-    if(res.error){ st.className="status-msg err-msg"; st.textContent="Zugriff verweigert."; return; }
+    if(res.error){ st.className="status-msg err-msg"; st.textContent=fehlerText(res); return; }
     $("ftArchivEmpf").value=res.empfaenger||"";
     $("ftArchivIntervall").value=res.intervall||"monat";
     $("ftArchivBetreff").value=res.betreff||"";
@@ -5840,7 +5897,7 @@ async function ftLadeFragenAdmin(){
   el.innerHTML='<div class="loading">Wird geladen…</div>';
   try{
     const res=await ftCallAdmin({type:"admin_list_fragen",password:PASS,sheet});
-    if(res.error){el.innerHTML='<div class="empty">Zugriff verweigert.</div>';return;}
+    if(res.error){el.innerHTML='<div class="empty">'+escHtml(fehlerText(res))+'</div>';return;}
     FT_LETZTE_FRAGEN=res.rows||[];
     ftRenderFragenListe(FT_LETZTE_FRAGEN);
   }catch(e){ el.innerHTML=`<div class="empty">Fehler beim Laden: ${escHtml(e.message)}</div>`; }
@@ -5958,7 +6015,7 @@ async function ftLadeMeldungenAdmin(){
   el.innerHTML='<div class="loading">Wird geladen…</div>';
   try{
     const res=await ftCallAdmin({type:"admin_list_einsatzmeldungen",password:PASS});
-    if(res.error){el.innerHTML='<div class="empty">Zugriff verweigert.</div>';return;}
+    if(res.error){el.innerHTML='<div class="empty">'+escHtml(fehlerText(res))+'</div>';return;}
     FT_LETZTE_MELDUNGEN=res.rows||[];
     ftFuelleKategorieFilter(FT_LETZTE_MELDUNGEN);
     ftRenderMeldungenListe(FT_LETZTE_MELDUNGEN);
@@ -6070,7 +6127,7 @@ async function ftLadeFahrten(){
   try{
     if(Object.keys(FT_MITGLIEDER).length===0) await ftLadeMitglieder();
     const res=await ftCallAdmin({type:"admin_lade_auswertung",password:PASS});
-    if(res.error){ el.innerHTML='<div class="empty">Zugriff verweigert.</div>'; return; }
+    if(res.error){ el.innerHTML='<div class="empty">'+escHtml(fehlerText(res))+'</div>'; return; }
     FT_AUSW_FRAGEN=res.fragen||[];
     FT_AUSW_TAETIGKEITEN=res.taetigkeiten||[];
     FT_ALLE_FAHRTEN=(res.fahrten||[]).map(row=>({
@@ -6242,17 +6299,19 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.69`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.70`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.69";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.70";
 
 async function soApi(payload){
   try{
-    return await fwAufruf(SO_EXEC_URL, payload, {seite:"Admin SoSi"});
+    const r=await fwAufruf(SO_EXEC_URL, payload, {seite:"Admin SoSi"});
+    if(r && r.error==="AUTH" && String(PASS||"").indexOf("SITZUNG:")===0) sitzungAbgelaufen();
+    return r;
   }
   catch(e){ return {ok:false,error:"NETZWERK",detail:String(e&&e.message||e)}; }
 }
