@@ -233,7 +233,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       <select id="toolSelect" style="max-width:300px">
         <option value="start">Übersicht</option>
         <option value="ft">Fahrtraining</option>
-        <option value="so">SoSi-Prüfung</option>
+        <option value="so">SoSi</option>
         <option value="res">Fahrzeugreservationen</option>
         <option value="gab">B Grundausbildung</option>
         <option value="tlfc">TLF-Check</option>
@@ -275,7 +275,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       <div class="start-block">Prüfungen</div>
       <div class="start-raster">
         <div class="start-kachel">
-          <div class="start-titel">SoSi-Prüfung</div>
+          <div class="start-titel">SoSi</div>
           <a class="start-link" href="https://sosi.feuerwehrmeilen.ch" target="_blank" rel="noopener">Prüfung ablegen<span>sosi.feuerwehrmeilen.ch</span></a>
           <button class="btn btn-klein start-verwalten" data-ziel="so">Verwalten →</button>
         </div>
@@ -770,7 +770,6 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       <div class="tabs">
         <button class="tab aktiv" data-gabtab="resultate">Resultate</button>
         <button class="tab" data-gabtab="fragen">Fragen</button>
-        <button class="tab" data-gabtab="sosi">SoSi-Vorbereitung</button>
         <button class="tab" data-gabtab="einstellungen">Einstellungen</button>
         <button class="tab" data-gabtab="inhalte">Ausbildungsinhalte</button>
       </div>
@@ -809,37 +808,6 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         </div>
 
         <div id="gabListe" class="loading">Lade …</div>
-      </div>
-
-      <div id="gabTabFragen" style="display:none">
-        <div class="card">
-          <h2>Fragenkatalog</h2>
-          <label for="gabFragenSuche">Suche</label>
-          <input id="gabFragenSuche" type="text" placeholder="Frage oder Antwort …">
-          <div class="hinw" style="margin-top:10px" id="gabFragenCount"></div>
-        </div>
-        <div class="top-actions">
-          <span class="hinw">Pro Test werden zufällig Fragen aus diesem Katalog gezogen.</span>
-          <button class="btn btn-green btn-klein" id="btnGabNeueFrage">+ Neue Frage</button>
-        </div>
-        <div id="gabFragenListe"></div>
-      </div>
-
-      <div id="gabTabSosi" style="display:none">
-        <div class="card">
-          <h2>Übersicht</h2>
-          <p class="hinw" style="margin-bottom:1rem">
-            Nach dem B-Test darf sich jemand für die Sondersignal-Ausbildung melden, sobald
-            <b id="svRegelMonate">6</b> Monate vergangen sind <b>und</b> mindestens
-            <b id="svRegelFahrten">2</b> Fahrtrainings als Fahrer absolviert wurden –
-            beides gerechnet ab dem B-Test.
-          </p>
-          <div class="entry-actions" style="justify-content:flex-start">
-            <button class="btn btn-red btn-klein" id="btnSvStatus">Aktualisieren</button>
-          </div>
-          <div class="status-msg" id="svStatusMsg"></div>
-        </div>
-        <div id="svListe" class="loading">Lade …</div>
 
         <div class="card">
           <h2>Nachtragen</h2>
@@ -868,78 +836,26 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
             </div>
           </details>
         </div>
-
       </div>
 
-      <div id="gabTabEinstellungen" style="display:none">
+      <div id="gabTabFragen" style="display:none">
         <div class="card">
-          <h2>Automatische Mails</h2>
-          <details>
-            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Regeln &amp; Empfänger</summary>
-            <div style="margin-top:0.75rem">
-              <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:13px;letter-spacing:0;color:var(--text)">
-                <input type="checkbox" id="svAktiv" style="width:auto;margin:0"> Automatische Mails aktiv
-              </label>
-              <div class="entry-row2" style="margin-top:1rem">
-                <div>
-                  <label for="svMonateMin">Wartefrist nach B-Test (Monate)</label>
-                  <input id="svMonateMin" type="number" min="0" max="60" step="1" style="max-width:120px">
-                </div>
-                <div>
-                  <label for="svMonateErinn">Erinnerung nach (Monaten)</label>
-                  <input id="svMonateErinn" type="number" min="0" max="60" step="1" style="max-width:120px">
-                </div>
-              </div>
-              <label for="svFahrten" style="margin-top:0.75rem">Nötige Fahrtrainings als Fahrer</label>
-              <input id="svFahrten" type="number" min="1" max="50" step="1" style="max-width:120px">
-              <label for="svCc" style="margin-top:0.75rem">CC-Empfänger (optional, Kürzel oder Adressen, mehrere mit Komma)</label>
-              <input id="svCc" type="text" placeholder="z. B. LOL, mwd@feuerwehrmeilen.ch">
-              <div class="hinw" style="margin-top:8px">
-                Die Mail geht immer an die betroffene Person. Wer bereits die SoSi-Prüfung
-                bestanden hat, erhält keine Mails mehr. Jede Mail wird pro Person nur einmal versendet.
-              </div>
-            </div>
-          </details>
-
-          <details style="margin-top:0.5rem">
-            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Mail «Voraussetzungen erfüllt» &amp; Vorschau</summary>
-            <div style="margin-top:0.75rem">
-              <label for="svBereitBetreff">Betreff</label>
-              <input id="svBereitBetreff" type="text">
-              <label for="svBereitText">Mailtext</label>
-              <textarea id="svBereitText" rows="12"></textarea>
-              <div class="hinw" style="margin-top:8px" id="svPlatzhalter"></div>
-              <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem">
-                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="svPvBereitBetreff" style="font-weight:400"></span></div>
-                <div id="svPvBereitBody" style="font-size:13px;line-height:1.6"></div>
-              </div>
-            </div>
-          </details>
-
-          <details style="margin-top:0.5rem">
-            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Mail «Fahrtrainings fehlen» &amp; Vorschau</summary>
-            <div style="margin-top:0.75rem">
-              <label for="svErinnBetreff">Betreff</label>
-              <input id="svErinnBetreff" type="text">
-              <label for="svErinnText">Mailtext</label>
-              <textarea id="svErinnText" rows="12"></textarea>
-              <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem">
-                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="svPvErinnBetreff" style="font-weight:400"></span></div>
-                <div id="svPvErinnBody" style="font-size:13px;line-height:1.6"></div>
-              </div>
-            </div>
-          </details>
-
-          <div class="entry-actions" style="justify-content:flex-start;margin-top:1.25rem">
-            <button class="btn btn-green btn-klein" id="btnSvSpeichern">Speichern</button>
-            <button class="btn btn-klein" id="btnSvReset">Texte auf Standard</button>
-          </div>
-          <div class="status-msg" id="svSpeichernStatus"></div>
-          <div class="hinw" style="margin-top:1rem">
-            Der Versand benötigt einen <b>Zeit-Auslöser</b> im Fahrtraining-Apps-Script
-            (Funktion <code>taeglicherSosiVorbereitungsCheck</code>, täglich).
-          </div>
+          <h2>Fragenkatalog</h2>
+          <label for="gabFragenSuche">Suche</label>
+          <input id="gabFragenSuche" type="text" placeholder="Frage oder Antwort …">
+          <div class="hinw" style="margin-top:10px" id="gabFragenCount"></div>
         </div>
+        <div class="top-actions">
+          <span class="hinw">Pro Test werden zufällig Fragen aus diesem Katalog gezogen.</span>
+          <button class="btn btn-green btn-klein" id="btnGabNeueFrage">+ Neue Frage</button>
+        </div>
+        <div id="gabFragenListe"></div>
+      </div>
+
+
+
+      <div id="gabTabEinstellungen" style="display:none">
+
         <div class="card">
           <h2>Einstellungen</h2>
           <details>
@@ -1245,9 +1161,12 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           <a href="https://terminfindung.feuerwehrmeilen.ch" target="_blank" rel="noopener" style="color:var(--red);font-weight:600">terminfindung.feuerwehrmeilen.ch</a>
           ein.
         </p>
-        <div class="entry-actions" style="justify-content:flex-start">
+        <div class="entry-actions" style="justify-content:flex-start;align-items:center">
           <button class="btn btn-red btn-klein" id="btnTfLaden">Aktualisieren</button>
           <button class="btn btn-green btn-klein" id="btnTfNeu">+ Neue Ausbildung</button>
+          <span style="flex:1"></span>
+          <label style="display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;font-size:13px;margin:0;cursor:pointer">
+            <input type="checkbox" id="tfArchivZeigen" style="width:auto;margin:0" onchange="tfArchivUmschalten()"> Archivierte einblenden</label>
         </div>
         <div class="status-msg" id="tfStatus"></div>
 
@@ -1488,10 +1407,96 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         <button class="tab" data-sotab="pdf">Prüfungsliste</button>
         <button class="tab" data-sotab="fragen">Fragen</button>
         <button class="tab" data-sotab="erinnerung">Erinnerungsmails</button>
+        <button class="tab" data-sotab="vorbereitung">SoSi-Vorbereitung</button>
         <button class="tab" data-sotab="mail">Einstellungen</button>
       </div>
 
       <div id="soTabStat"><div id="soStatInhalt" class="loading">Lade …</div></div>
+
+      <div id="soTabVorbereitung" style="display:none">
+        <div class="card">
+          <h2>SoSi-Vorbereitung</h2>
+          <p class="hinw" style="margin-bottom:1rem">
+            Nach dem B-Test darf sich jemand für die Sondersignal-Ausbildung melden, sobald
+            <b id="svRegelMonate">6</b> Monate vergangen sind <b>und</b> mindestens
+            <b id="svRegelFahrten">2</b> Fahrtrainings als Fahrer absolviert wurden –
+            beides gerechnet ab dem B-Test.
+          </p>
+          <div class="entry-actions" style="justify-content:flex-start">
+            <button class="btn btn-red btn-klein" id="btnSvStatus">Aktualisieren</button>
+          </div>
+          <div class="status-msg" id="svStatusMsg"></div>
+        </div>
+        <div id="svListe" class="loading">Lade …</div>
+        <div class="card">
+          <h2>Automatische Mails</h2>
+          <details>
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Regeln &amp; Empfänger</summary>
+            <div style="margin-top:0.75rem">
+              <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:13px;letter-spacing:0;color:var(--text)">
+                <input type="checkbox" id="svAktiv" style="width:auto;margin:0"> Automatische Mails aktiv
+              </label>
+              <div class="entry-row2" style="margin-top:1rem">
+                <div>
+                  <label for="svMonateMin">Wartefrist nach B-Test (Monate)</label>
+                  <input id="svMonateMin" type="number" min="0" max="60" step="1" style="max-width:120px">
+                </div>
+                <div>
+                  <label for="svMonateErinn">Erinnerung nach (Monaten)</label>
+                  <input id="svMonateErinn" type="number" min="0" max="60" step="1" style="max-width:120px">
+                </div>
+              </div>
+              <label for="svFahrten" style="margin-top:0.75rem">Nötige Fahrtrainings als Fahrer</label>
+              <input id="svFahrten" type="number" min="1" max="50" step="1" style="max-width:120px">
+              <label for="svCc" style="margin-top:0.75rem">CC-Empfänger (optional, Kürzel oder Adressen, mehrere mit Komma)</label>
+              <input id="svCc" type="text" placeholder="z. B. LOL, mwd@feuerwehrmeilen.ch">
+              <div class="hinw" style="margin-top:8px">
+                Die Mail geht immer an die betroffene Person. Wer bereits die SoSi-Prüfung
+                bestanden hat, erhält keine Mails mehr. Jede Mail wird pro Person nur einmal versendet.
+              </div>
+            </div>
+          </details>
+
+          <details style="margin-top:0.5rem">
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Mail «Voraussetzungen erfüllt» &amp; Vorschau</summary>
+            <div style="margin-top:0.75rem">
+              <label for="svBereitBetreff">Betreff</label>
+              <input id="svBereitBetreff" type="text">
+              <label for="svBereitText">Mailtext</label>
+              <textarea id="svBereitText" rows="12"></textarea>
+              <div class="hinw" style="margin-top:8px" id="svPlatzhalter"></div>
+              <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem">
+                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="svPvBereitBetreff" style="font-weight:400"></span></div>
+                <div id="svPvBereitBody" style="font-size:13px;line-height:1.6"></div>
+              </div>
+            </div>
+          </details>
+
+          <details style="margin-top:0.5rem">
+            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Mail «Fahrtrainings fehlen» &amp; Vorschau</summary>
+            <div style="margin-top:0.75rem">
+              <label for="svErinnBetreff">Betreff</label>
+              <input id="svErinnBetreff" type="text">
+              <label for="svErinnText">Mailtext</label>
+              <textarea id="svErinnText" rows="12"></textarea>
+              <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem">
+                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="svPvErinnBetreff" style="font-weight:400"></span></div>
+                <div id="svPvErinnBody" style="font-size:13px;line-height:1.6"></div>
+              </div>
+            </div>
+          </details>
+
+          <div class="entry-actions" style="justify-content:flex-start;margin-top:1.25rem">
+            <button class="btn btn-green btn-klein" id="btnSvSpeichern">Speichern</button>
+            <button class="btn btn-klein" id="btnSvReset">Texte auf Standard</button>
+          </div>
+          <div class="status-msg" id="svSpeichernStatus"></div>
+          <div class="hinw" style="margin-top:1rem">
+            Der Versand benötigt einen <b>Zeit-Auslöser</b> im Fahrtraining-Apps-Script
+            (Funktion <code>taeglicherSosiVorbereitungsCheck</code>, täglich).
+          </div>
+        </div>
+      </div>
 
       <div id="soTabFragen" style="display:none">
         <div class="top-actions">
@@ -1804,30 +1809,28 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.71</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.72</div>
 
 <script>
-/* ── Netzwerk-Baustein für alle MWD-Seiten (Stand CLv1.69) ──
+/* ── Netzwerk-Baustein für alle MWD-Seiten (Stand CLv1.72) ──
  * Google antwortet manchmal sofort, manchmal hängt eine Anfrage oder liefert eine
- * Fehlerseite. Seit CLv1.69:
- *  - Aufrufe laufen über den MWD-Worker (Cloudflare). Er fragt bei Googles Fehlern
- *    selbst sofort nach und hält öffentliche Lesedaten zwischengespeichert.
- *    Antwortet der Worker nicht (oder ist er noch die alte Version W2), geht der
- *    Aufruf direkt an Google.
- *  - Höchstens 2 Anfragen gleichzeitig (vorher bis 5): die zweite nach 15 s,
- *    und zwar direkt an Google. Nach einer Fehlerantwort startet sofort die nächste,
- *    insgesamt höchstens 4.
+ * Fehlerseite. Seit CLv1.72:
+ *  - Aufrufe gehen wieder direkt an Google. Der Umweg über den Cloudflare-Worker
+ *    (CLv1.69–1.71) war gemessen deutlich langsamer (10–47 s statt 1–2 s);
+ *    der Worker dient nur noch den Kalender-Abos.
+ *  - Höchstens 2 Anfragen gleichzeitig: die zweite nach 8 s. Nach einer
+ *    Fehlerantwort startet sofort die nächste, insgesamt höchstens 4.
  *  - «Server braucht gerade länger …» erst nach 8 s (vorher 3 s).
  *  - Nach 50 s ohne Erfolg: «Server nicht erreichbar» mit «Erneut versuchen».
  * Alle Anfragen tragen dieselbe Kennung – der Server führt Schreibvorgänge nur
  * einmal aus. Mehrfachanfragen werden fürs Aussetzer-Protokoll gemeldet.
  */
 (function(){
-  const NACHFRAGEN=[0,15000];     // geplante Startzeitpunkte
+  const NACHFRAGEN=[0,8000];      // geplante Startzeitpunkte
   const MAX_VERSUCHE=4;           // inkl. Neustarts nach Fehlerantworten
   const HOECHSTENS=50000;         // danach aufgeben und fragen
   const HINWEIS_NACH=8000;
-  const WORKER="https://cal.stuetzpunktfeuerwehrmeilen.workers.dev/api";
+  const WORKER="";   // Worker-Umweg ausgeschaltet (siehe oben)
   const MELDE_URL="https://script.google.com/macros/s/AKfycbwvTL3yecdyTvSV5ZPgGslm5K-3UFjW9zc4A2qn_zUk50CcSIpXEaBE1hMiaU3GnNEQ/exec";
   let aktiv=0, entscheid=null, workerOk=null;   // null = unbekannt, false = nicht nutzen
 
@@ -1882,7 +1885,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
     try{ return JSON.parse(t); }catch(e){ return null; }
   }
 
-  /** Eine Runde: erste Anfrage (Worker), nach 15 s eine zweite (direkt), erste gültige Antwort gewinnt */
+  /** Eine Runde: erste Anfrage sofort, nach 8 s eine zweite, erste gültige Antwort gewinnt */
   function runde(url,body,opts,aufruf){
     return new Promise(resolve=>{
       const start=Date.now();
@@ -1904,7 +1907,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         if(gestartet>=MAX_VERSUCHE){ if(offen===0) ende(false); return; }
         gestartet++; offen++;
         // 1., 3. Versuch über den Worker, 2., 4. direkt an Google (falls der Worker selbst klemmt)
-        const ueberWorker=workerOk!==false && gestartet%2===1 && url.indexOf("script.google.com")>=0;
+        const ueberWorker=!!WORKER && workerOk!==false && gestartet%2===1 && url.indexOf("script.google.com")>=0;
         const ziel=ueberWorker?WORKER:url;
         const a=new AbortController(); abbrecher.push(a);
         fetch(ziel,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body,signal:a.signal})
@@ -2079,6 +2082,7 @@ function fehlerText(r){
   if(e==="UNBEKANNTER_AUFRUF") return "Diese Funktion gibt es auf dem Server noch nicht – Apps Script neu bereitstellen.";
   if(e==="SERVERFEHLER") return "Serverfehler: "+(r.detail||"unbekannt");
   if(e==="BESCHAEFTIGT") return "Der Server ist gerade beschäftigt – bitte nochmals versuchen.";
+  if(e==="ARCHIVIERT") return "Diese Ausbildung ist archiviert und schreibgeschützt.";
   if(e==="NETZWERK") return "Server nicht erreichbar"+(r.detail?": "+r.detail:".");
   return "Fehler: "+(e||"unbekannt")+(r&&r.detail?" – "+r.detail:"");
 }
@@ -2407,17 +2411,11 @@ function initGab(){
       $("gabTabEinstellungen").style.display=tab==="einstellungen"?"block":"none";
       $("gabTabInhalte").style.display=tab==="inhalte"?"block":"none";
       if(tab==="inhalte") gaEditorOeffnen("B");
-      if(tab==="einstellungen"){ gabLadeParameter(); svLadeConfig(); }
+      if(tab==="einstellungen") gabLadeParameter();
       if(tab==="fragen") gabLadeFragen();
-      $("gabTabSosi").style.display=tab==="sosi"?"block":"none";
-      if(tab==="sosi"){ svLadeConfig(); svLadeStatus(); }
+
     });
   });
-  $("btnSvStatus").addEventListener("click", svLadeStatus);
-  $("btnSvSpeichern").addEventListener("click", svSpeichern);
-  $("btnSvReset").addEventListener("click", svReset);
-  ["svBereitBetreff","svBereitText","svErinnBetreff","svErinnText","svMonateMin","svMonateErinn","svFahrten"]
-    .forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", svVorschau); });
   $("btnGabNeueFrage").addEventListener("click", gabNeueFrage);
   $("btnGabNachtragen").addEventListener("click", ()=>gabNachtragen(false,false));
   $("gabNtKuerzel").addEventListener("keydown", e=>{ if(e.key==="Enter") gabNachtragen(false,false); });
@@ -2432,7 +2430,7 @@ function initGab(){
   if(darf("gab.resultate")) gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.71";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.72";
 
 let GAB_NT_ID=null;
 
@@ -2462,7 +2460,7 @@ async function gabNachtragen(kuerzelBestaetigt, ueberschreiben){
       $("gabNtKuerzel").value=""; $("gabNtDatum").value="";
       GAB_NT_ID=null;
       // Listen im Hintergrund erneuern – blockiert die Rückmeldung nicht
-      setTimeout(()=>{ gabLadeResultate(); svLadeStatus(); },50);
+      setTimeout(()=>{ if(darf("gab.resultate")) gabLadeResultate(); if(SO_INIT&&darf("so.vorbereitung")) svLadeStatus(); },50);
     } else if(r.error==="KUERZEL_UNBEKANNT"){
       btn.disabled=false;
       if(confirm(`Das Kürzel „${kuerzel}" ist nicht in der Mitgliederliste.\n\nTrotzdem eintragen?`)){
@@ -2585,8 +2583,14 @@ async function svLadeStatus(){
     const r=await ftCallAdmin({type:"admin_sv_status",password:PASS});
     if(r.error){ el.innerHTML='<div class="empty">'+escHtml(fehlerText(r))+'</div>'; return; }
     if(!r.ok){ el.innerHTML='<div class="empty">Fehler beim Laden.</div>'; return; }
-    const liste=r.liste||[];
-    if(liste.length===0){ el.innerHTML='<div class="empty">Noch niemand hat den B-Test bestanden.</div>'; return; }
+    const liste=r.liste||[], erledigt=r.erledigt||[];
+    // Wer die SoSi-Prüfung bestanden hat, steht seit CLv1.72 nur noch unter «Erledigt»
+    const erledigtHtml=erledigt.length?`<div class="card"><details><summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em">
+      Erledigt – SoSi bestanden (${erledigt.length})</summary><div class="tblwrap" style="margin-top:.75rem"><table class="l5">
+      <thead><tr><th>Kürzel</th><th>Name</th><th>B-Test</th><th>SoSi bestanden</th></tr></thead><tbody>${erledigt.map(p=>`<tr>
+        <td><b>${escHtml(p.kuerzel)}</b></td><td>${escHtml((p.name+" "+p.vorname).trim())}</td><td>${escHtml(p.bTest)}</td><td>${escHtml(p.bestandenAm||"ja")}</td></tr>`).join("")}
+      </tbody></table></div></details></div>`:"";
+    if(liste.length===0){ el.innerHTML='<div class="empty">Niemand ist in der SoSi-Vorbereitung.</div>'+erledigtHtml; return; }
     el.innerHTML=`<div class="card" style="padding:0"><div class="tblwrap"><table class="l5">
       <thead><tr><th>Kürzel</th><th>Name</th><th>B-Test</th><th>Monate</th><th>Fahrten</th><th>Stand</th></tr></thead>
       <tbody>`+liste.map(p=>{
@@ -2605,7 +2609,7 @@ async function svLadeStatus(){
           <td>${p.fahrten} / ${r.noetigeFahrten}</td>
           <td>${badge}</td>
         </tr>`;
-      }).join("")+`</tbody></table></div></div>`;
+      }).join("")+`</tbody></table></div></div>`+erledigtHtml;
   }catch(e){ el.innerHTML=`<div class="empty">Fehler: ${escHtml(e.message)}</div>`; }
 }
 
@@ -3355,7 +3359,7 @@ function initTf(){
     });
   });
   tfFahrzeugeSicherstellen();
-  $("btnTfLaden").addEventListener("click", ()=>tfLade(TF_OFFEN,"termine"));
+  $("btnTfLaden").addEventListener("click", ()=>tfLade(TF_OFFEN,TF_REITER));
   $("btnTfNeu").addEventListener("click", ()=>tfFormular(null));
   $("btnTfZurueck").addEventListener("click", tfZurueck);
   $("btnTfTerminNeu").addEventListener("click", tfEinzelOeffnen);
@@ -3400,21 +3404,38 @@ async function tfLade(offenId, reiter){
   try{
     const r=await ftCallAdmin({type:"admin_tf_get",password:PASS});
     if(r.error){ el.innerHTML='<div class="empty">'+escHtml(fehlerText(r))+'</div>'; return; }
-    TF_LISTE=r.ausbildungen||[];
-    if(TF_LISTE.length===0){
-      el.innerHTML='<div class="empty">Noch keine Ausbildung erfasst. Mit «+ Neue Ausbildung» anlegen.</div>';
-      return;
-    }
-    el.innerHTML=TF_LISTE.map(tfKarte).join("");
-    if(offenId&&TF_LISTE.some(a=>a.id===offenId)) tfAufklappen(offenId, reiter||"termine");
+    TF_LISTE=r.ausbildungen||[]; TF_GELADEN=null;
+    tfListeZeigen(offenId, reiter);
   }catch(e){ el.innerHTML=`<div class="empty">Fehler: ${escHtml(e.message)}</div>`; }
 }
 
+/* ── Liste mit «Archivierte einblenden» (seit CLv1.72) ── */
+function tfArchivZeigen(){ try{ return localStorage.getItem("mwd_tf_archiv")==="1"; }catch(e){ return false; } }
+function tfArchivUmschalten(){
+  try{ localStorage.setItem("mwd_tf_archiv",$("tfArchivZeigen").checked?"1":"0"); }catch(e){}
+  tfListeZeigen(TF_OFFEN, TF_REITER);
+}
+function tfListeZeigen(offenId, reiter){
+  const el=$("tfListe");
+  tfDetailParken();
+  $("tfArchivZeigen").checked=tfArchivZeigen();
+  const archiviert=TF_LISTE.filter(a=>a.status==="archiviert").length;
+  const sichtbar=TF_LISTE.filter(a=>tfArchivZeigen()||a.status!=="archiviert");
+  if(sichtbar.length===0){
+    el.innerHTML='<div class="empty">'+(TF_LISTE.length?`Keine laufenden Ausbildungen. ${archiviert} archiviert – oben «Archivierte einblenden».`
+      :"Noch keine Ausbildung erfasst. Mit «+ Neue Ausbildung» anlegen.")+'</div>';
+    return;
+  }
+  el.innerHTML=sichtbar.map(tfKarte).join("")
+    +(!tfArchivZeigen()&&archiviert?`<div class="hinw" style="text-align:center;margin:.5rem 0 1rem">${archiviert} archivierte Ausbildung${archiviert!==1?"en":""} ausgeblendet.</div>`:"");
+  TF_OFFEN=null;
+  if(offenId&&sichtbar.some(a=>a.id===offenId)) tfAufklappen(offenId, reiter||"uebersicht");
+}
+const TF_STATUS_BADGE={offen:['Offen','#2d6a1f'],geschlossen:['Geschlossen','#888'],archiviert:['Archiviert','#444']};
+
 function tfKarte(a){
-  const offen=(a.status||"offen")==="offen";
-  const badge=offen
-    ? '<span class="badge" style="background:#2d6a1f">Offen</span>'
-    : '<span class="badge" style="background:#888">Abgeschlossen</span>';
+  const status=a.status||"offen", offen=status==="offen", archiv=status==="archiviert";
+  const badge=`<span class="badge" style="background:${TF_STATUS_BADGE[status][1]}">${TF_STATUS_BADGE[status][0]}</span>`;
   const f=a.fortschritt;
   const teile=[];
   if(f&&f.benoetigt){
@@ -3433,7 +3454,7 @@ function tfKarte(a){
       <div style="height:6px;width:${pct}%;background:${f.genuegend?"var(--green)":"var(--orange)"}"></div></div>`;
   }
   const id=escHtml(a.id);
-  return `<div class="card tf-karte" id="tfC-${id}" style="padding:0;border-top-color:${offen?"var(--green)":"var(--gray-mid)"}">
+  return `<div class="card tf-karte" id="tfC-${id}" style="padding:0;border-top-color:${offen?"var(--green)":"var(--gray-mid)"}${archiv?";opacity:.72":""}">
     <div class="tf-kopf" onclick="tfUmschalten('${id}')">
       <span class="tf-pfeil">&#9654;</span>
       <div style="flex:1;min-width:0">
@@ -3444,6 +3465,7 @@ function tfKarte(a){
     </div>
     <div class="tf-koerper">
       <div class="tabs" style="margin-bottom:1rem">
+        <button class="tab" data-tfr="uebersicht" onclick="tfReiter('${id}','uebersicht')">Übersicht</button>
         <button class="tab" data-tfr="termine" onclick="tfReiter('${id}','termine')">Termine</button>
         <button class="tab" data-tfr="bearbeiten" onclick="tfReiter('${id}','bearbeiten')">Bearbeiten</button>
       </div>
@@ -3453,7 +3475,7 @@ function tfKarte(a){
 }
 
 function tfUmschalten(id){
-  if(TF_OFFEN===id) tfZuklappen(); else tfAufklappen(id,"termine");
+  if(TF_OFFEN===id) tfZuklappen(); else tfAufklappen(id,"uebersicht");
 }
 
 function tfZuklappen(){
@@ -3473,16 +3495,18 @@ function tfAufklappen(id,reiter){
   setTimeout(()=>karte.scrollIntoView({behavior:"smooth",block:"start"}),60);
 }
 
+let TF_REITER="uebersicht";
 function tfReiter(id,reiter){
   const karte=$("tfC-"+id), box=$("tfI-"+id);
   if(!karte||!box) return;
+  TF_REITER=reiter;
   karte.querySelectorAll("[data-tfr]").forEach(t=>t.classList.toggle("aktiv",t.dataset.tfr===reiter));
-  if(reiter==="termine"){
-    box.innerHTML="";
+  if(reiter==="termine"||reiter==="uebersicht"){
     const d=$("tfDetail");
-    box.appendChild(d);
+    if(d.parentNode!==box){ box.innerHTML=""; box.appendChild(d); }
     d.style.display="block";
-    tfOeffnen(id);
+    // Beim Wechsel zwischen Übersicht und Termine nicht neu laden
+    if(TF_AKTUELL&&TF_AKTUELL.id===id&&TF_GELADEN===id) tfRenderTermine(); else tfOeffnen(id);
   } else {
     tfDetailParken();
     const a=TF_LISTE.find(x=>x.id===id);
@@ -3491,7 +3515,7 @@ function tfReiter(id,reiter){
 }
 
 function tfFormAbbrechen(id){
-  if(id&&TF_OFFEN===id) tfReiter(id,"termine");
+  if(id&&TF_OFFEN===id) tfReiter(id,"uebersicht");
   else { const b=$("tfNeuBox"); if(b) b.remove(); }
 }
 
@@ -3596,11 +3620,7 @@ async function tfFormular(a,ziel){
           FT_FZG_LISTE.filter(f=>f.aktiv!==false).map(f=>
             `<option value="${escHtml(f.name)}"${d.fahrzeug===f.name?" selected":""}>${escHtml(f.name)}</option>`).join("")
         }</select></div>
-      <div><label for="${id}-status">Status</label>
-        <select id="${id}-status">
-          <option value="offen"${d.status!=="geschlossen"?" selected":""}>Offen – Anmeldung läuft</option>
-          <option value="geschlossen"${d.status==="geschlossen"?" selected":""}>Abgeschlossen – nur definitive Termine</option>
-        </select></div>
+      <div class="hinw" style="align-self:end">Der Status wird im Reiter «Übersicht» gesetzt.</div>
     </div>
     <div class="entry-actions" style="margin-top:1rem">
       ${neu?"":`<button class="btn btn-red btn-klein" onclick="tfLoeschen('${escHtml(d.id)}','${escHtml(d.name)}')">Löschen</button>`}
@@ -3609,7 +3629,13 @@ async function tfFormular(a,ziel){
     </div>
     <div class="status-msg" id="${id}-status-msg"></div>
   </div>`;
-  if(ziel){ ziel.innerHTML=html; }
+  if(ziel){ ziel.innerHTML=html;
+    // Archivierte Ausbildung: nur ansehen
+    if(!neu&&d.status==="archiviert"){
+      ziel.querySelectorAll("input,select,textarea").forEach(x=>x.disabled=true);
+      ziel.querySelectorAll(".entry-actions button").forEach(b=>{ if(!/Abbrechen/.test(b.textContent)) b.style.display="none"; });
+      ziel.querySelector("h2").insertAdjacentHTML("afterend",'<div class="warnung" style="margin-bottom:1rem">Archiviert – schreibgeschützt.</div>');
+    } }
   else {
     // Neue Ausbildung: eigene Karte ganz oben
     tfZuklappen();
@@ -3633,10 +3659,10 @@ async function tfSpeichern(id){
       name:$(f+"-name").value, beschreibung:$(f+"-beschreibung").value,
       minTeilnehmer:$(f+"-minT").value, maxTeilnehmer:$(f+"-maxT").value,
       minAusbildner:$(f+"-minA").value, maxAusbildner:$(f+"-maxA").value,
-      fahrzeug:$(f+"-fahrzeug").value, status:$(f+"-status").value,
+      fahrzeug:$(f+"-fahrzeug").value,
       teilnehmerListe:$(f+"-tl").value, ausbildnerListe:$(f+"-al").value,
       benoetigteTermine:$(f+"-benoetigt").value, verantwortlich:$(f+"-verantw").value});
-    if(r.ok){ tfLade(r.ausbildung&&r.ausbildung.id, "termine"); }
+    if(r.ok){ tfLade(r.ausbildung&&r.ausbildung.id, "uebersicht"); }
     else if(r.error==="NAME_LEER"){ st.className="status-msg err-msg"; st.textContent="Bitte eine Bezeichnung eingeben."; }
     else if(r.error==="TEILNEHMER_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Mindestzahl Teilnehmer darf die Plätze nicht übersteigen."; }
     else if(r.error==="AUSBILDNER_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Mindestzahl Ausbildner darf die Plätze nicht übersteigen."; }
@@ -3662,6 +3688,7 @@ async function tfOeffnen(id){
     TF_FEHLEND=r.fehlend||{teilnehmer:null,ausbildner:null};
     TF_LODUR=r.lodur||null;
     TF_FORTSCHRITT=r.fortschritt||null;
+    TF_GELADEN=id; TF_AENDERN=null;
     $("tfDetailTitel").textContent=TF_AKTUELL.name;
     tfRenderTermine();
   }catch(e){ $("tfTermine").innerHTML=`<div class="empty">Fehler: ${escHtml(e.message)}</div>`; }
@@ -3692,7 +3719,7 @@ function tfFortschrittKarte(){
     </div>
     <div class="hinw" style="margin-top:6px">
       ${f.gefunden} Termin${f.gefunden!==1?"e":""} mit Mindestbesetzung · davon ${f.festgelegt} festgelegt
-      ${f.genuegend&&f.festgelegt<f.benoetigt?` – jetzt unten unter «Geeignete Termine» die ${f.benoetigt} gewünschten festlegen.`:""}
+      ${f.genuegend&&f.festgelegt<f.benoetigt?` – jetzt im Reiter «Termine» unter «Geeignete Termine» die ${f.benoetigt} gewünschten festlegen.`:""}
       ${f.abgeschlossen?" – alle festgelegt, die vorläufigen Termine sind aus den Kalender-Abos entfernt.":""}
     </div>
     ${TF_AKTUELL.verantwortlich
@@ -3739,15 +3766,75 @@ function tfRueckmeldungKarte(){
   </div>`;
 }
 
+let TF_GELADEN=null, TF_AENDERN=null;
+function tfArchiviert(){ return TF_AKTUELL&&TF_AKTUELL.status==="archiviert"; }
+
+/** Status-Karte in der Übersicht (seit CLv1.72) */
+function tfStatusKarte(){
+  const a=TF_AKTUELL, st=a.status||"offen", f=TF_FORTSCHRITT;
+  const erklaerung={offen:"Die Anmeldung läuft – alle Vorgesehenen können sich eintragen.",
+    geschlossen:"Keine Eintragungen mehr. Auf der Seite und im Kalender-Abo erscheinen nur noch die festgelegten Termine.",
+    archiviert:`Archiviert${a.archiviertAm?" am "+escHtml(a.archiviertAm.split("-").reverse().join(".")):""} – alles schreibgeschützt. Die festgelegten Termine bleiben ein Jahr im Kalender-Abo.`}[st];
+  const knopf=(t,neu,rot)=>`<button class="btn btn-klein${rot?" btn-red":""}" onclick="tfStatusSetzen('${neu}')">${t}</button>`;
+  let k="";
+  if(st==="offen") k=knopf("Schliessen","geschlossen",f&&f.abgeschlossen);
+  if(st==="geschlossen") k=knopf("Wieder öffnen","offen")+(istAdmin()?knopf("Archivieren","archiviert"):"");
+  if(st==="archiviert") k=istAdmin()?knopf("Archivierung aufheben","geschlossen"):'<span class="hinw">Nur Admins können die Archivierung aufheben.</span>';
+  return `<div class="card" style="border-top-color:${TF_STATUS_BADGE[st][1]}">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <h2 style="margin:0">Status: ${TF_STATUS_BADGE[st][0]}</h2>
+      <div class="entry-actions" style="margin:0">${k}</div>
+    </div>
+    <p class="hinw" style="margin-top:.5rem">${erklaerung}${st!=="archiviert"&&!a.archivAufgehoben?" Sind alle benötigten Termine festgelegt, wird die Ausbildung am Tag nach dem letzten Termin automatisch archiviert.":""}${a.archivAufgehoben&&st!=="archiviert"?" Die Archivierung wurde aufgehoben – automatisch archiviert wird erst wieder, wenn ein Admin «Archivieren» drückt.":""}</p>
+    <div class="status-msg" id="tfStatusMsg"></div>
+  </div>`;
+}
+async function tfStatusSetzen(neu){
+  const f=TF_FORTSCHRITT;
+  if(neu==="geschlossen"&&TF_AKTUELL.status==="offen"&&f&&f.benoetigt&&f.festgelegt<f.benoetigt
+     &&!confirm(`Es sind erst ${f.festgelegt} von ${f.benoetigt} benötigten Terminen festgelegt. Trotzdem schliessen?`)) return;
+  if(neu==="archiviert"&&!confirm("Ausbildung archivieren? Danach ist alles schreibgeschützt.")) return;
+  const st=$("tfStatusMsg"); st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert …";
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_status",password:PASS,ausbildung:TF_AKTUELL.id,status:neu});
+    if(!r.ok){ st.className="status-msg err-msg"; st.textContent=fehlerText(r); return; }
+    TF_AKTUELL=Object.assign(TF_AKTUELL,r.ausbildung);
+    const i=TF_LISTE.findIndex(x=>x.id===TF_AKTUELL.id); if(i>=0) Object.assign(TF_LISTE[i],r.ausbildung);
+    // Karte (Badge) neu zeichnen und in der Übersicht bleiben
+    tfListeZeigen(TF_AKTUELL.id,"uebersicht");
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+/** Festgelegte Termine kompakt (Übersicht) */
+function tfFestKarte(){
+  const fest=TF_TERMINE.filter(t=>t.definitiv.length>0), vorl=TF_TERMINE.length-fest.length;
+  return `<div class="card" style="border-top-color:var(--gray-mid)">
+    <h2>Festgelegte Termine</h2>
+    ${fest.length?`<div class="tblwrap"><table class="l5"><thead><tr><th>Datum</th><th>Zeit</th><th>Teilnehmer</th><th>Ausbildner</th></tr></thead><tbody>${fest.map(t=>`<tr>
+      <td><b>${escHtml(t.datumAnzeige)}</b> <span class="hinw">${escHtml(t.wochentag)}</span></td>
+      <td class="hinw">${escHtml(t.von||"–")}${t.bis?"–"+escHtml(t.bis):""}</td>
+      <td>${escHtml(t.teilnehmer.join(", "))||"–"}</td><td><b>${escHtml(t.definitiv.join(", "))}</b></td></tr>`).join("")}</tbody></table></div>`
+      :'<p class="hinw">Noch kein Termin festgelegt.</p>'}
+    <div class="hinw" style="margin-top:.6rem">${vorl} vorläufige${vorl===1?"r":""} Termin${vorl!==1?"e":""} – Details im Reiter «Termine».</div>
+  </div>`;
+}
 function tfRenderTermine(){
   const el=$("tfTermine");
+  const archiv=tfArchiviert();
+  // Knöpfe über der Liste nur im Reiter «Termine» und nicht bei archivierten
+  const leiste=$("tfDetail").querySelector(".tf-aktionen .entry-actions");
+  if(leiste) leiste.style.display=(TF_REITER==="termine"&&!archiv)?"":"none";
+  if(TF_REITER==="uebersicht"){
+    el.innerHTML=tfStatusKarte()+tfFortschrittKarte()+tfFestKarte()+tfRueckmeldungKarte();
+    if(archiv) el.querySelectorAll(".card:not(:first-child) button").forEach(b=>{ b.disabled=true; b.title="Archiviert – schreibgeschützt"; });
+    return;
+  }
   if(TF_TERMINE.length===0){
-    el.innerHTML=tfFortschrittKarte()+tfRueckmeldungKarte()+'<div class="empty">Noch keine Termine erfasst.</div>';
+    el.innerHTML='<div class="empty">Noch keine Termine erfasst.</div>';
     return;
   }
   const geeignet=TF_TERMINE.filter(t=>t.erfuellt);
-  let html=tfFortschrittKarte()+tfRueckmeldungKarte();
-  if(geeignet.length>0){
+  let html="";
+  if(geeignet.length>0&&!archiv){
     html+=`<div class="card" style="border-top-color:var(--green)">
       <h2>Geeignete Termine</h2>
       <p class="hinw" style="margin-bottom:.75rem">
@@ -3763,18 +3850,21 @@ function tfRenderTermine(){
         </tr>`).join("")}</tbody>
       </table></div>
     </div>`;
-  } else {
-    html+=`<div class="card" style="border-top-color:var(--orange)">
-      <h2>Noch kein geeigneter Termin</h2>
-      <p class="hinw">Es ist noch kein Tag dabei, an dem ${TF_AKTUELL.minTeilnehmer} Teilnehmer
-      und ${TF_AKTUELL.minAusbildner} Ausbildner zusammenkommen.</p>
-    </div>`;
   }
 
   html+=`<div class="card" style="padding:0"><div class="tblwrap"><table class="l5">
     <thead><tr><th>Datum</th><th>Zeit</th><th>Teilnehmer</th><th>Ausbildner</th><th>Definitiv</th><th style="text-align:right">Aktion</th></tr></thead>
     <tbody>`+TF_TERMINE.map(t=>{
       const farbe=t.definitiv.length?"var(--red-light)":(t.erfuellt?"var(--green-light)":"");
+      const gebucht=t.teilnehmer.length||t.ausbildner.length||t.definitiv.length;
+      if(TF_AENDERN===t.id) return `<tr style="background:var(--bg2)"><td colspan="6">
+        <div class="entry-row2"><div><label>Datum</label><input id="tfAeDatum" type="date" value="${escHtml(t.datum)}"></div>
+          <div><label>Bemerkung</label><input id="tfAeBem" type="text" value="${escHtml(t.bemerkung||"")}"></div></div>
+        <div class="entry-row2" style="margin-top:.5rem"><div><label>Beginn</label><input id="tfAeVon" type="time" value="${escHtml(t.von||"19:00")}"></div>
+          <div><label>Ende</label><input id="tfAeBis" type="time" value="${escHtml(t.bis||"")}"></div></div>
+        <div class="entry-actions" style="justify-content:flex-start;margin-top:.75rem">
+          <button class="btn btn-green btn-klein" onclick="tfTerminAendernSpeichern('${escHtml(t.id)}')">Speichern</button>
+          <button class="btn btn-klein" onclick="TF_AENDERN=null;tfRenderTermine()">Abbrechen</button></div></td></tr>`;
       return `<tr${farbe?` style="background:${farbe}"`:""}>
         <td><b>${escHtml(t.datumAnzeige)}</b><br><span class="hinw">${escHtml(t.wochentag)}</span></td>
         <td class="hinw">${escHtml(t.von||"–")}${t.bis?"–"+escHtml(t.bis):""}</td>
@@ -3782,12 +3872,30 @@ function tfRenderTermine(){
         <td>${t.anzahlAusbildner}/${TF_AKTUELL.maxAusbildner}<br><span class="hinw">${escHtml(t.ausbildner.join(", "))||"–"}</span></td>
         <td>${t.definitiv.length?`<b>${escHtml(t.definitiv.join(", "))}</b>`:"–"}</td>
         <td style="text-align:right;white-space:nowrap">
-          <button class="btn btn-klein" onclick="tfDefinitivOeffnen('${escHtml(t.id)}')">Festlegen</button>
-          <button class="btn btn-klein" onclick="tfTerminLoeschen('${escHtml(t.id)}','${escHtml(t.datumAnzeige)}')">Löschen</button>
+          <button class="btn btn-klein" onclick="tfDefinitivOeffnen('${escHtml(t.id)}')" ${archiv?"disabled":""}>Festlegen</button>
+          <button class="btn btn-klein" onclick="TF_AENDERN='${escHtml(t.id)}';tfRenderTermine()" ${archiv||gebucht?"disabled":""}
+            title="${gebucht?"Nur ohne Einträge möglich – sonst löschen und neu erfassen":"Datum, Zeit und Bemerkung ändern"}">Ändern</button>
+          <button class="btn btn-klein" onclick="tfTerminLoeschen('${escHtml(t.id)}','${escHtml(t.datumAnzeige)}')" ${archiv?"disabled":""}>Löschen</button>
         </td>
       </tr>`;
     }).join("")+`</tbody></table></div></div>`;
   el.innerHTML=html;
+}
+
+async function tfTerminAendernSpeichern(terminId){
+  const st=$("tfTerminStatus");
+  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert …";
+  try{
+    const r=await ftCallAdmin({type:"admin_tf_termin_aendern",password:PASS,terminId,datum:$("tfAeDatum").value,
+      von:$("tfAeVon").value,bis:$("tfAeBis").value,bemerkung:$("tfAeBem").value,anfrageId:Date.now()+"-"+Math.random()});
+    if(!r.ok){
+      st.className="status-msg err-msg";
+      st.textContent=r.error==="GEBUCHT"?"Inzwischen hat sich jemand eingetragen – der Termin kann nicht mehr geändert werden. Löschen und neu erfassen.":fehlerText(r);
+      return;
+    }
+    st.className="status-msg ok-msg"; st.textContent="Termin geändert.";
+    TF_AENDERN=null; tfOeffnen(TF_AKTUELL.id);
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
 }
 
 /* ── Kalender-Zwischenhalter ── */
@@ -5221,7 +5329,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.71";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.72";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -5590,7 +5698,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.71", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.72", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -6325,13 +6433,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.71`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.72`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.71";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.72";
 
 async function soApi(payload){
   try{
@@ -6358,6 +6466,8 @@ function initSo(){
       $("soTabPdf").style.display=tab==="pdf"?"block":"none";
       $("soTabMail").style.display=tab==="mail"?"block":"none";
       $("soTabErinnerung").style.display=tab==="erinnerung"?"block":"none";
+      $("soTabVorbereitung").style.display=tab==="vorbereitung"?"block":"none";
+      if(tab==="vorbereitung"){ svLadeConfig(); svLadeStatus(); }
       if(tab==="stat") soLadeStatistik();
       if(tab==="fragen") soLadeFragen();
       if(tab==="pdf") soLadeListe();
@@ -6366,6 +6476,11 @@ function initSo(){
     });
   });
   $("btnSoAddFrage").addEventListener("click", soNeueFrageForm);
+  $("btnSvStatus").addEventListener("click", svLadeStatus);
+  $("btnSvSpeichern").addEventListener("click", svSpeichern);
+  $("btnSvReset").addEventListener("click", svReset);
+  ["svBereitBetreff","svBereitText","svErinnBetreff","svErinnText","svMonateMin","svMonateErinn","svFahrten"]
+    .forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", svVorschau); });
   $("soListeSuche").addEventListener("input", soRenderListe);
   $("soListeSort").addEventListener("change", soRenderListe);
   $("btnSoListePdf").addEventListener("click", soListeAlsPdf);
