@@ -1265,13 +1265,17 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       </div>
 
       <div class="card">
-        <h2>Aussetzer</h2>
+        <h2>Wartezeiten (Doppelmessung)</h2>
         <details id="axDetails">
-          <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Aussetzer der letzten 7 Tage</summary>
+          <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Langsame Aufrufe der letzten 14 Tage</summary>
           <div style="margin-top:0.75rem">
             <p class="hinw" style="margin-bottom:1rem">
-              Wie oft ein Aufruf wiederholt werden musste, weil der Server nicht sofort antwortete.
-              Zeigt, ob Kaltstarts seltener werden (z.B. durch das Wachhalten).
+              Alle Seiten messen jeden Aufruf. Erfasst werden Aufrufe über 5 s und Fehlschläge – mit Gesamtzeit im Browser
+              und Zeit in unserem Code (Server). Kategorien:
+              <b>A</b> Server langsam (über 5 s, unser Code) ·
+              <b>B</b> Server schnell (unter 2 s), Wartezeit ausserhalb, also bei Google oder unterwegs ·
+              <b>M</b> gemischt (Server 2–5 s) ·
+              <b>C</b> keine Serverantwort.
             </p>
             <div id="axInhalt" class="loading">Lade …</div>
           </div>
@@ -1821,7 +1825,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.73</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.74</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand CLv1.72) ──
@@ -1832,6 +1836,10 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
  *    der Worker dient nur noch den Kalender-Abos.
  *  - Höchstens 2 Anfragen gleichzeitig: die zweite nach 8 s. Nach einer
  *    Fehlerantwort startet sofort die nächste, insgesamt höchstens 4.
+ *  - Doppelmessung (seit CLv1.73): Jeder Aufruf wird gemessen und gezählt. Langsame
+ *    (über 5 s) und fehlgeschlagene kommen mit Gesamt- und Serverzeit (_serverMs) in
+ *    einen Puffer im Browser. Gemeldet wird gebündelt, sobald Google wieder antwortet,
+ *    spätestens beim nächsten Seitenaufruf – nie während eines Ausfalls.
  *  - «Server braucht gerade länger …» erst nach 8 s (vorher 3 s).
  *  - Nach 50 s ohne Erfolg: «Server nicht erreichbar» mit «Erneut versuchen».
  * Alle Anfragen tragen dieselbe Kennung – der Server führt Schreibvorgänge nur
@@ -1845,6 +1853,8 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   const WORKER="";   // Worker-Umweg ausgeschaltet (siehe oben)
   const MELDE_URL="https://script.google.com/macros/s/AKfycbwvTL3yecdyTvSV5ZPgGslm5K-3UFjW9zc4A2qn_zUk50CcSIpXEaBE1hMiaU3GnNEQ/exec";
   let aktiv=0, entscheid=null, workerOk=null;   // null = unbekannt, false = nicht nutzen
+  const LANGSAM_MS=5000, PUFFER="mwd_messung", ZAEHLER="mwd_messzaehler";
+  let seiteName="", letztesMelden=0, meldetGerade=false;
 
   function banner(){
     let b=document.getElementById("fw-netz-banner");
@@ -1885,12 +1895,44 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
     });
     return entscheid;
   }
-  function melden(d){
-    try{
-      fetch(MELDE_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-        body:JSON.stringify(Object.assign({type:"aussetzer_melden"},d))}).catch(()=>{});
-    }catch(e){}
+  /* ── Doppelmessung: Puffer und Zähler im Browser ── */
+  function lies(k,leer){ try{ return JSON.parse(localStorage.getItem(k)||"null")||leer; }catch(e){ return leer; } }
+  function schreib(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+  function erfassen(seite,aufruf,totalMs,daten,versuche,ok){
+    if(!aufruf||aufruf==="messung_melden"||aufruf==="aussetzer_melden") return;
+    seiteName=seite||seiteName;
+    const z=lies(ZAEHLER,{}); const k=(seite||"")+"|"+aufruf;
+    z[k]=z[k]||{n:0,schnell:0}; z[k].n++; if(ok&&totalMs<LANGSAM_MS) z[k].schnell++; schreib(ZAEHLER,z);
+    if(ok&&totalMs<LANGSAM_MS) return;
+    const p=lies(PUFFER,[]);
+    if(p.length<200) p.push({zeit:Date.now(),seite,aufruf,totalMs,versuche,erfolg:ok,
+      serverMs:daten&&typeof daten._serverMs==="number"?daten._serverMs:null,rid:daten&&daten._rid||""});
+    schreib(PUFFER,p);
   }
+  /** Gebündelt melden – nur nach einem erfolgreichen Aufruf, höchstens alle 30 s */
+  function melden(sofort){
+    if(meldetGerade) return;
+    if(!sofort&&Date.now()-letztesMelden<30000) return;
+    const p=lies(PUFFER,[]), z=lies(ZAEHLER,{});
+    if(!p.length&&!Object.keys(z).length) return;
+    const proSeite={};
+    Object.keys(z).forEach(k=>{ const i=k.indexOf("|"), s=k.slice(0,i)||seiteName||location.hostname;
+      (proSeite[s]=proSeite[s]||{})[k.slice(i+1)]=z[k]; });
+    const seiten=Object.keys(proSeite); if(!seiten.length) seiten.push(seiteName||location.hostname);
+    meldetGerade=true; letztesMelden=Date.now();
+    schreib(PUFFER,[]); schreib(ZAEHLER,{});
+    const a=new AbortController(); const uhr=setTimeout(()=>a.abort(),15000);
+    Promise.all(seiten.map((s,i)=>fetch(MELDE_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},signal:a.signal,
+      body:JSON.stringify({type:"messung_melden",seite:s,eintraege:i===0?p:[],zaehler:proSeite[s]||{}})}).then(r=>r.text())))
+      .then(()=>{ clearTimeout(uhr); meldetGerade=false; })
+      .catch(()=>{ clearTimeout(uhr); meldetGerade=false;
+        // nicht angekommen → zurück in den Puffer (neue Einträge bleiben erhalten)
+        const p2=lies(PUFFER,[]); schreib(PUFFER,p.concat(p2).slice(-200));
+        const z2=lies(ZAEHLER,{}); Object.keys(z).forEach(k=>{ z2[k]=z2[k]||{n:0,schnell:0}; z2[k].n+=z[k].n; z2[k].schnell+=z[k].schnell; });
+        schreib(ZAEHLER,z2); });
+  }
+  // Beim Seitenaufruf Liegengebliebenes melden (etwas verzögert, nicht im Weg der ersten Aufrufe)
+  setTimeout(()=>melden(true),6000);
   function lesen(text){
     const t=String(text||"").trim();
     if(t==="ok") return {ok:true};   // ältere Server-Versionen
@@ -1910,8 +1952,8 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         uhren.forEach(clearTimeout);
         abbrecher.forEach(a=>{ try{ a.abort(); }catch(e){} });
         if(zeigt){ aktiv--; verstecke(); }
-        if(gestartet>1||!ok) melden({seite:opts.seite||location.hostname,aufruf,
-          versuche:gestartet,dauerMs:Date.now()-start,erfolg:ok});
+        erfassen(opts.seite||location.hostname,aufruf,Date.now()-start,daten,gestartet,ok);
+        if(ok) setTimeout(()=>melden(false),1500);
         resolve({ok,daten});
       };
       const starte=()=>{
@@ -2442,7 +2484,7 @@ function initGab(){
   if(darf("gab.resultate")) gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.73";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.74";
 
 let GAB_NT_ID=null;
 
@@ -2857,29 +2899,36 @@ async function mvLaden(){
 async function axLaden(){
   const el=$("axInhalt");
   el.innerHTML='<div class="loading">Lade …</div>';
+  const sek=ms=>ms==null?"–":(ms/1000).toFixed(1)+" s";
   try{
-    const r=await ftCallAdmin({type:"admin_aussetzer",password:PASS,tage:7});
-    if(!r.ok){ el.innerHTML='<div class="empty">Fehler beim Laden.</div>'; return; }
-    if(!r.eintraege){
-      el.innerHTML='<div class="empty" style="color:var(--green)">Keine Aussetzer in den letzten 7 Tagen ✓</div>';
-      return;
-    }
-    const max=Math.max.apply(null,r.proTag.map(t=>t.anzahl));
+    const r=await ftCallAdmin({type:"admin_messung_auswertung",password:PASS,tage:14});
+    if(!r.ok){ el.innerHTML='<div class="empty">'+escHtml(fehlerText(r))+'</div>'; return; }
+    const S=r.summe||{};
+    if(!(r.proAufruf||[]).length){ el.innerHTML='<div class="empty">Noch keine Messungen. Die Seiten melden ab CLv1.74 bzw. ab dem Deploy von Code.gs CLv1.73.</div>'; return; }
+    const kat=(k,n,farbe)=>`<div><div style="font-size:24px;font-weight:700;color:${farbe}">${n||0}</div><div class="hinw">${k}</div></div>`;
     let h=`<div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:1rem">
-      <div><div style="font-size:24px;font-weight:700">${r.eintraege}</div><div class="hinw">Aussetzer</div></div>
-      <div><div style="font-size:24px;font-weight:700;color:${r.fehlgeschlagen?"var(--red)":"var(--green)"}">${r.fehlgeschlagen}</div><div class="hinw">davon endgültig gescheitert</div></div>
+      <div><div style="font-size:24px;font-weight:700">${S.anzahl||0}</div><div class="hinw">Aufrufe gezählt</div></div>
+      <div><div style="font-size:24px;font-weight:700">${S.langsam||0}</div><div class="hinw">davon langsam/fehlgeschlagen${S.anzahl?" ("+(S.langsam/S.anzahl*100).toFixed(1)+" %)":""}</div></div>
+      ${kat("A – Server langsam",S.A,"var(--orange)")}${kat("B – ausserhalb",S.B,"var(--red)")}${kat("M – gemischt",S.M,"var(--gray)")}${kat("C – keine Antwort",S.C,"var(--red)")}
     </div>`;
-    h+=`<div style="display:flex;align-items:flex-end;gap:4px;height:60px;margin-bottom:.4rem">`
-      +r.proTag.map(t=>`<div title="${escHtml(t.tag)}: ${t.anzahl}" style="flex:1;background:var(--orange);height:${Math.max(6,Math.round(t.anzahl/max*60))}px"></div>`).join("")
-      +`</div><div class="hinw" style="display:flex;justify-content:space-between;margin-bottom:1rem">
-        <span>${escHtml(r.proTag[0].tag.split("-").reverse().join("."))}</span><span>${escHtml(r.proTag[r.proTag.length-1].tag.split("-").reverse().join("."))}</span></div>`;
-    h+=`<div class="tblwrap"><table class="l5"><thead><tr><th>Seite</th><th style="text-align:right">Aussetzer</th>
-      <th style="text-align:right">Ø Versuche</th><th style="text-align:right">längste Wartezeit</th><th style="text-align:right">gescheitert</th></tr></thead><tbody>`
-      +r.proSeite.map(s=>`<tr><td>${escHtml(s.seite)}</td><td style="text-align:right">${s.anzahl}</td>
-        <td style="text-align:right">${(s.versuche/s.anzahl).toFixed(1)}</td>
-        <td style="text-align:right">${(s.maxMs/1000).toFixed(1)} s</td>
-        <td style="text-align:right;${s.fehlgeschlagen?"color:var(--red);font-weight:700":""}">${s.fehlgeschlagen}</td></tr>`).join("")
-      +`</tbody></table></div>`;
+    h+=`<div class="tblwrap"><table class="l5"><thead><tr><th>Aufruf</th><th style="text-align:right">Anzahl</th><th style="text-align:right">über 5 s</th>
+      <th style="text-align:right">Median gesamt</th><th style="text-align:right">P95 gesamt</th><th style="text-align:right">Median Server</th>
+      <th style="text-align:right">P95 Server</th><th style="text-align:right">Median ausserhalb</th><th>A / B / M / C</th></tr></thead><tbody>`
+      +r.proAufruf.map(a=>`<tr><td><b>${escHtml(a.aufruf)}</b></td><td style="text-align:right">${a.anzahl}</td>
+        <td style="text-align:right">${a.langsam}${a.anteilLangsam!=null?` <span class="hinw">(${a.anteilLangsam} %)</span>`:""}</td>
+        <td style="text-align:right">${sek(a.medianGesamt)}</td><td style="text-align:right">${sek(a.p95Gesamt)}</td>
+        <td style="text-align:right">${sek(a.medianServer)}</td><td style="text-align:right">${sek(a.p95Server)}</td>
+        <td style="text-align:right">${sek(a.medianAusserhalb)}</td><td>${a.A} / ${a.B} / ${a.M} / ${a.C}</td></tr>`).join("")
+      +`</tbody></table></div><div class="hinw" style="margin-top:4px">Median und P95 beziehen sich auf die langsamen Aufrufe (über 5 s).</div>`;
+    if((r.proStunde||[]).length){
+      h+=`<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:1.25rem 0 6px">Häufung nach Stunde</div>
+        <div class="tblwrap"><table class="l5"><thead><tr><th>Stunde</th><th style="text-align:right">A</th><th style="text-align:right">B</th>
+        <th style="text-align:right">M</th><th style="text-align:right">C</th><th style="text-align:right">betroffene Seiten</th></tr></thead><tbody>`
+        +r.proStunde.map(x=>`<tr><td>${escHtml(x.stunde.slice(8,10)+"."+x.stunde.slice(5,7)+". "+x.stunde.slice(11)+" Uhr")}</td>
+          <td style="text-align:right">${x.A||""}</td><td style="text-align:right">${x.B||""}</td><td style="text-align:right">${x.M||""}</td>
+          <td style="text-align:right">${x.C||""}</td><td style="text-align:right">${x.seiten}</td></tr>`).join("")
+        +`</tbody></table></div><div class="hinw" style="margin-top:4px">Viele Seiten in derselben Stunde betroffen → deutet auf Google; einzelne Aufrufarten → auf unseren Code.</div>`;
+    }
     el.innerHTML=h;
   }catch(e){ el.innerHTML=`<div class="empty">Fehler: ${escHtml(e.message)}</div>`; }
 }
@@ -5360,7 +5409,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.73";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.74";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -5729,7 +5778,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.73", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.74", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -6464,13 +6513,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.73`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.74`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.73";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.74";
 
 async function soApi(payload){
   try{
