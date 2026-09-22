@@ -1748,9 +1748,21 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 </div>
 
 <div id="tfMailBg" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:450;display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto">
-  <div style="background:#fff;max-width:560px;width:100%;border-top:5px solid var(--red);padding:1.5rem;max-height:92vh;overflow-y:auto">
+  <div style="background:#fff;max-width:640px;width:100%;border-top:5px solid var(--red);padding:1.5rem;max-height:92vh;overflow-y:auto">
     <h3 style="font-size:15px;margin-bottom:.5rem" id="tfMailTitel">Einladung senden</h3>
     <div id="tfMailInhalt"></div>
+    <label for="tfMailBetreff" style="margin-top:1rem">Betreff</label>
+    <input id="tfMailBetreff" type="text">
+    <label for="tfMailText" style="margin-top:.5rem">Text</label>
+    <textarea id="tfMailText" rows="10"></textarea>
+    <div class="hinw" style="margin-top:6px">Änderungen gelten nur für diesen Versand (Vorlagen unter Einstellungen). Platzhalter:
+      <code>{vorname}</code> <code>{name}</code> <code>{kuerzel}</code> <code>{ausbildung}</code> <code>{beschreibung}</code>
+      <code>{rolle}</code> <code>{anzahlTermine}</code> <code>{ersterTermin}</code> <code>{letzterTermin}</code> <code>{link}</code></div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:1rem 0 6px" id="tfMailPvTitel">Vorschau</div>
+    <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem">
+      <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="tfMailPvBetreff" style="font-weight:400"></span></div>
+      <div id="tfMailPvText" style="font-size:13px;line-height:1.6"></div>
+    </div>
     <div class="status-msg" id="tfMailDlgStatus"></div>
     <div style="display:flex;gap:10px;margin-top:1.25rem">
       <button class="btn" style="flex:1;justify-content:center" onclick="$('tfMailBg').style.display='none'">Abbrechen</button>
@@ -1809,7 +1821,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.72</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.73</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand CLv1.72) ──
@@ -2430,7 +2442,7 @@ function initGab(){
   if(darf("gab.resultate")) gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.72";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.73";
 
 let GAB_NT_ID=null;
 
@@ -3368,6 +3380,7 @@ function initTf(){
   $("btnTfKolUebernehmen").addEventListener("click", tfKolUebernehmen);
   $("btnTfMailSenden").addEventListener("click", tfMailSenden);
   $("btnTfInfoSenden").addEventListener("click", tfInfoSenden);
+  ["tfMailBetreff","tfMailText"].forEach(i=>$(i).addEventListener("input", tfMailDlgVorschau));
   $("btnTfLodurSenden").addEventListener("click", tfLodurSenden);
   ["tfLodurBetreff","tfLodurText"].forEach(i=>$(i).addEventListener("input", tfLodurVorschau));
   $("btnTfLodurSpeichern").addEventListener("click", tfLodurVorlageSpeichern);
@@ -3775,14 +3788,14 @@ function tfStatusKarte(){
   const erklaerung={offen:"Die Anmeldung läuft – alle Vorgesehenen können sich eintragen.",
     geschlossen:"Keine Eintragungen mehr. Auf der Seite und im Kalender-Abo erscheinen nur noch die festgelegten Termine.",
     archiviert:`Archiviert${a.archiviertAm?" am "+escHtml(a.archiviertAm.split("-").reverse().join(".")):""} – alles schreibgeschützt. Die festgelegten Termine bleiben ein Jahr im Kalender-Abo.`}[st];
-  const knopf=(t,neu,rot)=>`<button class="btn btn-klein${rot?" btn-red":""}" onclick="tfStatusSetzen('${neu}')">${t}</button>`;
-  let k="";
-  if(st==="offen") k=knopf("Schliessen","geschlossen",f&&f.abgeschlossen);
-  if(st==="geschlossen") k=knopf("Wieder öffnen","offen")+(istAdmin()?knopf("Archivieren","archiviert"):"");
-  if(st==="archiviert") k=istAdmin()?knopf("Archivierung aufheben","geschlossen"):'<span class="hinw">Nur Admins können die Archivierung aufheben.</span>';
+  // Dropdown (seit CLv1.73). Archivieren und Archivierung aufheben nur für Admins.
+  const gesperrt=st==="archiviert"&&!istAdmin();
+  const opt=(wert,text)=>`<option value="${wert}"${st===wert?" selected":""}${wert==="archiviert"&&!istAdmin()&&st!=="archiviert"?" disabled":""}>${text}</option>`;
+  const k=`<select id="tfStatusWahl" style="width:auto;min-width:170px" onchange="tfStatusSetzen(this.value)" ${gesperrt?'disabled title="Nur Admins können die Archivierung aufheben"':""}>
+    ${opt("offen","Offen")}${opt("geschlossen","Geschlossen")}${opt("archiviert","Archiviert")}</select>`;
   return `<div class="card" style="border-top-color:${TF_STATUS_BADGE[st][1]}">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-      <h2 style="margin:0">Status: ${TF_STATUS_BADGE[st][0]}</h2>
+      <h2 style="margin:0">Status</h2>
       <div class="entry-actions" style="margin:0">${k}</div>
     </div>
     <p class="hinw" style="margin-top:.5rem">${erklaerung}${st!=="archiviert"&&!a.archivAufgehoben?" Sind alle benötigten Termine festgelegt, wird die Ausbildung am Tag nach dem letzten Termin automatisch archiviert.":""}${a.archivAufgehoben&&st!=="archiviert"?" Die Archivierung wurde aufgehoben – automatisch archiviert wird erst wieder, wenn ein Admin «Archivieren» drückt.":""}</p>
@@ -3790,14 +3803,17 @@ function tfStatusKarte(){
   </div>`;
 }
 async function tfStatusSetzen(neu){
-  const f=TF_FORTSCHRITT;
-  if(neu==="geschlossen"&&TF_AKTUELL.status==="offen"&&f&&f.benoetigt&&f.festgelegt<f.benoetigt
-     &&!confirm(`Es sind erst ${f.festgelegt} von ${f.benoetigt} benötigten Terminen festgelegt. Trotzdem schliessen?`)) return;
-  if(neu==="archiviert"&&!confirm("Ausbildung archivieren? Danach ist alles schreibgeschützt.")) return;
+  const f=TF_FORTSCHRITT, alt=TF_AKTUELL.status||"offen";
+  const zurueck=()=>{ const w=$("tfStatusWahl"); if(w) w.value=alt; };
+  if(neu===alt) return;
+  if(neu!=="offen"&&alt==="offen"&&f&&f.benoetigt&&f.festgelegt<f.benoetigt
+     &&!confirm(`Es sind erst ${f.festgelegt} von ${f.benoetigt} benötigten Terminen festgelegt. Trotzdem ${neu==="archiviert"?"archivieren":"schliessen"}?`)) return zurueck();
+  if(neu==="archiviert"&&!confirm("Ausbildung archivieren? Danach ist alles schreibgeschützt.")) return zurueck();
+  if(alt==="archiviert"&&!confirm("Archivierung aufheben? Automatisch archiviert wird dann erst wieder, wenn ein Admin «Archiviert» wählt.")) return zurueck();
   const st=$("tfStatusMsg"); st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert …";
   try{
     const r=await ftCallAdmin({type:"admin_tf_status",password:PASS,ausbildung:TF_AKTUELL.id,status:neu});
-    if(!r.ok){ st.className="status-msg err-msg"; st.textContent=fehlerText(r); return; }
+    if(!r.ok){ st.className="status-msg err-msg"; st.textContent=fehlerText(r); zurueck(); return; }
     TF_AKTUELL=Object.assign(TF_AKTUELL,r.ausbildung);
     const i=TF_LISTE.findIndex(x=>x.id===TF_AKTUELL.id); if(i>=0) Object.assign(TF_LISTE[i],r.ausbildung);
     // Karte (Badge) neu zeichnen und in der Übersicht bleiben
@@ -4286,12 +4302,26 @@ async function tfMailVorschau(art){
     }
     h+=tfKontingentHinweis(r.kontingent, e.length);
     $("tfMailInhalt").innerHTML=h;
+    // Text für diesen Versand bearbeitbar (ältere Server liefern ihn noch nicht)
+    TF_MAIL_BEISPIEL=r.beispiel?r.beispiel.daten:null;
+    const mitText=r.betreff!==undefined;
+    ["tfMailBetreff","tfMailText"].forEach(i=>{ $(i).style.display=mitText?"":"none"; $(i).previousElementSibling.style.display=mitText?"":"none"; });
+    $("tfMailBetreff").value=r.betreff||""; $("tfMailText").value=r.text||"";
+    $("tfMailPvTitel").textContent=r.beispiel?`Vorschau für ${r.beispiel.kuerzel}`:"Vorschau";
+    tfMailDlgVorschau();
     $("tfMailDlgStatus").style.display="none";
     $("tfMailBg").style.display="flex";
     await tfMitgliederSicherstellen(); empfPruefen("tfMailEmpf");
   }catch(err){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+err.message; }
 }
 
+let TF_MAIL_BEISPIEL=null;
+function tfMailDlgVorschau(){
+  const d=TF_MAIL_BEISPIEL;
+  if(!d||$("tfMailBetreff").style.display==="none"){ $("tfMailPvBetreff").textContent=""; $("tfMailPvText").textContent=d?"":"Keine Empfänger."; return; }
+  $("tfMailPvBetreff").textContent=tfFuelleClient($("tfMailBetreff").value,d);
+  $("tfMailPvText").innerHTML=escHtml(tfFuelleClient($("tfMailText").value,d)).replace(/\n/g,"<br>");
+}
 async function tfMailSenden(){
   const st=$("tfMailDlgStatus"), btn=$("btnTfMailSenden");
   btn.disabled=true;
@@ -4299,6 +4329,7 @@ async function tfMailSenden(){
   try{
     const r=await ftCallAdmin({type:"admin_tf_mail_senden",password:PASS,
       ausbildung:TF_AKTUELL.id,art:TF_MAIL_ART,senden:true,empfaenger:empfTokens($("tfMailEmpf").value),
+      ...($("tfMailBetreff").style.display!=="none"?{betreff:$("tfMailBetreff").value,text:$("tfMailText").value}:{}),
       anfrageId:Date.now()+"-"+Math.random()});
     if(r.ok){
       $("tfMailBg").style.display="none";
@@ -5329,7 +5360,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.72";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.73";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -5698,7 +5729,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.72", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.73", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -6433,13 +6464,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.72`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.73`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.72";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.73";
 
 async function soApi(payload){
   try{
