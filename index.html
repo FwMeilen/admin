@@ -1124,7 +1124,11 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           <div style="margin-top:0.75rem">
             <p class="hinw" style="margin-bottom:1rem">
               Alle Bestandteile des Systems auf einen Blick – damit jemand anderes im Notfall
-              weiterarbeiten kann. Alle Einträge sind direkt verlinkt.
+              weiterarbeiten kann. Alle Einträge sind direkt verlinkt.<br><br>
+              <b>Aufbau seit dem Umbau:</b> Die Seiten sprechen mit dem <b>neuen Server</b>, einem Cloudflare-Worker,
+              der direkt auf die Google-Sheets und den Kalender zugreift und die Mails über den Servertown-Mailserver
+              verschickt. Das <b>Apps Script</b> erzeugt nur noch PDFs, legt sie in Drive ab und erledigt Archiv,
+              Backup und die Übungssynchronisation.
             </p>
             <div class="ampel-leiste">
               <div class="ampel">
@@ -1134,6 +1138,10 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
               <div class="ampel">
                 <span class="ampel-punkt pruefe" id="ampelSo"></span>
                 <span class="ampel-text"><b>SoSi-Backend</b><span id="ampelSoText" class="hinw">wird geprüft …</span></span>
+              </div>
+              <div class="ampel">
+                <span class="ampel-punkt pruefe" id="ampelSrv"></span>
+                <span class="ampel-text"><b>Neuer Server (Worker)</b><span id="ampelSrvText" class="hinw">wird geprüft …</span></span>
               </div>
             </div>
             <div class="status-msg" id="grAusloeserHinweis"></div>
@@ -1651,7 +1659,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.79</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.80</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -4780,9 +4788,10 @@ async function grLadeGrundlagen(){
   grSetzeAmpel("So","pruefe","wird geprüft …");
   try{
     const start=Date.now();
-    const [ft,so]=await Promise.all([
+    const [ft,so,srv]=await Promise.all([
       ftCallAdmin({type:"admin_grundlagen",password:PASS}).catch(e=>({ok:false,detail:e.message})),
-      soApi({action:"adminGrundlagen",pass:PASS}).catch(e=>({ok:false,detail:e.message}))
+      soApi({action:"adminGrundlagen",pass:PASS}).catch(e=>({ok:false,detail:e.message})),
+      ftCallAdmin({type:"admin_grundlagen_server",password:PASS}).catch(e=>({ok:false,detail:e.message}))
     ]);
     const dauer=Date.now()-start;
 
@@ -4793,14 +4802,38 @@ async function grLadeGrundlagen(){
       so&&so.ok ? `Erreichbar · ${so.version||""} · ${dauer} ms`
                 : "Nicht erreichbar"+(so&&so.detail?" – "+so.detail.slice(0,40):""));
 
+    grSetzeAmpel("Srv", srv&&srv.ok?"gruen":"rot",
+      srv&&srv.ok ? `Erreichbar · ${srv.version||""} · ${srv.anzahlAufrufe||0} Aufrufe · ${dauer} ms`
+                  : "Nicht erreichbar"+(srv&&srv.detail?" – "+srv.detail.slice(0,40):""));
+
     GR_GELADEN=true;
-    el.innerHTML=grBaueHtml(ft,so);
+    el.innerHTML=grServerHtml(srv)+grBaueHtml(ft,so);
     grPruefeAusloeser(ft,so);
   }catch(e){
     grSetzeAmpel("Ft","rot","Prüfung fehlgeschlagen");
     grSetzeAmpel("So","rot","Prüfung fehlgeschlagen");
     el.innerHTML=`<div class="empty">Fehler beim Laden: ${escHtml(e.message)}</div>`;
   }
+}
+
+/** Übersicht über den neuen Server */
+function grServerHtml(srv){
+  if(!srv||!srv.ok) return "";
+  const zeile=(bez,text,url)=>`<div class="frage-row" style="padding:7px 0">
+    <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">${escHtml(bez)}</div>
+      <div class="hinw" style="font-size:12px">${escHtml(text||"")}</div></div>
+    ${url?`<a href="${url}" target="_blank" rel="noopener" style="font-size:12px;white-space:nowrap">öffnen ↗</a>`:""}</div>`;
+  return `<h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin:0 0 .5rem">Neuer Server</h3>
+    ${zeile(srv.server.name, srv.server.hinweis, srv.server.url)}
+    ${zeile("Dienstkonto (Zugriff auf Sheets und Kalender)", srv.dienstkonto, "")}
+    ${zeile("Mailversand", srv.mail.weg+" · Absender "+srv.mail.absender, "")}
+    ${zeile("Zeitplan im Server", srv.zeitplan.map(z=>z.was+" ("+z.rhythmus+")").join(" · "), "")}
+    ${zeile("Mailvorlagen", srv.anzahlVorlagen+" Vorlagen, zentral im Reiter «Mailvorlagen»", "")}
+    <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin:1.25rem 0 .5rem">Was das Apps Script noch macht</h3>
+    ${srv.appsScript.map(a=>zeile(a.was, a.funktion+" · "+a.rhythmus, "")).join("")}
+    <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin:1.25rem 0 .5rem">Seiten</h3>
+    ${srv.seiten.map(x=>zeile(x.name, x.url, x.url)).join("")}
+    <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin:1.25rem 0 .5rem">Weitere Bestandteile</h3>`;
 }
 
 function grPruefeAusloeser(ft,so){
@@ -4964,9 +4997,9 @@ function grBaueHtml(ft,so){
   // Sonstiges
   const absender=(ft&&ft.ok&&ft.absender)||"–";
   html+=grAbschnitt("Weitere Angaben",
-    grZeile("Mail-Absender",absender,null,"Muss als «Senden als»-Alias im Feuerwehrkonto verifiziert sein")
-    +grZeile("Admin-Passwort","In den Skripteigenschaften unter ADMIN_PASSWORD",null,
-      "Fahrtraining-Script → Projekteinstellungen → Skripteigenschaften")
+    grZeile("Mail-Absender",absender,null,"Versand über den Servertown-Mailserver (SMTP), signiert mit DKIM")
+    +grZeile("Anmeldung","Kürzel und persönliches Passwort",null,
+      "Konten und Rechte unter «Benutzerverwaltung». Sitzungen laufen im neuen Server und gelten 12 Stunden.")
     +grZeile("Hosting","GitHub Pages",null,
       "Änderungen am Code werden nach dem Push automatisch veröffentlicht"));
 
