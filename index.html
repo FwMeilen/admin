@@ -1743,7 +1743,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.75</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.76</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -6127,14 +6127,27 @@ async function ftLadeFragenAdmin(){
   const el=$("ftFragenListe");
   el.innerHTML='<div class="loading">Wird geladen…</div>';
   try{
-    const res=await ftCallAdmin({type:"admin_list_fragen",password:PASS,sheet});
+    // Fahrzeuge, die ihre Fragen von einem anderen Fahrzeug übernehmen
+    if(!FT_FZG_LISTE.length){
+      const fz=await ftCallAdmin({type:"admin_get_fahrzeuge",password:PASS});
+      if(fz&&fz.liste) FT_FZG_LISTE=fz.liste;
+    }
+    const eintrag=FT_FZG_LISTE.filter(f=>f.name===sheet)[0];
+    FT_FRAGEN_QUELLE=(eintrag&&eintrag.fragenVon)?eintrag.fragenVon:"";
+    const res=await ftCallAdmin({type:"admin_list_fragen",password:PASS,sheet:FT_FRAGEN_QUELLE||sheet});
     if(res.error){el.innerHTML='<div class="empty">'+escHtml(fehlerText(res))+'</div>';return;}
     FT_LETZTE_FRAGEN=res.rows||[];
     ftRenderFragenListe(FT_LETZTE_FRAGEN);
   }catch(e){ el.innerHTML=`<div class="empty">Fehler beim Laden: ${escHtml(e.message)}</div>`; }
 }
+let FT_FRAGEN_QUELLE="";
 function ftRenderFragenListe(rows){
   const el=$("ftFragenListe");
+  const hinweis=FT_FRAGEN_QUELLE
+    ? `<div class="warnung" style="margin-bottom:1rem">Dieses Fahrzeug übernimmt die Fragen von <b>${escHtml(FT_FRAGEN_QUELLE)}</b>.
+        Änderungen hier wirken deshalb auch bei ${escHtml(FT_FRAGEN_QUELLE)}. Die Zuordnung änderst du unter «Einstellungen → Fahrzeuge».</div>`
+    : "";
+  $("btnFtNeueFrage").textContent=FT_FRAGEN_QUELLE?`+ Neue Frage für ${FT_FRAGEN_QUELLE}`:"+ Neue Frage";
   const filter=$("ftTypFilter").value;
   let gefiltert=rows;
   if(filter){
@@ -6145,8 +6158,8 @@ function ftRenderFragenListe(rows){
     });
   }
   $("ftFragenCount").textContent=`${gefiltert.length} Eintrag${gefiltert.length!==1?"e":""}`;
-  if(gefiltert.length===0){el.innerHTML='<div class="empty">Noch keine Einträge.</div>';return;}
-  el.innerHTML=gefiltert.map(r=>ftFragenCardHtml(r)).join("");
+  if(gefiltert.length===0){el.innerHTML=hinweis+'<div class="empty">Noch keine Einträge.</div>';return;}
+  el.innerHTML=hinweis+gefiltert.map(r=>ftFragenCardHtml(r)).join("");
 }
 function ftFragenCardHtml(r){
   const id=`ft-f-${r.row}`;
@@ -6215,7 +6228,7 @@ function ftNeueFrage(){
   </div>`);
 }
 async function ftSpeichereFrage(row,id){
-  const sheet=$("ftFahrzeug").value;
+  const sheet=FT_FRAGEN_QUELLE||$("ftFahrzeug").value;
   const v=fid=>{const el=$(fid); return el?el.value.trim():"";};
   const payload={type:"admin_save_frage",password:PASS,sheet,row:row||null,
     typ:v(id+"-typ"),frage:v(id+"-frage"),a1:v(id+"-a1"),a2:v(id+"-a2"),a3:v(id+"-a3"),a4:v(id+"-a4"),
@@ -6230,7 +6243,7 @@ async function ftSpeichereFrage(row,id){
 }
 async function ftLoescheFrage(row,id){
   if(!confirm("Diesen Eintrag wirklich löschen?")) return;
-  const sheet=$("ftFahrzeug").value;
+  const sheet=FT_FRAGEN_QUELLE||$("ftFahrzeug").value;
   const st=$(id+"-status");
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gelöscht…";
   try{
