@@ -1470,37 +1470,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           </details>
         </div>
 
-        <div class="card">
-          <h2>Bestätigungsmail</h2>
-          <p class="hinw" style="margin-bottom:1rem">Gilt für die automatische E-Mail bei <b>bestandener</b> Prüfung. Die persönliche Mail des Kandidaten wird immer automatisch zusätzlich versendet. Das PDF hängt immer an.</p>
-          <label for="soMailEmpf">Empfänger (fix) — mehrere mit Komma trennen</label>
-          <input id="soMailEmpf" type="text" placeholder="z. B. feuerwehr@sennhof.net, kdt@example.ch">
-
-          <details style="margin-top:1.25rem">
-            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Mailtext &amp; Vorschau</summary>
-            <div style="margin-top:0.75rem">
-              <label for="soMailBetreff">Betreff</label>
-              <input id="soMailBetreff" type="text">
-              <label for="soMailText">Mailtext</label>
-              <textarea id="soMailText" rows="12"></textarea>
-              <div class="hinw" style="margin-top:8px">
-                Platzhalter: <code>{vorname}</code> <code>{name}</code> <code>{kuerzel}</code> <code>{datum}</code> <code>{gueltigBis}</code> <code>{punkte}</code> <code>{dauer}</code> <code>{version}</code>. Leerst du ein Feld, greift wieder der Standard.
-              </div>
-              <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem">
-                <div class="hinw" style="margin-bottom:6px">An: <span id="soPvEmpf"></span></div>
-                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="soPvBetreff" style="font-weight:400"></span></div>
-                <div id="soPvBody" style="font-size:13px;line-height:1.6"></div>
-              </div>
-            </div>
-          </details>
-
-          <div class="entry-actions" style="justify-content:flex-start;margin-top:1.25rem">
-            <button class="btn btn-green btn-klein" id="btnSoMailSpeichern">Speichern</button>
-            <button class="btn btn-klein" id="btnSoMailReset">Mailtext auf Standard</button>
-            <button class="btn btn-klein" id="btnSoMailStandard">Als Standard speichern</button>
-          </div>
-          <div id="soMailStatus" class="hinw" style="margin-top:8px"></div>
-        </div>
+        
 
       </div>
 
@@ -1527,36 +1497,9 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           </div>
           <div class="hinw" style="margin-top:8px">Die 2. Erinnerung muss näher am Ablauf liegen als die erste.</div>
 
-          <details style="margin-top:1.25rem">
-            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">1. Erinnerung — Text &amp; Vorschau</summary>
-            <div style="margin-top:0.75rem">
-              <label for="soE1Betreff">Betreff</label>
-              <input id="soE1Betreff" type="text">
-              <label for="soE1Text">Mailtext</label>
-              <textarea id="soE1Text" rows="10"></textarea>
-              <div class="hinw" style="margin-top:8px" id="soErinnPlatzhalter1"></div>
-              <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem">
-                <div class="hinw" style="margin-bottom:6px">An: Person + fixe Empfänger</div>
-                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="soPvE1Betreff" style="font-weight:400"></span></div>
-                <div id="soPvE1Body" style="font-size:13px;line-height:1.6"></div>
-              </div>
-            </div>
-          </details>
+          
 
-          <details style="margin-top:0.75rem">
-            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">2. Erinnerung — Text &amp; Vorschau</summary>
-            <div style="margin-top:0.75rem">
-              <label for="soE2Betreff">Betreff</label>
-              <input id="soE2Betreff" type="text">
-              <label for="soE2Text">Mailtext</label>
-              <textarea id="soE2Text" rows="10"></textarea>
-              <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem">
-                <div class="hinw" style="margin-bottom:6px">An: Person + fixe Empfänger</div>
-                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="soPvE2Betreff" style="font-weight:400"></span></div>
-                <div id="soPvE2Body" style="font-size:13px;line-height:1.6"></div>
-              </div>
-            </div>
-          </details>
+          
 
           <details style="margin-top:0.75rem">
             <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Ablauf-Meldung ans Kommando — Text &amp; Vorschau</summary>
@@ -1743,7 +1686,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.77</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.78</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -6608,12 +6551,15 @@ function initSo(){
   $("soListeSort").addEventListener("change", soRenderListe);
   $("btnSoListePdf").addEventListener("click", soListeAlsPdf);
   $("btnSoGueltigSpeichern").addEventListener("click", soSpeichereGueltig);
-  ["soMailEmpf","soMailBetreff","soMailText"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", soMailVorschau); });
-  $("btnSoMailSpeichern").addEventListener("click", soSpeichereMail);
-  $("btnSoMailReset").addEventListener("click", soMailReset);
-  $("btnSoMailStandard").addEventListener("click", soMailAlsStandard);
+  // Mailtexte liegen seit CLv1.75 im Reiter «Mailvorlagen»
+  if($("btnSoMailSpeichern")){
+    ["soMailEmpf","soMailBetreff","soMailText"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", soMailVorschau); });
+    $("btnSoMailSpeichern").addEventListener("click", soSpeichereMail);
+    $("btnSoMailReset").addEventListener("click", soMailReset);
+    $("btnSoMailStandard").addEventListener("click", soMailAlsStandard);
+  }
   $("btnSoErinnStandard").addEventListener("click", soErinnAlsStandard);
-  ["soE1Betreff","soE1Text","soE2Betreff","soE2Text","soAbBetreff","soAbText","soErinnTage1","soErinnTage2"]
+  if($("soE1Betreff")) ["soE1Betreff","soE1Text","soE2Betreff","soE2Text","soAbBetreff","soAbText","soErinnTage1","soErinnTage2"]
     .forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", soErinnVorschau); });
   $("btnSoErinnSpeichern").addEventListener("click", soSpeichereErinnerung);
   $("btnSoErinnReset").addEventListener("click", soErinnReset);
@@ -6642,6 +6588,7 @@ function soErinnFuelle(str,d,tage){
     .replace(/\{link\}/g,d.link).replace(/\{version\}/g,d.version);
 }
 function soErinnVorschau(){
+  if(!$("soE1Betreff")) return;   // Texte seit CLv1.78 im Reiter «Mailvorlagen»
   const d=soErinnBeispiel();
   const paare=[
     ["soE1Betreff","soE1Text","soPvE1Betreff","soPvE1Body",d.tage1],
@@ -6658,6 +6605,7 @@ function soErinnVorschau(){
   if(ph) ph.innerHTML="Platzhalter: <code>{vorname}</code> <code>{name}</code> <code>{kuerzel}</code> <code>{ablaufDatum}</code> <code>{tageBisAblauf}</code> <code>{link}</code> <code>{version}</code>";
 }
 async function soLadeErinnerung(){
+  if(!$("soE1Betreff")) return;   // Texte seit CLv1.78 im Reiter «Mailvorlagen»
   const st=$("soErinnStatus");
   st.className="status-msg"; st.style.display="none";
   const r=await soApi({action:"adminGetErinnerung",pass:PASS});
@@ -6676,6 +6624,7 @@ async function soLadeErinnerung(){
   soErinnVorschau();
 }
 async function soSpeichereErinnerung(){
+  if(!$("soE1Betreff")) return;   // Texte seit CLv1.78 im Reiter «Mailvorlagen»
   const st=$("soErinnStatus"), btn=$("btnSoErinnSpeichern");
   btn.disabled=true;
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
@@ -6692,6 +6641,7 @@ async function soSpeichereErinnerung(){
   else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."+(r.detail?" ("+r.detail+")":""); }
 }
 function soErinnReset(){
+  if(!$("soE1Betreff")) return;   // Texte seit CLv1.78 im Reiter «Mailvorlagen»
   if(!SO_ERINN_DEFAULTS) return;
   const d=SO_ERINN_DEFAULTS;
   $("soErinnTage1").value=d.tage1;
@@ -7003,6 +6953,7 @@ function soMailFuelle(str,d){
     .replace(/\{dauer\}/g,d.dauer).replace(/\{version\}/g,d.version);
 }
 function soMailVorschau(){
+  if(!$("soMailBetreff")) return;   // seit CLv1.75 im Reiter «Mailvorlagen»
   const d=soMailBeispiel();
   const empfListe=$("soMailEmpf").value.split(/[;,]/).map(s=>s.trim()).filter(Boolean);
   empfListe.unshift("Kandidat (falls hinterlegt)");
@@ -7013,6 +6964,7 @@ function soMailVorschau(){
   $("soPvBody").innerHTML=escHtml(soMailFuelle(text,d)).replace(/\n/g,"<br>");
 }
 async function soLadeMail(){
+  if(!$("soMailBetreff")) return;   // seit CLv1.75 im Reiter «Mailvorlagen»
   const st=$("soMailStatus"); st.style.color=""; st.textContent="Lade …";
   const r=await soApi({action:"adminGetMail",pass:PASS});
   if(!r.ok){ st.textContent=""; $("soPvBody").innerHTML=soFehlerHtml("Fehler beim Laden.",r); return; }
@@ -7022,6 +6974,7 @@ async function soLadeMail(){
   st.textContent=""; soMailVorschau();
 }
 async function soSpeichereMail(){
+  if(!$("soMailBetreff")) return;   // seit CLv1.75 im Reiter «Mailvorlagen»
   const st=$("soMailStatus"); const btn=$("btnSoMailSpeichern");
   btn.disabled=true; st.style.color=""; st.textContent="Speichere …";
   const r=await soApi({action:"adminSetMail",pass:PASS,empfaenger:$("soMailEmpf").value,betreff:$("soMailBetreff").value,text:$("soMailText").value,gueltigJahre:$("soGueltigJahre").value});
@@ -7033,6 +6986,7 @@ async function soSpeichereMail(){
   else{ st.style.color="var(--red)"; st.textContent="Fehler beim Speichern."+(r.detail?" ("+r.detail+")":""); }
 }
 async function soMailAlsStandard(){
+  if(!$("soMailBetreff")) return;   // seit CLv1.75 im Reiter «Mailvorlagen»
   if(!confirm("Aktuelle Texte als neuen Standard hinterlegen?\n\nDer Button \"Mailtext auf Standard\" setzt danach auf diese Version zurück.")) return;
   const st=$("soMailStatus"); const btn=$("btnSoMailStandard");
   btn.disabled=true; st.style.color=""; st.textContent="Wird gespeichert …";
@@ -7044,6 +6998,7 @@ async function soMailAlsStandard(){
 }
 
 async function soErinnAlsStandard(){
+  if(!$("soE1Betreff")) return;   // Texte seit CLv1.78 im Reiter «Mailvorlagen»
   if(!confirm("Aktuelle Erinnerungstexte als neuen Standard hinterlegen?\n\nDer Button \"Texte auf Standard\" setzt danach auf diese Version zurück.")) return;
   const st=$("soErinnStatus"); const btn=$("btnSoErinnStandard");
   btn.disabled=true;
@@ -7058,6 +7013,7 @@ async function soErinnAlsStandard(){
 }
 
 function soMailReset(){
+  if(!$("soMailBetreff")) return;   // seit CLv1.75 im Reiter «Mailvorlagen»
   if(!SO_MAIL_DEFAULTS) return;
   $("soMailEmpf").value=SO_MAIL_DEFAULTS.empfaenger||"";
   $("soMailBetreff").value=SO_MAIL_DEFAULTS.betreff||"";
