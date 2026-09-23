@@ -1008,20 +1008,11 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
             <div><label for="tlfcCNach">Neuer Check nach «nicht bestanden» innert (Monate)</label><input id="tlfcCNach" type="number" min="1" max="24"></div>
             <div><label for="tlfcCWarn">«Läuft bald ab» ab (Tage vor Ablauf)</label><input id="tlfcCWarn" type="number" min="1" max="365"></div>
           </div>
-          <label for="tlfcCKdo" style="margin-top:.5rem">Kommando – Kopie für den Lodur-Eintrag (Kürzel)</label>
-          <input id="tlfcCKdo" type="text" style="max-width:260px;text-transform:uppercase" oninput="tfListePruefen('tlfcCKdo','tlfcCKdo-info')"><div id="tlfcCKdo-info" style="margin-top:4px"></div>
         </div>
+
         <div class="card">
-          <h2>Mail «bestanden»</h2>
-          <label for="tlfcCBetrB">Betreff</label><input id="tlfcCBetrB" type="text">
-          <label for="tlfcCTextB" style="margin-top:.5rem">Text</label><textarea id="tlfcCTextB" rows="9"></textarea>
-        </div>
-        <div class="card">
-          <h2>Mail «nicht bestanden»</h2>
-          <label for="tlfcCBetrN">Betreff</label><input id="tlfcCBetrN" type="text">
-          <label for="tlfcCTextN" style="margin-top:.5rem">Text</label><textarea id="tlfcCTextN" rows="11"></textarea>
-          <div class="hinw" style="margin-top:6px">Platzhalter: <code>{vorname}</code> <code>{name}</code> <code>{kuerzel}</code> <code>{datum}</code> <code>{total}</code>
-            <code>{gueltigBis}</code> <code>{nachpruefungBis}</code> <code>{grund}</code> <code>{empfehlung}</code> <code>{experten}</code></div>
+          <h2>Einstellungen speichern</h2>
+          <p class="hinw">Die Mailtexte des TLF-Checks stehen im Reiter «Mailvorlagen».</p>
           <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
             <button class="btn btn-green btn-klein" id="btnTlfcCSpeichern">Speichern</button>
             <button class="btn btn-klein" id="btnTlfcCReset">Auf Standard</button>
@@ -1370,43 +1361,17 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
               </div>
               <label for="svFahrten" style="margin-top:0.75rem">Nötige Fahrtrainings als Fahrer</label>
               <input id="svFahrten" type="number" min="1" max="50" step="1" style="max-width:120px">
-              <label for="svCc" style="margin-top:0.75rem">CC-Empfänger (optional, Kürzel oder Adressen, mehrere mit Komma)</label>
-              <input id="svCc" type="text" placeholder="z. B. LOL, mwd@feuerwehrmeilen.ch">
-              <div class="hinw" style="margin-top:8px">
+              <div class="hinw" style="margin-top:0.75rem">
+                Die Mailtexte stehen im Reiter «Mailvorlagen» unter «SoSi-Vorbereitung».
                 Die Mail geht immer an die betroffene Person. Wer bereits die SoSi-Prüfung
                 bestanden hat, erhält keine Mails mehr. Jede Mail wird pro Person nur einmal versendet.
               </div>
             </div>
           </details>
 
-          <details style="margin-top:0.5rem">
-            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Mail «Voraussetzungen erfüllt» &amp; Vorschau</summary>
-            <div style="margin-top:0.75rem">
-              <label for="svBereitBetreff">Betreff</label>
-              <input id="svBereitBetreff" type="text">
-              <label for="svBereitText">Mailtext</label>
-              <textarea id="svBereitText" rows="12"></textarea>
-              <div class="hinw" style="margin-top:8px" id="svPlatzhalter"></div>
-              <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem">
-                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="svPvBereitBetreff" style="font-weight:400"></span></div>
-                <div id="svPvBereitBody" style="font-size:13px;line-height:1.6"></div>
-              </div>
-            </div>
-          </details>
+          
 
-          <details style="margin-top:0.5rem">
-            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Mail «Fahrtrainings fehlen» &amp; Vorschau</summary>
-            <div style="margin-top:0.75rem">
-              <label for="svErinnBetreff">Betreff</label>
-              <input id="svErinnBetreff" type="text">
-              <label for="svErinnText">Mailtext</label>
-              <textarea id="svErinnText" rows="12"></textarea>
-              <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem">
-                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="svPvErinnBetreff" style="font-weight:400"></span></div>
-                <div id="svPvErinnBody" style="font-size:13px;line-height:1.6"></div>
-              </div>
-            </div>
-          </details>
+          
 
           <div class="entry-actions" style="justify-content:flex-start;margin-top:1.25rem">
             <button class="btn btn-green btn-klein" id="btnSvSpeichern">Speichern</button>
@@ -1686,7 +1651,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.78</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.79</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -2430,6 +2395,7 @@ function svFuelle(v,d){
     .replace(/\{linkFahrtraining\}/g,d.linkFahrtraining).replace(/\{version\}/g,d.version);
 }
 function svVorschau(){
+  if(!$("svBereitBetreff")) return;   // Texte seit CLv1.79 im Reiter «Mailvorlagen»
   const d=svBeispiel();
   $("svPvBereitBetreff").textContent=svFuelle($("svBereitBetreff").value,d);
   $("svPvBereitBody").innerHTML=escHtml(svFuelle($("svBereitText").value,d)).replace(/\n/g,"<br>");
@@ -2467,6 +2433,7 @@ async function svLadeConfig(){
 }
 
 async function svSpeichern(){
+  if(!$("svBereitBetreff")) return;   // Texte seit CLv1.79 im Reiter «Mailvorlagen»
   const st=$("svSpeichernStatus"), btn=$("btnSvSpeichern");
   btn.disabled=true;
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
@@ -2486,6 +2453,7 @@ async function svSpeichern(){
 }
 
 function svReset(){
+  if(!$("svBereitBetreff")) return;   // Texte seit CLv1.79 im Reiter «Mailvorlagen»
   if(!SV_STANDARD) return;
   $("svMonateMin").value=SV_STANDARD.monateMin;
   $("svMonateErinn").value=SV_STANDARD.monateErinn;
@@ -3082,8 +3050,8 @@ async function tlfcLoeschen(id,k,d){
   if(!r.ok){ alert(tlfcFehler(r)); return; }
   tlfcListeLaden();
 }
-const TLFC_CFG_FELDER={gueltigJahre:"tlfcCGueltig",bestehen:"tlfcCBestehen",nachpruefungMonate:"tlfcCNach",warnTage:"tlfcCWarn",kommando:"tlfcCKdo",
-  betreffBestanden:"tlfcCBetrB",textBestanden:"tlfcCTextB",betreffNicht:"tlfcCBetrN",textNicht:"tlfcCTextN"};
+// Mailtexte und Empfänger stehen seit CLv1.79 im Reiter «Mailvorlagen»
+const TLFC_CFG_FELDER={gueltigJahre:"tlfcCGueltig",bestehen:"tlfcCBestehen",nachpruefungMonate:"tlfcCNach",warnTage:"tlfcCWarn"};
 async function tlfcCfgLaden(){
   const st=$("tlfcCStatus");
   try{
@@ -3092,7 +3060,7 @@ async function tlfcCfgLaden(){
     if(!r.ok){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent=tlfcFehler(r); return; }
     TLFC_CFG_STD=r.standard;
     Object.keys(TLFC_CFG_FELDER).forEach(k=>{ $(TLFC_CFG_FELDER[k]).value=r[k]; });
-    tfListePruefen("tlfcCKdo","tlfcCKdo-info"); st.style.display="none";
+    st.style.display="none";
   }catch(e){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+e.message; }
 }
 async function tlfcCfgSpeichern(){
