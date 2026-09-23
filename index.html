@@ -241,6 +241,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         <option value="gaulf">ULF Grundausbildung</option>
         <option value="tf">Terminfindung</option>
         <option value="backup">Admin</option>
+        <option value="mv">Mailvorlagen</option>
         <option value="benutzer">Benutzerverwaltung</option>
       </select>
     </div>
@@ -738,29 +739,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
             </div>
           </details>
 
-          <details style="margin-top:0.5rem">
-            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Bestätigungsmail &amp; Vorschau</summary>
-            <div style="margin-top:0.75rem">
-              <p class="hinw" style="margin-bottom:1rem">Wird versendet, wenn im Reservationsformular «Kalendereintrag senden» gedrückt wird. Jede Person erhält eine <b>eigene, persönlich adressierte</b> Mail. Der Kalendereintrag hängt automatisch als .ics-Datei an.</p>
-              <label for="ftResMailBetreff">Betreff</label>
-              <input id="ftResMailBetreff" type="text">
-              <label for="ftResMailText">Mailtext</label>
-              <textarea id="ftResMailText" rows="12"></textarea>
-              <div class="hinw" style="margin-top:8px">
-                Platzhalter: <code>{vorname}</code> <code>{name}</code> <code>{kuerzel}</code> <code>{typ}</code> <code>{fahrzeug}</code> <code>{datum}</code> <code>{vonZeit}</code> <code>{bisZeit}</code> <code>{personen}</code> <code>{bemerkungZeile}</code> <code>{version}</code>. Leerst du ein Feld, greift wieder der Standard.
-              </div>
-              <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem">
-                <div class="hinw" style="margin-bottom:6px">An: jede Person einzeln · Anhang: .ics</div>
-                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="ftPvResBetreff" style="font-weight:400"></span></div>
-                <div id="ftPvResBody" style="font-size:13px;line-height:1.6"></div>
-              </div>
-              <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
-                <button class="btn btn-green btn-klein" id="btnFtResMailSpeichern">Speichern</button>
-                <button class="btn btn-klein" id="btnFtResMailReset">Auf Standard</button>
-              </div>
-              <div class="status-msg" id="ftResMailStatus"></div>
-            </div>
-          </details>
+          
         </div>
       </div>
     </div>
@@ -1060,92 +1039,8 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
       </div>
 
       <div id="tfTabEinstellungen" style="display:none">
-        <div class="card">
-          <h2>Mailtexte &amp; Erinnerungen</h2>
-          <p class="hinw" style="margin-bottom:.5rem">Gelten für alle Ausbildungen.</p>
-        <details id="tfMailDetails" open>
-          <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Mailtexte Einladung &amp; Erinnerung</summary>
-          <div style="margin-top:.75rem">
-            <p class="hinw" style="margin-bottom:1rem">Gelten für alle Ausbildungen. Die Platzhalter werden beim Versand ersetzt.</p>
-
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Einladung</div>
-            <label for="tfEinlBetreff">Betreff</label>
-            <input id="tfEinlBetreff" type="text">
-            <label for="tfEinlText" style="margin-top:.5rem">Text</label>
-            <textarea id="tfEinlText" rows="10"></textarea>
-            <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:.75rem">
-              <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="tfPvEinlBetreff" style="font-weight:400"></span></div>
-              <div id="tfPvEinlText" style="font-size:13px;line-height:1.6"></div>
-            </div>
-
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:1.25rem 0 6px">Erinnerung</div>
-            <label for="tfErinnBetreff">Betreff</label>
-            <input id="tfErinnBetreff" type="text">
-            <label for="tfErinnText" style="margin-top:.5rem">Text</label>
-            <textarea id="tfErinnText" rows="10"></textarea>
-            <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:.75rem">
-              <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="tfPvErinnBetreff" style="font-weight:400"></span></div>
-              <div id="tfPvErinnText" style="font-size:13px;line-height:1.6"></div>
-            </div>
-
-            <div class="hinw" style="margin-top:.75rem">Platzhalter:
-              <code>{vorname}</code> <code>{name}</code> <code>{kuerzel}</code> <code>{ausbildung}</code>
-              <code>{beschreibung}</code> <code>{rolle}</code> <code>{anzahlTermine}</code>
-              <code>{ersterTermin}</code> <code>{letzterTermin}</code> <code>{link}</code> <code>{version}</code></div>
-
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:1.25rem 0 6px">An den Verantwortlichen: genügend Termine gefunden</div>
-            <div class="hinw" style="margin-bottom:6px">Geht automatisch einmal raus, sobald die benötigte Anzahl erreicht ist.
-              Zusätzlich: <code>{gefunden}</code> <code>{benoetigt}</code> <code>{adminLink}</code></div>
-            <label for="tfGenugBetreff">Betreff</label>
-            <input id="tfGenugBetreff" type="text">
-            <label for="tfGenugText" style="margin-top:.5rem">Text</label>
-            <textarea id="tfGenugText" rows="9"></textarea>
-            <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:.75rem">
-              <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="tfPvGenugBetreff" style="font-weight:400"></span></div>
-              <div id="tfPvGenugText" style="font-size:13px;line-height:1.6"></div>
-            </div>
-
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:1.25rem 0 6px">An die Beteiligten: Termine festgelegt</div>
-            <div class="hinw" style="margin-bottom:6px">Vorlage für den Knopf «Beteiligte informieren» – dort vor dem Senden anpassbar.
-              Zusätzlich: <code>{termine}</code> <code>{anzahl}</code> <code>{fahrzeug}</code></div>
-            <label for="tfInfoBetreffV">Betreff</label>
-            <input id="tfInfoBetreffV" type="text">
-            <label for="tfInfoTextV" style="margin-top:.5rem">Text</label>
-            <textarea id="tfInfoTextV" rows="11"></textarea>
-            <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:.75rem">
-              <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="tfPvInfoBetreff" style="font-weight:400"></span></div>
-              <div id="tfPvInfoText" style="font-size:13px;line-height:1.6"></div>
-            </div>
-
-            <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
-              <button class="btn btn-green btn-klein" id="btnTfMailtextSpeichern">Speichern</button>
-              <button class="btn btn-klein" id="btnTfMailtextStandard">Als Standard speichern</button>
-              <button class="btn btn-klein" id="btnTfMailtextReset">Auf Standard</button>
-            </div>
-            <div class="status-msg" id="tfMailtextStatus"></div>
-          </div>
-        </details>
-        </div>
-        <div class="card">
-          <h2>Termine in Lodur reservieren</h2>
-          <p class="hinw" style="margin-bottom:1rem">Vorlage für den Knopf «Termine in Lodur reservieren» in jeder Ausbildung.
-            Die Mail geht an die Empfänger unten, mit Kopie an den Ausbildungsverantwortlichen.
-            Neue und geänderte Angaben erscheinen kursiv, entfallene Termine durchgestrichen.</p>
-          <label for="tfLodurEmpfV">Empfänger (Kürzel, mehrere mit Komma)</label>
-          <input id="tfLodurEmpfV" type="text" style="max-width:260px;text-transform:uppercase" oninput="tfListePruefen('tfLodurEmpfV','tfLodurEmpfV-info')">
-          <div id="tfLodurEmpfV-info" style="margin-top:6px"></div>
-          <label for="tfLodurBetreffV" style="margin-top:.75rem">Betreff</label>
-          <input id="tfLodurBetreffV" type="text">
-          <label for="tfLodurTextV" style="margin-top:.5rem">Text</label>
-          <textarea id="tfLodurTextV" rows="10"></textarea>
-          <div class="hinw" style="margin-top:6px">Platzhalter: <code>{vorname}</code> (Empfänger) <code>{ausbildung}</code>
-            <code>{termine}</code> (Liste der festgelegten Termine) <code>{absender}</code> (wer sendet)</div>
-          <div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
-            <button class="btn btn-green btn-klein" id="btnTfLodurSpeichern">Speichern</button>
-            <button class="btn btn-klein" id="btnTfLodurReset">Auf Standard</button>
-          </div>
-          <div class="status-msg" id="tfLodurVStatus"></div>
-        </div>
+        
+        
         <div class="card">
           <h2>Kalender-Abo</h2>
           <p class="hinw">Die Adresse des Cloudflare Workers für die Kalender-Abos wird zentral unter
@@ -1365,6 +1260,29 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
     </div>
 
     <!-- ═══════════ BENUTZERVERWALTUNG ═══════════ -->
+    <div id="toolMv" style="display:none">
+      <div class="card">
+        <h2>Mailvorlagen</h2>
+        <p class="hinw" style="margin-bottom:1rem">Hier stehen die Standardtexte aller Mails, die das Tool verschickt.
+          Beim Versand werden sie weiterhin angezeigt und lassen sich für den einzelnen Versand anpassen,
+          ohne den Standard zu verändern.</p>
+        <label for="mvModul">Modul</label>
+        <select id="mvModul" style="max-width:280px" onchange="mvZeigen()"></select>
+        <div class="status-msg" id="mvStatus" style="display:none"></div>
+      </div>
+      <div id="mvListe"></div>
+      <div class="card">
+        <h2>Fusszeile</h2>
+        <p class="hinw">Erscheint klein am Ende jeder Mail aus dem Tool. Leer lassen heisst: keine Fusszeile.
+          Platzhalter <code>{version}</code> für den Stand des Servers.</p>
+        <input id="mvFuss" type="text">
+        <div class="entry-actions" style="justify-content:flex-start;margin-top:.75rem">
+          <button class="btn btn-green btn-klein" onclick="mvFussSpeichern()">Als Standard speichern</button>
+        </div>
+        <div class="status-msg" id="mvFussStatus" style="display:none"></div>
+      </div>
+    </div>
+
     <div id="toolBenutzer" style="display:none">
 
       <div class="card">
@@ -1825,7 +1743,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.74</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.75</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -2159,7 +2077,7 @@ const REITER_RECHT={"gab.inhalte":"gab.einstellungen","tlfc.nachtragen":"tlfc.er
 function darf(id){ id=REITER_RECHT[id]||id; return istAdmin() || (!!ICH && Array.isArray(ICH.rechte) && ICH.rechte.indexOf(id)>=0); }
 function darfTool(tool){
   if(tool==="start") return true;
-  if(tool==="backup"||tool==="benutzer") return istAdmin();
+  if(tool==="backup"||tool==="benutzer"||tool==="mv") return istAdmin();
   if(tool==="gatlf") return darf("gatlf.alles");
   if(tool==="gaulf") return darf("gaulf.alles");
   const attr=REITER_ATTR[tool];
@@ -2355,6 +2273,7 @@ function switchTool(){
   $("toolTlfc").style.display = tool==="tlfc" ? "block" : "none";
   $("toolTf").style.display = tool==="tf" ? "block" : "none";
   $("toolBenutzer").style.display = tool==="benutzer" ? "block" : "none";
+  $("toolMv").style.display = tool==="mv" ? "block" : "none";
   const hinweis=(name,st)=> st==="offline"
     ? `${name}-Backend antwortet gerade nicht. Oben auf «Erneut verbinden» klicken.`
     : `${name}-Backend ist nicht angemeldet (Passwort nicht synchron).`;
@@ -2370,6 +2289,7 @@ function switchTool(){
   if(tool==="gaulf" && FT_OK && !GA_ED.ULF) gaEditorOeffnen("ULF");
   if(tool==="tlfc" && FT_OK && !TLFC_INIT) initTlfc();
   if(tool==="benutzer" && FT_OK && !BV_INIT) initBv();
+  if(tool==="mv" && !MV_GELADEN) mvLaden();
   ersterErlaubterReiter(tool);
 }
 
@@ -2491,7 +2411,7 @@ function initGab(){
   if(darf("gab.resultate")) gabLadeResultate();
 }
 
-let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.74";
+let GAB_PARAM_STANDARD=null, GAB_FRAGEN=[], SV_STANDARD=null, SV_VERSION="CLv1.75";
 
 let GAB_NT_ID=null;
 
@@ -4009,6 +3929,85 @@ let BV_INIT=false, BV_LISTE=[], BV_ICH="", BV_FUNKTIONEN=[], BV_ENTWURF={};
 const BV_ROLLE=r=>r==="voll"?"Admin":"User";
 function bvDatum(ms){ return ms?new Date(ms).toLocaleDateString("de-CH",{day:"2-digit",month:"2-digit",year:"numeric"}):""; }
 
+/* ── Mailvorlagen (zentral, nur Admins) ── */
+let MV_GELADEN=false, MV_DATEN=null;
+async function mvLaden(){
+  const st=$("mvStatus"); st.style.display="block"; st.className="status-msg"; st.textContent="Lade …";
+  try{
+    const r=await ftCallAdmin({type:"admin_mailvorlagen_get",password:PASS});
+    if(!r.ok){ st.className="status-msg err-msg"; st.textContent=fehlerText(r); return; }
+    MV_DATEN=r; MV_GELADEN=true;
+    $("mvModul").innerHTML=r.module.map(m=>`<option value="${escHtml(m)}">${escHtml(m)}</option>`).join("");
+    $("mvFuss").value=r.fusszeile||"";
+    st.style.display="none";
+    mvZeigen();
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+function mvZeigen(){
+  if(!MV_DATEN) return;
+  const modul=$("mvModul").value;
+  const liste=MV_DATEN.vorlagen.filter(v=>v.modul===modul);
+  $("mvListe").innerHTML=liste.map((v,i)=>`<div class="card">
+    <details${liste.length===1?" open":""}>
+      <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em">${escHtml(v.name)}</summary>
+      <div style="margin-top:.75rem">
+        ${v.empfaengerName?`<label for="mv-empf-${v.id}">${escHtml(v.empfaengerName)}</label>
+          <input id="mv-empf-${v.id}" type="text" value="${escHtml(v.empfaenger||"")}">`:""}
+        <label for="mv-betreff-${v.id}" style="margin-top:.5rem">Betreff</label>
+        <input id="mv-betreff-${v.id}" type="text" value="${escHtml(v.betreff)}" oninput="mvVorschau('${v.id}')">
+        <label for="mv-text-${v.id}" style="margin-top:.5rem">Text</label>
+        <textarea id="mv-text-${v.id}" rows="10" oninput="mvVorschau('${v.id}')">${escHtml(v.text)}</textarea>
+        <div class="hinw" style="margin-top:6px">Platzhalter: ${v.platzhalter.map(x=>`<code>{${escHtml(x)}}</code>`).join(" ")}</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:1rem 0 6px">Vorschau mit Beispieldaten</div>
+        <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem">
+          <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="mv-pvb-${v.id}" style="font-weight:400"></span></div>
+          <div id="mv-pvt-${v.id}" style="font-size:13px;line-height:1.6"></div>
+        </div>
+        <div class="entry-actions" style="justify-content:flex-start;margin-top:.75rem">
+          <button class="btn btn-green btn-klein" onclick="mvSpeichern('${v.id}')">Als Standard speichern</button>
+        </div>
+        <div class="status-msg" id="mv-status-${v.id}" style="display:none"></div>
+      </div>
+    </details></div>`).join("");
+  liste.forEach(v=>mvVorschau(v.id));
+}
+const MV_BEISPIEL={vorname:"Michael",name:"Widmer",kuerzel:"WIM",ausbildung:"ULF Ausbildung 2026",
+  beschreibung:"Einführung am neuen ULF",rolle:"Teilnehmer",anzahlTermine:"9",ersterTermin:"30.09.2026",
+  letzterTermin:"03.11.2026",link:"https://terminfindung.feuerwehrmeilen.ch",termine:"Di 14.10.2026, 19:00–21:00\nMi 15.10.2026, 19:00–21:00",
+  anzahl:"2",fahrzeug:"ULF",typ:"Reservation",datum:"14.10.2026",vonZeit:"19:00",bisZeit:"21:30",
+  personen:"WIM / LOL",bemerkungZeile:"Bemerkung: Schlauchpflege\n",fahrer:"WIM",beifahrer:"LOL",
+  beifahrerZeile:" / Beifahrer: LOL",abfahrt:"19:00",rueckkehr:"21:15",absender:"Lars Loepfe",
+  adminLink:"https://mwd.feuerwehrmeilen.ch",tage:"7",stunden:"1",version:MV_DATEN?MV_DATEN.version:""};
+function mvFuelle(t){ return String(t||"").replace(/\{(\w+)\}/g,(m,k)=>MV_BEISPIEL[k]!==undefined?MV_BEISPIEL[k]:m); }
+function mvVorschau(id){
+  const b=$("mv-betreff-"+id), t=$("mv-text-"+id);
+  if(!b||!t) return;
+  $("mv-pvb-"+id).textContent=mvFuelle(b.value);
+  $("mv-pvt-"+id).innerHTML=escHtml(mvFuelle(t.value)).replace(/\n/g,"<br>");
+}
+async function mvSpeichern(id){
+  const st=$("mv-status-"+id); st.style.display="block"; st.className="status-msg"; st.textContent="Wird gespeichert …";
+  const empf=$("mv-empf-"+id);
+  try{
+    const r=await ftCallAdmin({type:"admin_mailvorlagen_set",password:PASS,id,
+      betreff:$("mv-betreff-"+id).value,text:$("mv-text-"+id).value,
+      ...(empf?{empfaenger:empf.value}:{}),anfrageId:Date.now()+"-"+Math.random()});
+    if(!r.ok){ st.className="status-msg err-msg"; st.textContent=fehlerText(r); return; }
+    const i=MV_DATEN.vorlagen.findIndex(v=>v.id===id);
+    if(i>=0) MV_DATEN.vorlagen[i]=Object.assign(MV_DATEN.vorlagen[i],r.vorlage);
+    st.className="status-msg ok-msg"; st.textContent="Gespeichert. Gilt ab dem nächsten Versand.";
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+async function mvFussSpeichern(){
+  const st=$("mvFussStatus"); st.style.display="block"; st.className="status-msg"; st.textContent="Wird gespeichert …";
+  try{
+    const r=await ftCallAdmin({type:"admin_mailvorlagen_set",password:PASS,fusszeile:$("mvFuss").value,
+      anfrageId:Date.now()+"-"+Math.random()});
+    if(!r.ok){ st.className="status-msg err-msg"; st.textContent=fehlerText(r); return; }
+    st.className="status-msg ok-msg"; st.textContent="Gespeichert.";
+  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
 function initBv(){
   BV_INIT=true;
   $("btnBvHinzu").addEventListener("click", bvHinzufuegen);
@@ -5416,7 +5415,7 @@ async function ftUebungSync(){
 }
 
 /* ── Reservations-Bestätigungsmail ── */
-let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.74";
+let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.75";
 
 function ftResMailVorschau(){
   const heute=new Date();
@@ -5785,7 +5784,7 @@ async function ftFzgHinzufuegen(){
 }
 
 /* ── Archiv-Einstellungen ── */
-let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.74", FT_ARCHIV_LETZTER="";
+let FT_ARCHIV_DEFAULTS=null, FT_ARCHIV_VERSION="CLv1.75", FT_ARCHIV_LETZTER="";
 
 function ftArchivVorschau(){
   const intervallText={woche:"Wöchentlich",monat:"Monatlich",quartal:"Quartalsweise",halbjahr:"Halbjährlich",jahr:"Jährlich"}[$("ftArchivIntervall").value]||"Monatlich";
@@ -6520,13 +6519,13 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
   }
   y+=8; doc.setDrawColor(224,224,224); doc.line(20,y,190,y); y+=6;
   doc.setFontSize(8); doc.setTextColor(120,120,120);
-  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.74`,20,y);
+  doc.text(`Neu ausgestellt: ${new Date().toLocaleString("de-CH")} · CLv1.75`,20,y);
   doc.save(`Fahrtraining_${r.datum}_${r.fahrer}_Kopie.pdf`);
 }
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.74";
+let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.75";
 
 async function soApi(payload){
   try{
