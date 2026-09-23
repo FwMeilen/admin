@@ -3359,16 +3359,21 @@ function initTf(){
   ["tfMailBetreff","tfMailText"].forEach(i=>$(i).addEventListener("input", tfMailDlgVorschau));
   $("btnTfLodurSenden").addEventListener("click", tfLodurSenden);
   ["tfLodurBetreff","tfLodurText"].forEach(i=>$(i).addEventListener("input", tfLodurVorschau));
-  $("btnTfLodurSpeichern").addEventListener("click", tfLodurVorlageSpeichern);
-  $("btnTfLodurReset").addEventListener("click", tfLodurVorlageReset);
+  if($("btnTfLodurSpeichern")){
+    $("btnTfLodurSpeichern").addEventListener("click", tfLodurVorlageSpeichern);
+    $("btnTfLodurReset").addEventListener("click", tfLodurVorlageReset);
+  }
   ["tfInfoBetreff","tfInfoText"].forEach(i=>$(i).addEventListener("input", tfInfoVorschau));
-  $("btnTfMailtextSpeichern").addEventListener("click", tfMailtextSpeichern);
-  $("btnTfMailtextReset").addEventListener("click", tfMailtextReset);
-  $("btnTfMailtextStandard").addEventListener("click", tfMailtextAlsStandard);
+  // Mailtexte liegen seit CLv1.75 im Reiter «Mailvorlagen»
+  if($("btnTfMailtextSpeichern")){
+    $("btnTfMailtextSpeichern").addEventListener("click", tfMailtextSpeichern);
+    $("btnTfMailtextReset").addEventListener("click", tfMailtextReset);
+    $("btnTfMailtextStandard").addEventListener("click", tfMailtextAlsStandard);
+  }
 
-  $("tfMailDetails").addEventListener("toggle", ()=>{ if($("tfMailDetails").open) tfMailtextLaden(); });
+  if($("tfMailDetails")) $("tfMailDetails").addEventListener("toggle", ()=>{ if($("tfMailDetails").open) tfMailtextLaden(); });
   ["tfEinlBetreff","tfEinlText","tfErinnBetreff","tfErinnText","tfGenugBetreff","tfGenugText","tfInfoBetreffV","tfInfoTextV"]
-    .forEach(i=>$(i).addEventListener("input", tfMailtextVorschau));
+    .forEach(i=>{ const e=$(i); if(e) e.addEventListener("input", tfMailtextVorschau); });
   $("btnTfGenerieren").addEventListener("click", tfGenOeffnen);
   $("btnTfGenErzeugen").addEventListener("click", tfGenErzeugen);
   tfLade();
@@ -5209,8 +5214,10 @@ function initRes(){
   $("btnFtUebungSpeichern").addEventListener("click", ftSpeichereUebung);
   $("btnFtBlockSpeichern").addEventListener("click", ftBlockSpeichern);
   $("btnFtUebungSync").addEventListener("click", ftUebungSync);
-  $("btnFtResMailSpeichern").addEventListener("click", ftSpeichereResMail);
-  $("btnFtResMailReset").addEventListener("click", ftResMailReset);
+  if($("btnFtResMailSpeichern")){
+    $("btnFtResMailSpeichern").addEventListener("click", ftSpeichereResMail);
+    $("btnFtResMailReset").addEventListener("click", ftResMailReset);
+  }
   ["ftResMailBetreff","ftResMailText"].forEach(id=>{
     const el=$(id); if(el) el.addEventListener("input", ftResMailVorschau);
   });
@@ -5418,6 +5425,7 @@ async function ftUebungSync(){
 let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.75";
 
 function ftResMailVorschau(){
+  if(!$("ftResMailBetreff")) return;   // in den Reiter «Mailvorlagen» verschoben
   const heute=new Date();
   const d={typ:"Fahrtraining",fahrzeug:"TLF",datum:heute.toLocaleDateString("de-CH"),
     vonZeit:"18:30",bisZeit:"20:30",personen:"MUS / BSP",
@@ -5438,6 +5446,7 @@ function ftResMailVorschau(){
 }
 
 async function ftLadeResMail(){
+  if(!$("ftResMailBetreff")) return;   // in den Reiter «Mailvorlagen» verschoben
   const st=$("ftResMailStatus");
   st.className="status-msg"; st.style.display="none";
   try{
@@ -5452,6 +5461,7 @@ async function ftLadeResMail(){
 }
 
 async function ftSpeichereResMail(){
+  if(!$("ftResMailBetreff")) return;   // in den Reiter «Mailvorlagen» verschoben
   const st=$("ftResMailStatus"), btn=$("btnFtResMailSpeichern");
   btn.disabled=true;
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
@@ -5465,6 +5475,7 @@ async function ftSpeichereResMail(){
 }
 
 function ftResMailReset(){
+  if(!$("ftResMailBetreff")) return;   // in den Reiter «Mailvorlagen» verschoben
   if(!FT_RES_MAIL_DEFAULTS) return;
   $("ftResMailBetreff").value=FT_RES_MAIL_DEFAULTS.betreff||"";
   $("ftResMailText").value=FT_RES_MAIL_DEFAULTS.text||"";
