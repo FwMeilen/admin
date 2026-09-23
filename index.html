@@ -88,6 +88,8 @@ select{appearance:none;-webkit-appearance:none;padding-right:28px;background-ima
 .tf-karte.offen .tf-koerper{display:block;}
 .tf-koerper .card{margin-bottom:.75rem;}
 .tf-mini{width:90px;height:6px;background:var(--gray-mid);flex-shrink:0;}
+#toolSelect option.opt-admin{color:var(--red);font-weight:700;}
+#toolSelect.ist-admin{color:var(--red);font-weight:700;}
 .ampel-leiste{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1.25rem;}
 .ampel{display:flex;align-items:center;gap:9px;border:1px solid var(--gray-mid);padding:10px 14px;background:var(--bg);flex:1;min-width:200px;}
 .ampel-punkt{width:13px;height:13px;border-radius:50%;flex-shrink:0;background:var(--gray-mid);}
@@ -240,9 +242,9 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         <option value="gatlf">TLF Grundausbildung</option>
         <option value="gaulf">ULF Grundausbildung</option>
         <option value="tf">Terminfindung</option>
-        <option value="backup">Admin</option>
         <option value="mv">Mailvorlagen</option>
         <option value="benutzer">Benutzerverwaltung</option>
+        <option value="backup" class="opt-admin">Admin</option>
       </select>
     </div>
     <div class="warnung" id="authWarnung" style="display:none"></div>
@@ -1659,7 +1661,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.80</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.81</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -2190,6 +2192,7 @@ function switchTool(){
   $("toolTf").style.display = tool==="tf" ? "block" : "none";
   $("toolBenutzer").style.display = tool==="benutzer" ? "block" : "none";
   $("toolMv").style.display = tool==="mv" ? "block" : "none";
+  $("toolSelect").classList.toggle("ist-admin", tool==="backup");
   const hinweis=(name,st)=> st==="offline"
     ? `${name}-Backend antwortet gerade nicht. Oben auf «Erneut verbinden» klicken.`
     : `${name}-Backend ist nicht angemeldet (Passwort nicht synchron).`;
