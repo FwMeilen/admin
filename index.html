@@ -1743,7 +1743,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.76</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.77</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -6181,15 +6181,14 @@ function ftFragenCardHtml(r){
       <label>Frage / Tätigkeit</label>
       <textarea id="${id}-frage">${escHtml(r.frage)}</textarea>
       <div class="entry-row2">
-        <div><label>Antwort / Kontrollpunkt 1</label><textarea id="${id}-a1" style="min-height:60px">${escHtml(r.a1)}</textarea></div>
-        <div><label>Antwort / Kontrollpunkt 2</label><textarea id="${id}-a2" style="min-height:60px">${escHtml(r.a2)}</textarea></div>
+        ${ftAntwortFeld(id,"A",1,r.a1,r.richtig)}
+        ${ftAntwortFeld(id,"B",2,r.a2,r.richtig)}
       </div>
       <div class="entry-row2">
-        <div><label>Antwort / Kontrollpunkt 3</label><textarea id="${id}-a3" style="min-height:60px">${escHtml(r.a3)}</textarea></div>
-        <div><label>Antwort / Kontrollpunkt 4</label><textarea id="${id}-a4" style="min-height:60px">${escHtml(r.a4)}</textarea></div>
+        ${ftAntwortFeld(id,"C",3,r.a3,r.richtig)}
+        ${ftAntwortFeld(id,"D",4,r.a4,r.richtig)}
       </div>
-      <label>Richtig (A–D, nur bei Frage)</label>
-      <input type="text" id="${id}-richtig" value="${escHtml(r.richtig)}" maxlength="1" style="max-width:80px;text-transform:uppercase">
+      <div class="hinw" style="margin-bottom:.5rem">Bei einer Frage die richtige Antwort links anhaken. Bei einer Tätigkeit sind es Kontrollpunkte – dort wird nichts angehakt.</div>
       <label>Erklärung</label>
       <textarea id="${id}-erklaerung">${escHtml(r.erklaerung)}</textarea>
       <div class="entry-actions">
@@ -6199,6 +6198,21 @@ function ftFragenCardHtml(r){
       <div class="status-msg" id="${id}-status"></div>
     </div>
   </div>`;
+}
+/** Antwortfeld mit Buchstabe und Auswahl «richtig» */
+function ftAntwortFeld(id,buchstabe,nr,wert,richtig){
+  const gewaehlt=String(richtig||"").toUpperCase()===buchstabe;
+  return `<div>
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+      <input type="radio" name="${id}-richtig" value="${buchstabe}" ${gewaehlt?"checked":""} style="width:auto;margin:0">
+      <span>Antwort ${buchstabe} / Kontrollpunkt ${nr}</span>
+    </label>
+    <textarea id="${id}-a${nr}" style="min-height:60px">${escHtml(wert||"")}</textarea>
+  </div>`;
+}
+function ftRichtigWert(id){
+  const gewaehlt=document.querySelector(`input[name="${id}-richtig"]:checked`);
+  return gewaehlt?gewaehlt.value:"";
 }
 function ftNeueFrage(){
   const el=$("ftFragenListe");
@@ -6212,15 +6226,14 @@ function ftNeueFrage(){
       <select id="${tempId}-typ" style="max-width:200px"><option value="Frage" selected>Frage</option><option value="Tätigkeit">Tätigkeit</option></select>
       <label>Frage / Tätigkeit</label><textarea id="${tempId}-frage"></textarea>
       <div class="entry-row2">
-        <div><label>Antwort / Kontrollpunkt 1</label><textarea id="${tempId}-a1" style="min-height:60px"></textarea></div>
-        <div><label>Antwort / Kontrollpunkt 2</label><textarea id="${tempId}-a2" style="min-height:60px"></textarea></div>
+        ${ftAntwortFeld(tempId,"A",1,"","A")}
+        ${ftAntwortFeld(tempId,"B",2,"","A")}
       </div>
       <div class="entry-row2">
-        <div><label>Antwort / Kontrollpunkt 3</label><textarea id="${tempId}-a3" style="min-height:60px"></textarea></div>
-        <div><label>Antwort / Kontrollpunkt 4</label><textarea id="${tempId}-a4" style="min-height:60px"></textarea></div>
+        ${ftAntwortFeld(tempId,"C",3,"","A")}
+        ${ftAntwortFeld(tempId,"D",4,"","A")}
       </div>
-      <label>Richtig (A–D, nur bei Frage)</label>
-      <input type="text" id="${tempId}-richtig" maxlength="1" style="max-width:80px;text-transform:uppercase">
+      <div class="hinw" style="margin-bottom:.5rem">Bei einer Frage die richtige Antwort links anhaken. Bei einer Tätigkeit sind es Kontrollpunkte – dort wird nichts angehakt.</div>
       <label>Erklärung</label><textarea id="${tempId}-erklaerung"></textarea>
       <div class="entry-actions"><button class="btn btn-green btn-klein" onclick="ftSpeichereFrage(null,'${tempId}')">Anlegen</button></div>
       <div class="status-msg" id="${tempId}-status"></div>
@@ -6232,7 +6245,7 @@ async function ftSpeichereFrage(row,id){
   const v=fid=>{const el=$(fid); return el?el.value.trim():"";};
   const payload={type:"admin_save_frage",password:PASS,sheet,row:row||null,
     typ:v(id+"-typ"),frage:v(id+"-frage"),a1:v(id+"-a1"),a2:v(id+"-a2"),a3:v(id+"-a3"),a4:v(id+"-a4"),
-    richtig:v(id+"-richtig").toUpperCase(),erklaerung:v(id+"-erklaerung")};
+    richtig:ftRichtigWert(id),erklaerung:v(id+"-erklaerung")};
   const st=$(id+"-status");
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
   try{
