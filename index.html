@@ -1662,7 +1662,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.84</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.85</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -2727,7 +2727,7 @@ function gabRendern(){
     }).join("")+`</tbody></table></div></div>`;
 }
 
-async function mvLaden(){
+async function mailversandLaden(){
   const el=$("mvInhalt");
   el.innerHTML='<div class="loading">Lade …</div>';
   try{
@@ -5024,7 +5024,7 @@ function initBackup(){
   if(SC_LETZT) scAnzeigen(SC_LETZT); else scLaden(false);
 
   scEmpfLaden();
-  $("mvDetails").addEventListener("toggle", ()=>{ if($("mvDetails").open) mvLaden(); });
+  $("mvDetails").addEventListener("toggle", ()=>{ if($("mvDetails").open) mailversandLaden(); });
   $("btnMessungOhne").addEventListener("click", ()=>messungStarten(false));
   $("grDetails").addEventListener("toggle", ()=>{
     if($("grDetails").open) grLadeGrundlagen();
