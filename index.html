@@ -1184,8 +1184,8 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Ladezeiten messen</summary>
           <div style="margin-top:0.75rem">
             <p class="hinw" style="margin-bottom:1rem">
-              Misst, wie lange die einzelnen Datenquellen brauchen. So lässt sich erkennen,
-              wo die Wartezeit tatsächlich entsteht.
+              Misst im neuen Server, wie lange die einzelnen Datenquellen brauchen: Sheets, Mitgliederliste,
+              Fahrzeugfragen und Kalender. So lässt sich erkennen, wo die Wartezeit tatsächlich entsteht.
             </p>
             <div class="entry-actions" style="justify-content:flex-start">
               <button class="btn btn-red btn-klein" id="btnMessungCache">Mit Zwischenspeicher</button>
@@ -1661,7 +1661,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.81</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.82</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -2822,29 +2822,18 @@ async function messungStarten(mitCache){
         <tr>
           <td>Summe der Schritte</td>
           <td style="text-align:right;font-variant-numeric:tabular-nums">${(r.gesamtMs/1000).toFixed(2)}s</td>
-          <td></td><td class="hinw">gemessene Datenzugriffe</td>
-        </tr>
-        <tr>
-          <td>Vorlauf im Script</td>
-          <td style="text-align:right;font-variant-numeric:tabular-nums">${(vorlauf/1000).toFixed(2)}s</td>
-          <td>${balken(vorlauf,max)}</td>
-          <td class="hinw">Start, Passwortprüfung, Aufbau</td>
-        </tr>
-        <tr>
-          <td><b>Script total</b></td>
-          <td style="text-align:right"><b>${(skript/1000).toFixed(2)}s</b></td>
-          <td></td><td class="hinw">gesamte Zeit im Apps Script</td>
+          <td></td><td class="hinw">Zugriffe auf Sheets und Kalender</td>
         </tr>
         <tr>
           <td>Übertragung &amp; Verbindungsaufbau</td>
           <td style="text-align:right;font-variant-numeric:tabular-nums">${(netz/1000).toFixed(2)}s</td>
           <td>${balken(netz,max)}</td>
-          <td class="hinw">Googles Weiterleitung – nicht beeinflussbar</td>
+          <td class="hinw">Browser → Cloudflare → Browser</td>
         </tr>
         <tr>
           <td><b>Gesamt bis zur Anzeige</b></td>
-          <td style="text-align:right"><b>${(gesamtClient/1000).toFixed(2)}s</b></td>
-          <td></td><td></td>
+          <td style="text-align:right;font-variant-numeric:tabular-nums"><b>${(gesamtClient/1000).toFixed(2)}s</b></td>
+          <td></td><td class="hinw">${escHtml(r.version||"")}</td>
         </tr>
       </tbody></table></div>`;
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
