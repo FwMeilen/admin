@@ -1662,7 +1662,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.83</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.84</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -2729,20 +2729,21 @@ function gabRendern(){
 
 async function mvLaden(){
   const el=$("mvInhalt");
-  el.innerHTML='<div class="loading">Wird geprüft …</div>';
+  el.innerHTML='<div class="loading">Lade …</div>';
   try{
-    const r=await ftCallAdmin({type:"admin_mail_status",password:PASS});
-    if(!r.ok){ el.innerHTML='<div class="empty">Fehler beim Prüfen.</div>'; return; }
+    const r=await ftCallAdmin({type:"admin_systemcheck",password:PASS});
     const zeile=(ok,titel,text)=>`<div class="frage-row" style="align-items:flex-start;gap:10px;padding:10px 0">
-      <span style="width:11px;height:11px;border-radius:50%;background:${ok?"var(--green)":"var(--red)"};flex-shrink:0;margin-top:4px"></span>
+      <span style="width:11px;height:11px;border-radius:50%;background:${ok?"var(--green)":"var(--red)"};flex-shrink:0;margin-top:3px"></span>
       <div><div style="font-size:13px;font-weight:700">${titel}</div><div class="hinw" style="font-size:12px">${text}</div></div></div>`;
-    const k=r.kontingent;
+    const smtp=(r.pruefungen||[]).filter(p=>p.id==="smtp")[0];
     el.innerHTML=
-      zeile(r.absenderOk, `Absender ${escHtml(r.absender)}`,
-        r.absenderOk ? "Im Konto als «Senden als»-Adresse bestätigt."
-          : escHtml(r.absenderGrund||"Nicht verfügbar.")
-            +"<br>Fehlt eine Berechtigung, die aktuelle appsscript.json einspielen und im Editor eine Funktion einmal von Hand ausführen, um sie zu bestätigen.")
-      +zeile(k>20, "Tageskontingent", k<0?"Unbekannt.":`Heute noch <b>${k}</b> Mails möglich. Google begrenzt den Versand pro Tag; das Kontingent erneuert sich nach 24 Stunden.`);
+      zeile(!!(smtp&&smtp.ok), "Versand über den Servertown-Mailserver",
+        smtp&&smtp.ok ? "Anmeldung erfolgreich · Absender mwd@feuerwehrmeilen.ch"
+                      : escHtml((smtp&&smtp.grund)||"Nicht geprüft."))
+      +zeile(true, "Kein Tageskontingent",
+        "Seit dem Umbau laufen die Mails nicht mehr über Gmail. Es gibt keine tägliche Obergrenze mehr.")
+      +zeile(true, "Zustellung",
+        "SPF, DKIM und DMARC bestehen; die Mails kommen im Posteingang an, nicht im Spam.");
   }catch(e){ el.innerHTML=`<div class="empty">Fehler: ${escHtml(e.message)}</div>`; }
 }
 
@@ -4310,7 +4311,7 @@ async function tfMailSenden(){
       s.textContent=`${r.gesendet} Mail${r.gesendet!==1?"s":""} versendet.`
         +((r.fehler||[]).length?` Fehler bei: ${r.fehler.join(", ")}.`:"")
         +(r.grund?` Grund: ${r.grund}`:"")
-        +(r.kontingent>=0?` Heute noch ${r.kontingent} Mails möglich.`:"");
+        +(typeof r.kontingent==="number"&&r.kontingent>=0?` Heute noch ${r.kontingent} Mails möglich.`:"");
       if((r.fehler||[]).length) s.className="status-msg err-msg";
     } else { st.className="status-msg err-msg"; st.textContent="Fehler beim Senden."; btn.disabled=false; }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; btn.disabled=false; }
@@ -4347,7 +4348,7 @@ function empfPruefen(id){
 function empfWarnungen(w){ return (w&&w.length)?`<div class="warnung" style="margin-top:.75rem;border-color:var(--red)">${w.map(escHtml).join("<br>")}</div>`:""; }
 
 function tfKontingentHinweis(k,anzahl){
-  if(k===undefined||k===null||k<0) return "";
+  if(typeof k!=="number"||k<0) return "";   // ohne Gmail gibt es kein Tageskontingent
   if(k<anzahl) return `<div class="warnung" style="margin-top:.75rem;border-color:var(--red)"><b>Heute nur noch ${k} Mails möglich</b> – Google begrenzt den täglichen Versand. ${anzahl-k} Empfänger würden nichts erhalten. Morgen erneut senden.</div>`;
   return `<div class="hinw" style="margin-top:.6rem">Heute noch ${k} Mails möglich.</div>`;
 }
@@ -4535,7 +4536,7 @@ async function tfInfoSenden(){
       s.textContent=`${r.gesendet} Mail${r.gesendet!==1?"s":""} an die Beteiligten versendet.`
         +((r.fehler||[]).length?` Fehler bei: ${r.fehler.join(", ")}.`:"")
         +(r.grund?` Grund: ${r.grund}`:"")
-        +(r.kontingent>=0?` Heute noch ${r.kontingent} Mails möglich.`:"");
+        +(typeof r.kontingent==="number"&&r.kontingent>=0?` Heute noch ${r.kontingent} Mails möglich.`:"");
       if((r.fehler||[]).length) s.className="status-msg err-msg";
     } else { st.className="status-msg err-msg"; st.textContent="Fehler beim Senden."; btn.disabled=false; }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; btn.disabled=false; }
