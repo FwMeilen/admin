@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -1286,6 +1287,17 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
     </div>
 
     <div id="toolBenutzer" style="display:none">
+      <div class="card">
+        <h2>Mitgliederliste abgleichen</h2>
+        <p class="hinw" style="margin-bottom:.75rem">Lodur-Export als Excel hochladen. Verglichen werden nur
+          Kürzel, Vorname, Name und E-Mail. Leere Felder im Export überschreiben nie etwas, und Gäste sowie
+          Externe im zweiten Reiter bleiben unberührt. Nach dem Hochladen siehst du eine Vorschau und
+          entscheidest je Eintrag.</p>
+        <input type="file" id="mgDatei" accept=".xlsx,.xls,.csv" style="max-width:340px">
+        <div class="status-msg" id="mgStatus" style="display:none"></div>
+        <div id="mgVorschau" style="margin-top:1rem"></div>
+      </div>
+
 
       <div class="card">
         <h2>Benutzer hinzufügen</h2>
@@ -1662,7 +1674,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.85</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.86</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -2209,6 +2221,7 @@ function switchTool(){
   if(tool==="gaulf" && FT_OK && !GA_ED.ULF) gaEditorOeffnen("ULF");
   if(tool==="tlfc" && FT_OK && !TLFC_INIT) initTlfc();
   if(tool==="benutzer" && FT_OK && !BV_INIT) initBv();
+  if(tool==="benutzer" && $("mgDatei") && !$("mgDatei").dataset.bereit){ $("mgDatei").dataset.bereit="1"; $("mgDatei").addEventListener("change", mgDateiGewaehlt); }
   if(tool==="mv" && !MV_GELADEN) mvLaden();
   ersterErlaubterReiter(tool);
 }
@@ -3924,6 +3937,93 @@ async function mvFussSpeichern(){
     if(!r.ok){ st.className="status-msg err-msg"; st.textContent=fehlerText(r); return; }
     st.className="status-msg ok-msg"; st.textContent="Gespeichert.";
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
+}
+
+
+/* ── Mitgliederliste abgleichen (Lodur-Export) ── */
+let MG_DATEN=null;
+function mgStatus(text,art){ const st=$("mgStatus"); st.style.display=text?"block":"none";
+  st.className="status-msg"+(art?" "+art:""); st.textContent=text; }
+function mgSpalte(kopf,namen){
+  for(let i=0;i<kopf.length;i++){ if(namen.indexOf(String(kopf[i]||"").trim().toLowerCase())>=0) return i; }
+  return -1;
+}
+async function mgDateiGewaehlt(ev){
+  const datei=ev.target.files&&ev.target.files[0];
+  if(!datei) return;
+  mgStatus("Datei wird gelesen …");
+  $("mgVorschau").innerHTML="";
+  try{
+    const puffer=await datei.arrayBuffer();
+    const wb=XLSX.read(puffer,{type:"array"});
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:""});
+    if(rows.length<2) throw new Error("Die Datei enthält keine Datenzeilen.");
+    const kopf=rows[0].map(x=>String(x||""));
+    const iK=mgSpalte(kopf,["kürzel","kuerzel","kurzel","abk","abkürzung"]);
+    const iV=mgSpalte(kopf,["vorname"]);
+    const iN=mgSpalte(kopf,["name","nachname"]);
+    const iE=mgSpalte(kopf,["email","e-mail","mail","e-mail-adresse"]);
+    if(iK<0||iV<0||iN<0) throw new Error("Spalten «Kürzel», «Vorname» und «Name» wurden nicht gefunden.");
+    const zeilen=rows.slice(1).map(r=>({kuerzel:String(r[iK]||"").trim(),vorname:String(r[iV]||"").trim(),
+      name:String(r[iN]||"").trim(),email:iE>=0?String(r[iE]||"").trim():""})).filter(r=>r.kuerzel);
+    if(!zeilen.length) throw new Error("Keine Zeile mit Kürzel gefunden.");
+    mgStatus(`${zeilen.length} Zeilen gelesen – wird verglichen …`);
+    const r=await ftCallAdmin({type:"admin_mitglieder_vergleich",password:PASS,zeilen});
+    if(!r.ok){ mgStatus(fehlerText(r),"err-msg"); return; }
+    MG_DATEN=r;
+    mgStatus("");
+    mgVorschauZeigen(r);
+  }catch(e){ mgStatus("Fehler: "+e.message,"err-msg"); }
+  finally{ ev.target.value=""; }
+}
+function mgVorschauZeigen(r){
+  const block=(titel,eintraege,html)=>eintraege.length?`<details open style="margin-bottom:.75rem">
+      <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em">
+        ${titel} (${eintraege.length})</summary>
+      <div style="margin-top:.5rem">${html}</div></details>`:"";
+  const haken=(art,id,text)=>`<label class="frage-row" style="gap:10px;padding:6px 0;cursor:pointer">
+      <input type="checkbox" class="mg-${art}" value="${escHtml(id)}" checked style="width:auto;margin:0">
+      <span style="font-size:13px">${text}</span></label>`;
+  const felderText=f=>f.map(x=>`${x.feld}: «${escHtml(x.alt||"leer")}» → «${escHtml(x.neu)}»`).join(", ");
+  $("mgVorschau").innerHTML=
+    `<div class="hinw" style="margin-bottom:.75rem">Export: ${r.imExport} Zeilen · Liste: ${r.bestand} Einträge ·
+      unverändert: ${r.unveraendert}${r.doppelt.length?` · <b style="color:var(--red)">doppelte Kürzel im Export: ${r.doppelt.join(", ")}</b>`:""}</div>`
+    +block("Neu aufnehmen", r.neu, r.neu.map(e=>haken("neu",e.kuerzel,
+        `<b>${escHtml(e.kuerzel)}</b> · ${escHtml((e.vorname+" "+e.name).trim())}${e.email?" · "+escHtml(e.email):" · ohne Mail"}`)).join(""))
+    +block("Ändern", r.geaendert, r.geaendert.map(e=>haken("aend",e.kuerzel,
+        `<b>${escHtml(e.kuerzel)}</b> · ${escHtml(e.name)} – ${felderText(e.felder)}`)).join(""))
+    +block("Nicht mehr im Export", r.entfaellt, `<div class="warnung" style="margin-bottom:.5rem">
+        Diese Personen stehen in der Mitgliederliste, aber nicht im Export. Häkchen setzen, um sie zu entfernen –
+        standardmässig bleiben sie stehen.</div>`
+      +r.entfaellt.map(e=>`<label class="frage-row" style="gap:10px;padding:6px 0;cursor:pointer">
+        <input type="checkbox" class="mg-weg" value="${escHtml(e.kuerzel)}" style="width:auto;margin:0">
+        <span style="font-size:13px"><b>${escHtml(e.kuerzel)}</b> · ${escHtml(e.name)}</span></label>`).join(""))
+    +((r.neu.length||r.geaendert.length||r.entfaellt.length)
+      ? `<div class="entry-actions" style="justify-content:flex-start;margin-top:1rem">
+           <button class="btn btn-green btn-klein" id="mgUebernehmen">Ausgewählte übernehmen</button></div>`
+      : `<div class="empty">Keine Unterschiede – die Liste ist aktuell.</div>`);
+  const btn=$("mgUebernehmen");
+  if(btn) btn.addEventListener("click", mgUebernehmen);
+}
+async function mgUebernehmen(){
+  if(!MG_DATEN) return;
+  const gewaehlt=art=>Array.from(document.querySelectorAll(".mg-"+art+":checked")).map(x=>x.value);
+  const neuK=gewaehlt("neu"), aendK=gewaehlt("aend"), wegK=gewaehlt("weg");
+  if(!neuK.length&&!aendK.length&&!wegK.length){ mgStatus("Nichts ausgewählt.","err-msg"); return; }
+  const text=[neuK.length?neuK.length+" neu":"",aendK.length?aendK.length+" ändern":"",
+    wegK.length?wegK.length+" entfernen":""].filter(x=>x).join(", ");
+  if(!confirm("Mitgliederliste jetzt anpassen? "+text)) return;
+  mgStatus("Wird übernommen …");
+  try{
+    const r=await ftCallAdmin({type:"admin_mitglieder_uebernehmen",password:PASS,
+      neu:MG_DATEN.neu.filter(e=>neuK.indexOf(e.kuerzel)>=0),
+      geaendert:MG_DATEN.geaendert.filter(e=>aendK.indexOf(e.kuerzel)>=0),
+      entfernen:wegK.map(k=>({kuerzel:k})),
+      anfrageId:Date.now()+"-"+Math.random()});
+    if(!r.ok){ mgStatus(fehlerText(r),"err-msg"); return; }
+    mgStatus(`Übernommen: ${r.angelegt} neu, ${r.geaendert} geändert, ${r.entfernt} entfernt.`,"ok-msg");
+    $("mgVorschau").innerHTML=""; MG_DATEN=null;
+  }catch(e){ mgStatus("Fehler: "+e.message,"err-msg"); }
 }
 
 function initBv(){
