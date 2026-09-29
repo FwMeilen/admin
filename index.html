@@ -1489,30 +1489,15 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 
           
 
-          <details style="margin-top:0.75rem">
-            <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;padding:8px 0;color:var(--black)">Ablauf-Meldung ans Kommando — Text &amp; Vorschau</summary>
-            <div style="margin-top:0.75rem">
-              <label for="soAbBetreff">Betreff</label>
-              <input id="soAbBetreff" type="text">
-              <label for="soAbText">Mailtext</label>
-              <textarea id="soAbText" rows="10"></textarea>
-              <div style="background:var(--bg2);border-left:3px solid var(--gray-mid);padding:1rem;margin-top:1rem">
-                <div class="hinw" style="margin-bottom:6px">An: fixe Empfänger · CC: betroffene Person</div>
-                <div style="font-weight:700;font-size:13px;margin-bottom:8px">Betreff: <span id="soPvAbBetreff" style="font-weight:400"></span></div>
-                <div id="soPvAbBody" style="font-size:13px;line-height:1.6"></div>
-              </div>
-            </div>
-          </details>
+          
 
           <div class="entry-actions" style="justify-content:flex-start;margin-top:1.25rem">
             <button class="btn btn-green btn-klein" id="btnSoErinnSpeichern">Speichern</button>
-            <button class="btn btn-klein" id="btnSoErinnReset">Texte auf Standard</button>
-            <button class="btn btn-klein" id="btnSoErinnStandard">Als Standard speichern</button>
           </div>
           <div class="status-msg" id="soErinnStatus"></div>
           <div class="hinw" style="margin-top:1rem;line-height:1.7">
-            Der automatische Versand benötigt einen <b>Zeit-Auslöser</b> im SoSi-Apps-Script
-            (Funktion <code>taeglicherErinnerungsCheck</code>, täglich).
+            Der Versand läuft täglich um 05:15 automatisch auf dem neuen Server.
+            Die drei Texte stehen im Reiter «Mailvorlagen» unter «SoSi».
           </div>
         </div>
       </div>
@@ -1674,7 +1659,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.87</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.88</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -6654,11 +6639,11 @@ function initSo(){
     $("btnSoMailReset").addEventListener("click", soMailReset);
     $("btnSoMailStandard").addEventListener("click", soMailAlsStandard);
   }
-  $("btnSoErinnStandard").addEventListener("click", soErinnAlsStandard);
+  if($("btnSoErinnStandard")) $("btnSoErinnStandard").addEventListener("click", soErinnAlsStandard);
   if($("soE1Betreff")) ["soE1Betreff","soE1Text","soE2Betreff","soE2Text","soAbBetreff","soAbText","soErinnTage1","soErinnTage2"]
     .forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", soErinnVorschau); });
   $("btnSoErinnSpeichern").addEventListener("click", soSpeichereErinnerung);
-  $("btnSoErinnReset").addEventListener("click", soErinnReset);
+  if($("btnSoErinnReset")) $("btnSoErinnReset").addEventListener("click", soErinnReset);
   soLadeStatistik();
 }
 
@@ -6684,6 +6669,7 @@ function soErinnFuelle(str,d,tage){
     .replace(/\{link\}/g,d.link).replace(/\{version\}/g,d.version);
 }
 function soErinnVorschau(){
+  if(!$("soAbBetreff")) return;   // Texte im Reiter «Mailvorlagen»
   if(!$("soE1Betreff")) return;   // Texte seit CLv1.78 im Reiter «Mailvorlagen»
   const d=soErinnBeispiel();
   const paare=[
@@ -6737,6 +6723,7 @@ async function soSpeichereErinnerung(){
   else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."+(r.detail?" ("+r.detail+")":""); }
 }
 function soErinnReset(){
+  if(!$("soAbBetreff")) return;   // Texte im Reiter «Mailvorlagen»
   if(!$("soE1Betreff")) return;   // Texte seit CLv1.78 im Reiter «Mailvorlagen»
   if(!SO_ERINN_DEFAULTS) return;
   const d=SO_ERINN_DEFAULTS;
@@ -7094,6 +7081,7 @@ async function soMailAlsStandard(){
 }
 
 async function soErinnAlsStandard(){
+  if(!$("soAbBetreff")) return;   // Texte im Reiter «Mailvorlagen»
   if(!$("soE1Betreff")) return;   // Texte seit CLv1.78 im Reiter «Mailvorlagen»
   if(!confirm("Aktuelle Erinnerungstexte als neuen Standard hinterlegen?\n\nDer Button \"Texte auf Standard\" setzt danach auf diese Version zurück.")) return;
   const st=$("soErinnStatus"); const btn=$("btnSoErinnStandard");
