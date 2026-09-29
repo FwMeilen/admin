@@ -1659,7 +1659,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.90</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.91</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -3872,6 +3872,10 @@ function mvZeigen(){
           <input id="mv-empf-${v.id}" type="text" value="${escHtml(v.empfaenger||"")}"
             oninput="tfListePruefen('mv-empf-${v.id}','mv-empf-${v.id}-info')">
           <div id="mv-empf-${v.id}-info" style="margin-top:6px"></div>`:""}
+        ${v.ccPersonName?`<label style="display:flex;align-items:center;gap:8px;margin-top:.5rem;
+            text-transform:none;letter-spacing:0;font-size:13px;color:var(--text);cursor:pointer">
+            <input type="checkbox" id="mv-cc-${v.id}" ${v.ccPerson?"checked":""} style="width:auto;margin:0">
+            ${escHtml(v.ccPersonName)}</label>`:""}
         <label for="mv-betreff-${v.id}" style="margin-top:.5rem">Betreff</label>
         <input id="mv-betreff-${v.id}" type="text" value="${escHtml(v.betreff)}" oninput="mvVorschau('${v.id}')">
         <label for="mv-text-${v.id}" style="margin-top:.5rem">Text</label>
@@ -3934,11 +3938,12 @@ function mvVorschau(id){
 }
 async function mvSpeichern(id){
   const st=$("mv-status-"+id); st.style.display="block"; st.className="status-msg"; st.textContent="Wird gespeichert …";
-  const empf=$("mv-empf-"+id);
+  const empf=$("mv-empf-"+id), cc=$("mv-cc-"+id);
   try{
     const r=await ftCallAdmin({type:"admin_mailvorlagen_set",password:PASS,id,
       betreff:$("mv-betreff-"+id).value,text:$("mv-text-"+id).value,
-      ...(empf?{empfaenger:empf.value}:{}),anfrageId:Date.now()+"-"+Math.random()});
+      ...(empf?{empfaenger:empf.value}:{}),...(cc?{ccPerson:cc.checked}:{}),
+      anfrageId:Date.now()+"-"+Math.random()});
     if(!r.ok){ st.className="status-msg err-msg"; st.textContent=fehlerText(r); return; }
     const i=MV_DATEN.vorlagen.findIndex(v=>v.id===id);
     if(i>=0) MV_DATEN.vorlagen[i]=Object.assign(MV_DATEN.vorlagen[i],r.vorlage);
