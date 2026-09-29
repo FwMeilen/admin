@@ -1658,7 +1658,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.93</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.94</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -3151,12 +3151,95 @@ function gaRendern(kat){
             </div>
           </div>
           <label style="margin-top:.5rem">Thema</label><input type="text" value="${escHtml(p.thema)}" ${feld(li,pi,"thema")}>
+          ${gaBilderHtml(kat,li,pi,p)}
           <label style="margin-top:.5rem">Inhalt</label><textarea rows="${Math.min(8,Math.max(2,String(p.inhalt||"").split("\n").length+1))}" ${feld(li,pi,"inhalt")}>${escHtml(p.inhalt)}</textarea>
         </div>`).join("")}
         <div style="margin-top:.75rem"><button class="btn btn-green btn-klein" onclick="gaPunktNeu('${kat}',${li})">+ Punkt</button></div>
       </div>
     </details>`).join("")+`<div class="status-msg" id="gaMeldung${kat}"></div>`;
   el.querySelectorAll("input,textarea").forEach(x=>x.addEventListener("focus",()=>{ GA_FOKUS=x; }));
+}
+
+/* ── Bilder je Punkt (max. 4) ── */
+const GA_BILD_MAX=4, GA_BILD_KANTE=1400, GA_BILD_QUALITAET=0.82;
+function gaBilderHtml(kat,li,pi,p){
+  const bilder=Array.isArray(p.bilder)?p.bilder:[];
+  const karten=bilder.map((b,bi)=>`<div style="width:130px">
+      <img src="${escHtml(b.url||"")}" alt="" style="width:130px;height:95px;object-fit:cover;border:1px solid var(--gray-mid)">
+      <input type="text" value="${escHtml(b.unterschrift||"")}" placeholder="Bildunterschrift"
+        style="font-size:12px;margin-top:3px" oninput="gaBildText('${kat}',${li},${pi},${bi},this.value)">
+      <div style="display:flex;gap:4px;margin-top:3px">
+        <button class="btn btn-klein" style="min-width:28px;padding:0 6px" title="nach links"
+          onclick="gaBildSchieben('${kat}',${li},${pi},${bi},-1)">←</button>
+        <button class="btn btn-klein" style="min-width:28px;padding:0 6px" title="nach rechts"
+          onclick="gaBildSchieben('${kat}',${li},${pi},${bi},1)">→</button>
+        <button class="btn btn-klein" style="min-width:28px;padding:0 6px" title="Bild entfernen"
+          onclick="gaBildWeg('${kat}',${li},${pi},${bi})">✕</button>
+      </div></div>`).join("");
+  const knopf=bilder.length<GA_BILD_MAX
+    ? `<label class="btn btn-klein" style="cursor:pointer;align-self:flex-start">+ Bild
+         <input type="file" accept="image/*" multiple style="display:none"
+           onchange="gaBildWaehlen('${kat}',${li},${pi},this)"></label>`
+    : `<span class="hinw" style="font-size:12px">Maximal ${GA_BILD_MAX} Bilder</span>`;
+  return `<label style="margin-top:.5rem">Bilder</label>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start">${karten}${knopf}</div>
+    <div class="hinw" id="gaBildStatus-${kat}-${li}-${pi}" style="font-size:12px;margin-top:4px"></div>`;
+}
+function gaBildVerkleinern(datei){
+  return new Promise((fertig,fehler)=>{
+    const leser=new FileReader();
+    leser.onerror=()=>fehler(new Error("Datei nicht lesbar"));
+    leser.onload=()=>{
+      const bild=new Image();
+      bild.onerror=()=>fehler(new Error("Kein gültiges Bild"));
+      bild.onload=()=>{
+        const f=Math.min(1,GA_BILD_KANTE/Math.max(bild.width,bild.height));
+        const c=document.createElement("canvas");
+        c.width=Math.round(bild.width*f); c.height=Math.round(bild.height*f);
+        c.getContext("2d").drawImage(bild,0,0,c.width,c.height);
+        fertig(c.toDataURL("image/jpeg",GA_BILD_QUALITAET));
+      };
+      bild.src=leser.result;
+    };
+    leser.readAsDataURL(datei);
+  });
+}
+async function gaBildWaehlen(kat,li,pi,input){
+  const ed=GA_ED[kat], punkt=ed.lektionen[li].punkte[pi];
+  if(!Array.isArray(punkt.bilder)) punkt.bilder=[];
+  const dateien=Array.from(input.files||[]).slice(0,GA_BILD_MAX-punkt.bilder.length);
+  input.value="";
+  const st=$(`gaBildStatus-${kat}-${li}-${pi}`);
+  for(const datei of dateien){
+    if(st) st.textContent=`«${datei.name}» wird hochgeladen …`;
+    try{
+      const daten=await gaBildVerkleinern(datei);
+      const r=await ftCallAdmin({type:"admin_bild_speichern",password:PASS,typ:"jpeg",
+        name:datei.name,base64:daten.split(",")[1]});
+      if(!r.ok){ if(st) st.innerHTML=`<b style="color:var(--red)">${escHtml(fehlerText(r))}</b>`; continue; }
+      punkt.bilder.push({id:r.id,url:r.url,unterschrift:""});
+    }catch(e){ if(st) st.innerHTML=`<b style="color:var(--red)">${escHtml(e.message)}</b>`; continue; }
+  }
+  if(st) st.textContent="";
+  gaGeaendert(kat); gaRendernBehalteFokus(kat);
+}
+function gaBildText(kat,li,pi,bi,wert){
+  GA_ED[kat].lektionen[li].punkte[pi].bilder[bi].unterschrift=wert;
+  gaGeaendert(kat);
+}
+function gaBildSchieben(kat,li,pi,bi,richtung){
+  const b=GA_ED[kat].lektionen[li].punkte[pi].bilder, ziel=bi+richtung;
+  if(ziel<0||ziel>=b.length) return;
+  [b[bi],b[ziel]]=[b[ziel],b[bi]];
+  gaGeaendert(kat); gaRendernBehalteFokus(kat);
+}
+async function gaBildWeg(kat,li,pi,bi){
+  const b=GA_ED[kat].lektionen[li].punkte[pi].bilder;
+  const weg=b[bi];
+  if(!confirm("Bild entfernen?")) return;
+  b.splice(bi,1);
+  gaGeaendert(kat); gaRendernBehalteFokus(kat);
+  if(weg&&weg.id) ftCallAdmin({type:"admin_bild_loeschen",password:PASS,id:weg.id}).catch(()=>{});
 }
 
 function gaGeaendert(kat){
