@@ -1659,7 +1659,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.89</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.90</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -3896,13 +3896,41 @@ const MV_BEISPIEL={vorname:"Michael",name:"Widmer",kuerzel:"WIM",ausbildung:"ULF
   anzahl:"2",fahrzeug:"ULF",typ:"Reservation",datum:"14.10.2026",vonZeit:"19:00",bisZeit:"21:30",
   personen:"WIM / LOL",bemerkungZeile:"Bemerkung: Schlauchpflege\n",fahrer:"WIM",beifahrer:"LOL",
   beifahrerZeile:" / Beifahrer: LOL",abfahrt:"19:00",rueckkehr:"21:15",absender:"Lars Loepfe",
-  adminLink:"https://mwd.feuerwehrmeilen.ch",tage:"7",stunden:"1",version:MV_DATEN?MV_DATEN.version:""};
-function mvFuelle(t){ return String(t||"").replace(/\{(\w+)\}/g,(m,k)=>MV_BEISPIEL[k]!==undefined?MV_BEISPIEL[k]:m); }
+  adminLink:"https://mwd.feuerwehrmeilen.ch",tage:"7",stunden:"1",
+  ablaufDatum:"31.12.2027",tageBisAblauf:"30",gueltigBis:"31.12.2029",zertNr:"SOSI-26-001",jahre:"3",
+  punkte:"10/10",dauer:"01:22",rolle:"Teilnehmer",
+  datumBTest:"14.03.2026",monateSeit:"7",monateMin:"6",anzahlFahrten:"1",noetigeFahrten:"2",fehlendeFahrten:"1",
+  linkFahrtraining:"https://fahrtraining.feuerwehrmeilen.ch",
+  total:"88",bestehen:"80",ergebnis:"bestanden",grund:"",nachpruefungBis:"",experten:"TOM, SCA",
+  empfehlung:"",bemerkung:"",zeitraum:"01.01.2026 – 31.12.2026",anzahl:"42",groesse:"3.1 MB",
+  probleme:"• Mailversand: Anmeldung fehlgeschlagen",zeit:"29.09.2026 14:05",
+  version:MV_DATEN?MV_DATEN.version:""};
+/** Beispieldaten je Vorlage – Links und Datumsangaben passen zum Modul */
+const MV_BEISPIEL_JE_VORLAGE={
+  SOSI_BESTANDEN:{link:"https://sosi.feuerwehrmeilen.ch"},
+  SOSI_PERSON:{link:"https://sosi.feuerwehrmeilen.ch"},
+  SOSI_ERINN1:{link:"https://sosi.feuerwehrmeilen.ch"},
+  SOSI_ERINN2:{link:"https://sosi.feuerwehrmeilen.ch"},
+  SOSI_ABLAUF:{link:"https://sosi.feuerwehrmeilen.ch"},
+  SV_BEREIT:{link:"https://sosi.feuerwehrmeilen.ch"},
+  SV_ERINN:{link:"https://fahrtraining.feuerwehrmeilen.ch"},
+  RES_MAIL:{link:"https://fahrtraining.feuerwehrmeilen.ch/?res=8f3c1b2a…"},
+  RES_AEND:{link:"https://fahrtraining.feuerwehrmeilen.ch/?res=8f3c1b2a…"},
+  BEN_EINLADUNG:{link:"https://mwd.feuerwehrmeilen.ch/?pw=9a1f…"},
+  BEN_RESET:{link:"https://mwd.feuerwehrmeilen.ch/?pw=9a1f…"}
+};
+function mvFuelle(t,id){
+  const extra=MV_BEISPIEL_JE_VORLAGE[id]||{};
+  return String(t||"").replace(/\{(\w+)\}/g,(m,k)=>{
+    if(extra[k]!==undefined) return extra[k];
+    return MV_BEISPIEL[k]!==undefined?MV_BEISPIEL[k]:m;
+  });
+}
 function mvVorschau(id){
   const b=$("mv-betreff-"+id), t=$("mv-text-"+id);
   if(!b||!t) return;
-  $("mv-pvb-"+id).textContent=mvFuelle(b.value);
-  $("mv-pvt-"+id).innerHTML=escHtml(mvFuelle(t.value)).replace(/\n/g,"<br>");
+  $("mv-pvb-"+id).textContent=mvFuelle(b.value,id);
+  $("mv-pvt-"+id).innerHTML=escHtml(mvFuelle(t.value,id)).replace(/\n/g,"<br>");
 }
 async function mvSpeichern(id){
   const st=$("mv-status-"+id); st.style.display="block"; st.className="status-msg"; st.textContent="Wird gespeichert …";
