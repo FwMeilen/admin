@@ -1659,7 +1659,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.88</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.89</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -3848,6 +3848,7 @@ function bvDatum(ms){ return ms?new Date(ms).toLocaleDateString("de-CH",{day:"2-
 /* ── Mailvorlagen (zentral, nur Admins) ── */
 let MV_GELADEN=false, MV_DATEN=null;
 async function mvLaden(){
+  await tfMitgliederSicherstellen();   // für die Kürzelprüfung in den Empfängerfeldern
   const st=$("mvStatus"); st.style.display="block"; st.className="status-msg"; st.textContent="Lade …";
   try{
     const r=await ftCallAdmin({type:"admin_mailvorlagen_get",password:PASS});
@@ -3868,7 +3869,9 @@ function mvZeigen(){
       <summary style="cursor:pointer;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em">${escHtml(v.name)}</summary>
       <div style="margin-top:.75rem">
         ${v.empfaengerName?`<label for="mv-empf-${v.id}">${escHtml(v.empfaengerName)}</label>
-          <input id="mv-empf-${v.id}" type="text" value="${escHtml(v.empfaenger||"")}">`:""}
+          <input id="mv-empf-${v.id}" type="text" value="${escHtml(v.empfaenger||"")}"
+            oninput="tfListePruefen('mv-empf-${v.id}','mv-empf-${v.id}-info')">
+          <div id="mv-empf-${v.id}-info" style="margin-top:6px"></div>`:""}
         <label for="mv-betreff-${v.id}" style="margin-top:.5rem">Betreff</label>
         <input id="mv-betreff-${v.id}" type="text" value="${escHtml(v.betreff)}" oninput="mvVorschau('${v.id}')">
         <label for="mv-text-${v.id}" style="margin-top:.5rem">Text</label>
@@ -3885,7 +3888,7 @@ function mvZeigen(){
         <div class="status-msg" id="mv-status-${v.id}" style="display:none"></div>
       </div>
     </details></div>`).join("");
-  liste.forEach(v=>mvVorschau(v.id));
+  liste.forEach(v=>{ mvVorschau(v.id); if($("mv-empf-"+v.id)) tfListePruefen("mv-empf-"+v.id,"mv-empf-"+v.id+"-info"); });
 }
 const MV_BEISPIEL={vorname:"Michael",name:"Widmer",kuerzel:"WIM",ausbildung:"ULF Ausbildung 2026",
   beschreibung:"Einführung am neuen ULF",rolle:"Teilnehmer",anzahlTermine:"9",ersterTermin:"30.09.2026",
