@@ -1674,7 +1674,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.86</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.87</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -3959,11 +3959,12 @@ async function mgDateiGewaehlt(ev){
     const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:""});
     if(rows.length<2) throw new Error("Die Datei enthält keine Datenzeilen.");
     const kopf=rows[0].map(x=>String(x||""));
-    const iK=mgSpalte(kopf,["kürzel","kuerzel","kurzel","abk","abkürzung"]);
+    // Lodur nennt die Spalte «Personalnummer»
+    const iK=mgSpalte(kopf,["kürzel","kuerzel","kurzel","abk","abkürzung","personalnummer","personal-nr","personalnr","pers.-nr","pers-nr"]);
     const iV=mgSpalte(kopf,["vorname"]);
     const iN=mgSpalte(kopf,["name","nachname"]);
     const iE=mgSpalte(kopf,["email","e-mail","mail","e-mail-adresse"]);
-    if(iK<0||iV<0||iN<0) throw new Error("Spalten «Kürzel», «Vorname» und «Name» wurden nicht gefunden.");
+    if(iK<0||iV<0||iN<0) throw new Error("Spalten für Kürzel (oder «Personalnummer»), Vorname und Name wurden nicht gefunden. Gefunden: "+kopf.join(", "));
     const zeilen=rows.slice(1).map(r=>({kuerzel:String(r[iK]||"").trim(),vorname:String(r[iV]||"").trim(),
       name:String(r[iN]||"").trim(),email:iE>=0?String(r[iE]||"").trim():""})).filter(r=>r.kuerzel);
     if(!zeilen.length) throw new Error("Keine Zeile mit Kürzel gefunden.");
