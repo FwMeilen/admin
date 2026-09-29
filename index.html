@@ -1398,12 +1398,11 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 
           <div class="entry-actions" style="justify-content:flex-start;margin-top:1.25rem">
             <button class="btn btn-green btn-klein" id="btnSvSpeichern">Speichern</button>
-            <button class="btn btn-klein" id="btnSvReset">Texte auf Standard</button>
+            
           </div>
           <div class="status-msg" id="svSpeichernStatus"></div>
           <div class="hinw" style="margin-top:1rem">
-            Der Versand benötigt einen <b>Zeit-Auslöser</b> im Fahrtraining-Apps-Script
-            (Funktion <code>taeglicherSosiVorbereitungsCheck</code>, täglich).
+            Der Versand läuft täglich um 05:15 automatisch auf dem neuen Server.
           </div>
         </div>
       </div>
@@ -1659,7 +1658,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.92</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.93</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -6661,7 +6660,7 @@ function initSo(){
   $("btnSoAddFrage").addEventListener("click", soNeueFrageForm);
   $("btnSvStatus").addEventListener("click", svLadeStatus);
   $("btnSvSpeichern").addEventListener("click", svSpeichern);
-  $("btnSvReset").addEventListener("click", svReset);
+  if($("btnSvReset")) $("btnSvReset").addEventListener("click", svReset);
   ["svBereitBetreff","svBereitText","svErinnBetreff","svErinnText","svMonateMin","svMonateErinn","svFahrten"]
     .forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", svVorschau); });
   $("soListeSuche").addEventListener("input", soRenderListe);
