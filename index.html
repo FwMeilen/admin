@@ -1658,7 +1658,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.94</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.95</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -6704,7 +6704,7 @@ function ftGeneriertPDF(r,fragenDetail,taetigkeitenDetail){
 
 /* ══════════════════ SOSI ══════════════════ */
 let SO_INIT=false, SO_FRAGEN=[];
-let SO_MAIL_DEFAULTS=null, SO_MAIL_VERSION="CLv1.75";
+let SO_MAIL_VERSION="CLv1.75";
 
 async function soApi(payload){
   try{
@@ -6736,7 +6736,7 @@ function initSo(){
       if(tab==="stat") soLadeStatistik();
       if(tab==="fragen") soLadeFragen();
       if(tab==="pdf") soLadeListe();
-      if(tab==="mail") soLadeMail();
+      if(tab==="mail") soLadeGueltig();
       if(tab==="erinnerung") soLadeErinnerung();
     });
   });
@@ -6751,12 +6751,6 @@ function initSo(){
   $("btnSoListePdf").addEventListener("click", soListeAlsPdf);
   $("btnSoGueltigSpeichern").addEventListener("click", soSpeichereGueltig);
   // Mailtexte liegen seit CLv1.75 im Reiter «Mailvorlagen»
-  if($("btnSoMailSpeichern")){
-    ["soMailEmpf","soMailBetreff","soMailText"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", soMailVorschau); });
-    $("btnSoMailSpeichern").addEventListener("click", soSpeichereMail);
-    $("btnSoMailReset").addEventListener("click", soMailReset);
-    $("btnSoMailStandard").addEventListener("click", soMailAlsStandard);
-  }
   if($("btnSoErinnStandard")) $("btnSoErinnStandard").addEventListener("click", soErinnAlsStandard);
   if($("soE1Betreff")) ["soE1Betreff","soE1Text","soE2Betreff","soE2Text","soAbBetreff","soAbText","soErinnTage1","soErinnTage2"]
     .forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", soErinnVorschau); });
@@ -7103,24 +7097,27 @@ function soListeAlsPdf(){
   doc.save(`SoSi_Pruefungsliste_${new Date().toISOString().slice(0,10)}.pdf`);
 }
 
+async function soLadeGueltig(){
+  const el=$("soGueltigJahre"); if(!el) return;
+  const st=$("soGueltigStatus");
+  if(st){ st.className="status-msg"; st.style.display="block"; st.textContent="Lade …"; }
+  const r=await soApi({action:"adminGetGueltig",pass:PASS});
+  if(r.ok){ el.value=r.gueltigJahre; if(st){ st.style.display="none"; st.textContent=""; } }
+  else if(st){ st.className="status-msg err-msg";
+    st.textContent="Dauer konnte nicht geladen werden."+(r.detail?" ("+r.detail+")":""); }
+}
+
 async function soSpeichereGueltig(){
-  const st=$("soGueltigStatus"); const btn=$("btnSoGueltigSpeichern");
+  const st=$("soGueltigStatus"); const btn=$("btnSoGueltigSpeichern"); const el=$("soGueltigJahre");
+  if(!el) return;
   btn.disabled=true;
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
-  const r=await soApi({action:"adminSetMail",pass:PASS,
-    empfaenger:$("soMailEmpf").value,betreff:$("soMailBetreff").value,text:$("soMailText").value,
-    gueltigJahre:$("soGueltigJahre").value});
+  const r=await soApi({action:"adminSetGueltig",pass:PASS,gueltigJahre:el.value});
   btn.disabled=false;
   if(r.ok){
-    // Gegenprüfen was tatsächlich gespeichert wurde
-    const kontrolle=await soApi({action:"adminGetMail",pass:PASS});
-    if(kontrolle.ok){
-      $("soGueltigJahre").value=kontrolle.gueltigJahre;
-      st.className="status-msg ok-msg";
-      st.textContent=`Gespeichert – Gültigkeitsdauer beträgt neu ${kontrolle.gueltigJahre} Jahre.`;
-    } else {
-      st.className="status-msg ok-msg"; st.textContent="Gespeichert.";
-    }
+    el.value=r.gueltigJahre;
+    st.className="status-msg ok-msg";
+    st.textContent=`Gespeichert – Gültigkeitsdauer beträgt neu ${r.gueltigJahre} Jahr${Number(r.gueltigJahre)===1?"":"e"}.`;
   }
   else if(r.error==="JAHRE_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Gültigkeitsdauer muss zwischen 1 und 10 Jahren liegen."; }
   else if(r.error==="AUTH"){ st.className="status-msg err-msg"; st.textContent="Nicht angemeldet."; }
@@ -7142,62 +7139,6 @@ async function soLadePdf(fileId,btn){
   finally{ if(btn.textContent==="Lade …"){ btn.textContent=orig; btn.disabled=false; } }
 }
 
-function soMailBeispiel(){
-  const now=new Date(); const p2=n=>String(n).padStart(2,"0");
-  const dd=p2(now.getDate())+"."+p2(now.getMonth()+1)+"."+now.getFullYear();
-  const bis=p2(now.getDate())+"."+p2(now.getMonth()+1)+"."+(now.getFullYear()+2);
-  return {vorname:"Max",name:"Muster",kuerzel:"MUS",datum:dd,gueltigBis:bis,punkte:"10/10",dauer:"07:32",version:SO_MAIL_VERSION};
-}
-function soMailFuelle(str,d){
-  return String(str).replace(/\{vorname\}/g,d.vorname).replace(/\{name\}/g,d.name).replace(/\{kuerzel\}/g,d.kuerzel)
-    .replace(/\{datum\}/g,d.datum).replace(/\{gueltigBis\}/g,d.gueltigBis).replace(/\{punkte\}/g,d.punkte)
-    .replace(/\{dauer\}/g,d.dauer).replace(/\{version\}/g,d.version);
-}
-function soMailVorschau(){
-  if(!$("soMailBetreff")) return;   // seit CLv1.75 im Reiter «Mailvorlagen»
-  const d=soMailBeispiel();
-  const empfListe=$("soMailEmpf").value.split(/[;,]/).map(s=>s.trim()).filter(Boolean);
-  empfListe.unshift("Kandidat (falls hinterlegt)");
-  $("soPvEmpf").textContent=empfListe.join(", ");
-  const betreff=$("soMailBetreff").value.trim()||(SO_MAIL_DEFAULTS?SO_MAIL_DEFAULTS.betreff:"");
-  const text=($("soMailText").value.trim()!=="")?$("soMailText").value:(SO_MAIL_DEFAULTS?SO_MAIL_DEFAULTS.text:"");
-  $("soPvBetreff").textContent=soMailFuelle(betreff,d);
-  $("soPvBody").innerHTML=escHtml(soMailFuelle(text,d)).replace(/\n/g,"<br>");
-}
-async function soLadeMail(){
-  if(!$("soMailBetreff")) return;   // seit CLv1.75 im Reiter «Mailvorlagen»
-  const st=$("soMailStatus"); st.style.color=""; st.textContent="Lade …";
-  const r=await soApi({action:"adminGetMail",pass:PASS});
-  if(!r.ok){ st.textContent=""; $("soPvBody").innerHTML=soFehlerHtml("Fehler beim Laden.",r); return; }
-  SO_MAIL_DEFAULTS=r.defaults||null; if(r.version) SO_MAIL_VERSION=r.version;
-  $("soMailEmpf").value=r.empfaenger||""; $("soMailBetreff").value=r.betreff||""; $("soMailText").value=r.text||"";
-  $("soGueltigJahre").value=(r.gueltigJahre!=null?r.gueltigJahre:((r.defaults&&r.defaults.gueltigJahre)||2));
-  st.textContent=""; soMailVorschau();
-}
-async function soSpeichereMail(){
-  if(!$("soMailBetreff")) return;   // seit CLv1.75 im Reiter «Mailvorlagen»
-  const st=$("soMailStatus"); const btn=$("btnSoMailSpeichern");
-  btn.disabled=true; st.style.color=""; st.textContent="Speichere …";
-  const r=await soApi({action:"adminSetMail",pass:PASS,empfaenger:$("soMailEmpf").value,betreff:$("soMailBetreff").value,text:$("soMailText").value,gueltigJahre:$("soGueltigJahre").value});
-  btn.disabled=false;
-  if(r.ok){ st.style.color="var(--green)"; st.textContent="Gespeichert."; soLadeMail(); }
-  else if(r.error==="EMAIL_UNGUELTIG"){ st.style.color="var(--red)"; st.textContent="Ungültige Adresse(n): "+((r.ungueltig||[]).join(", ")); }
-  else if(r.error==="JAHRE_UNGUELTIG"){ st.style.color="var(--red)"; st.textContent="Gültigkeitsdauer muss zwischen 1 und 10 Jahren liegen."; }
-  else if(r.error==="AUTH"){ st.style.color="var(--red)"; st.textContent="Nicht angemeldet."; }
-  else{ st.style.color="var(--red)"; st.textContent="Fehler beim Speichern."+(r.detail?" ("+r.detail+")":""); }
-}
-async function soMailAlsStandard(){
-  if(!$("soMailBetreff")) return;   // seit CLv1.75 im Reiter «Mailvorlagen»
-  if(!confirm("Aktuelle Texte als neuen Standard hinterlegen?\n\nDer Button \"Mailtext auf Standard\" setzt danach auf diese Version zurück.")) return;
-  const st=$("soMailStatus"); const btn=$("btnSoMailStandard");
-  btn.disabled=true; st.style.color=""; st.textContent="Wird gespeichert …";
-  const r=await soApi({action:"adminSetMailStandard",pass:PASS,
-    empfaenger:$("soMailEmpf").value,betreff:$("soMailBetreff").value,text:$("soMailText").value});
-  btn.disabled=false;
-  if(r.ok){ st.style.color="var(--green)"; st.textContent="Als Standard gespeichert."; soLadeMail(); }
-  else{ st.style.color="var(--red)"; st.textContent="Fehler beim Speichern."; }
-}
-
 async function soErinnAlsStandard(){
   if(!$("soAbBetreff")) return;   // Texte im Reiter «Mailvorlagen»
   if(!$("soE1Betreff")) return;   // Texte seit CLv1.78 im Reiter «Mailvorlagen»
@@ -7214,15 +7155,6 @@ async function soErinnAlsStandard(){
   else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
 }
 
-function soMailReset(){
-  if(!$("soMailBetreff")) return;   // seit CLv1.75 im Reiter «Mailvorlagen»
-  if(!SO_MAIL_DEFAULTS) return;
-  $("soMailEmpf").value=SO_MAIL_DEFAULTS.empfaenger||"";
-  $("soMailBetreff").value=SO_MAIL_DEFAULTS.betreff||"";
-  $("soMailText").value=SO_MAIL_DEFAULTS.text||"";
-  soMailVorschau();
-  const st=$("soMailStatus"); st.style.color=""; st.textContent='Standard eingesetzt – zum Übernehmen "Speichern" klicken.';
-}
 </script>
 </body>
 </html>
