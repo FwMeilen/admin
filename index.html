@@ -1347,7 +1347,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
         <button class="tab" data-sotab="mail">Einstellungen</button>
       </div>
 
-      <div id="soTabStat"><div id="soStatInhalt" class="loading">Lade …</div></div>
+      <div id="soTabStat"><div id="soStatInhalt"><div class="loading">Lade …</div></div></div>
 
       <div id="soTabVorbereitung" style="display:none">
         <div class="card">
@@ -1658,7 +1658,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.95</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.96</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -2384,40 +2384,6 @@ async function gabNachtragen(kuerzelBestaetigt, ueberschreiben){
 }
 
 /* ── SoSi-Vorbereitung ── */
-function svBeispiel(){
-  const mMin=parseInt($("svMonateMin").value,10)||6;
-  const noetig=parseInt($("svFahrten").value,10)||2;
-  const d=new Date(); d.setMonth(d.getMonth()-mMin-1);
-  return {vorname:"Max",name:"Muster",kuerzel:"MUS",
-    datumBTest:d.toLocaleDateString("de-CH"),
-    monateSeit:String(mMin+1), monateMin:String(mMin),
-    anzahlFahrten:String(noetig), noetigeFahrten:String(noetig),
-    fehlendeFahrten:"1", linkFahrtraining:"https://fahrtraining.feuerwehrmeilen.ch",
-    version:SV_VERSION};
-}
-function svFuelle(v,d){
-  return String(v)
-    .replace(/\{vorname\}/g,d.vorname).replace(/\{name\}/g,d.name).replace(/\{kuerzel\}/g,d.kuerzel)
-    .replace(/\{datumBTest\}/g,d.datumBTest).replace(/\{monateSeit\}/g,d.monateSeit)
-    .replace(/\{monateMin\}/g,d.monateMin).replace(/\{anzahlFahrten\}/g,d.anzahlFahrten)
-    .replace(/\{noetigeFahrten\}/g,d.noetigeFahrten).replace(/\{fehlendeFahrten\}/g,d.fehlendeFahrten)
-    .replace(/\{linkFahrtraining\}/g,d.linkFahrtraining).replace(/\{version\}/g,d.version);
-}
-function svVorschau(){
-  if(!$("svBereitBetreff")) return;   // Texte seit CLv1.79 im Reiter «Mailvorlagen»
-  const d=svBeispiel();
-  $("svPvBereitBetreff").textContent=svFuelle($("svBereitBetreff").value,d);
-  $("svPvBereitBody").innerHTML=escHtml(svFuelle($("svBereitText").value,d)).replace(/\n/g,"<br>");
-  const e={...d, anzahlFahrten:"1", fehlendeFahrten:"1", monateSeit:$("svMonateErinn").value||"9"};
-  $("svPvErinnBetreff").textContent=svFuelle($("svErinnBetreff").value,e);
-  $("svPvErinnBody").innerHTML=escHtml(svFuelle($("svErinnText").value,e)).replace(/\n/g,"<br>");
-  const ph=$("svPlatzhalter");
-  if(ph) ph.innerHTML="Platzhalter: <code>{vorname}</code> <code>{name}</code> <code>{kuerzel}</code> "
-    +"<code>{datumBTest}</code> <code>{monateSeit}</code> <code>{monateMin}</code> "
-    +"<code>{anzahlFahrten}</code> <code>{noetigeFahrten}</code> <code>{fehlendeFahrten}</code> "
-    +"<code>{linkFahrtraining}</code> <code>{version}</code>";
-}
-
 async function svLadeConfig(){
   const st=$("svSpeichernStatus");
   st.className="status-msg"; st.style.display="none";
@@ -2428,53 +2394,27 @@ async function svLadeConfig(){
     $("svMonateMin").value=r.monateMin;
     $("svMonateErinn").value=r.monateErinn;
     $("svFahrten").value=r.noetigeFahrten;
-    $("svCc").value=r.cc||"";
-    $("svBereitBetreff").value=r.bereitBetreff||"";
-    $("svBereitText").value=r.bereitText||"";
-    $("svErinnBetreff").value=r.erinnBetreff||"";
-    $("svErinnText").value=r.erinnText||"";
     SV_STANDARD=r.standard||null;
     if(r.version) SV_VERSION=r.version;
     $("svRegelMonate").textContent=r.monateMin;
     $("svRegelFahrten").textContent=r.noetigeFahrten;
-    svVorschau();
   }catch(e){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+e.message; }
 }
 
 async function svSpeichern(){
-  if(!$("svBereitBetreff")) return;   // Texte seit CLv1.79 im Reiter «Mailvorlagen»
   const st=$("svSpeichernStatus"), btn=$("btnSvSpeichern");
   btn.disabled=true;
   st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
   try{
     const r=await ftCallAdmin({type:"admin_sv_set",password:PASS,
       aktiv:$("svAktiv").checked, monateMin:$("svMonateMin").value,
-      monateErinn:$("svMonateErinn").value, noetigeFahrten:$("svFahrten").value,
-      cc:$("svCc").value,
-      bereitBetreff:$("svBereitBetreff").value, bereitText:$("svBereitText").value,
-      erinnBetreff:$("svErinnBetreff").value, erinnText:$("svErinnText").value});
+      monateErinn:$("svMonateErinn").value, noetigeFahrten:$("svFahrten").value});
     if(r.ok){ st.className="status-msg ok-msg"; st.textContent="Gespeichert."; svLadeStatus(); }
     else if(r.error==="MONATE_REIHENFOLGE"){ st.className="status-msg err-msg"; st.textContent="Die Erinnerung muss später liegen als die Wartefrist."; }
     else if(r.error==="EMAIL_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Ungültige Adresse(n): "+((r.ungueltig||[]).join(", ")); }
     else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
   finally{ btn.disabled=false; }
-}
-
-function svReset(){
-  if(!$("svBereitBetreff")) return;   // Texte seit CLv1.79 im Reiter «Mailvorlagen»
-  if(!SV_STANDARD) return;
-  $("svMonateMin").value=SV_STANDARD.monateMin;
-  $("svMonateErinn").value=SV_STANDARD.monateErinn;
-  $("svFahrten").value=SV_STANDARD.noetigeFahrten;
-  $("svBereitBetreff").value=SV_STANDARD.bereitBetreff||"";
-  $("svBereitText").value=SV_STANDARD.bereitText||"";
-  $("svErinnBetreff").value=SV_STANDARD.erinnBetreff||"";
-  $("svErinnText").value=SV_STANDARD.erinnText||"";
-  svVorschau();
-  const st=$("svSpeichernStatus");
-  st.className="status-msg"; st.style.display="block";
-  st.textContent='Standard eingesetzt – zum Übernehmen "Speichern" klicken.';
 }
 
 async function svLadeStatus(){
@@ -3336,7 +3276,6 @@ function initTf(){
       const tab=t.dataset.tftab;
       $("tfTabAusbildungen").style.display=tab==="ausbildungen"?"block":"none";
       $("tfTabEinstellungen").style.display=tab==="einstellungen"?"block":"none";
-      if(tab==="einstellungen"){ tfMailtextLaden(); tfLodurVorlageLaden(); }
     });
   });
   tfFahrzeugeSicherstellen();
@@ -3352,21 +3291,7 @@ function initTf(){
   ["tfMailBetreff","tfMailText"].forEach(i=>$(i).addEventListener("input", tfMailDlgVorschau));
   $("btnTfLodurSenden").addEventListener("click", tfLodurSenden);
   ["tfLodurBetreff","tfLodurText"].forEach(i=>$(i).addEventListener("input", tfLodurVorschau));
-  if($("btnTfLodurSpeichern")){
-    $("btnTfLodurSpeichern").addEventListener("click", tfLodurVorlageSpeichern);
-    $("btnTfLodurReset").addEventListener("click", tfLodurVorlageReset);
-  }
   ["tfInfoBetreff","tfInfoText"].forEach(i=>$(i).addEventListener("input", tfInfoVorschau));
-  // Mailtexte liegen seit CLv1.75 im Reiter «Mailvorlagen»
-  if($("btnTfMailtextSpeichern")){
-    $("btnTfMailtextSpeichern").addEventListener("click", tfMailtextSpeichern);
-    $("btnTfMailtextReset").addEventListener("click", tfMailtextReset);
-    $("btnTfMailtextStandard").addEventListener("click", tfMailtextAlsStandard);
-  }
-
-  if($("tfMailDetails")) $("tfMailDetails").addEventListener("toggle", ()=>{ if($("tfMailDetails").open) tfMailtextLaden(); });
-  ["tfEinlBetreff","tfEinlText","tfErinnBetreff","tfErinnText","tfGenugBetreff","tfGenugText","tfInfoBetreffV","tfInfoTextV"]
-    .forEach(i=>{ const e=$(i); if(e) e.addEventListener("input", tfMailtextVorschau); });
   $("btnTfGenerieren").addEventListener("click", tfGenOeffnen);
   $("btnTfGenErzeugen").addEventListener("click", tfGenErzeugen);
   tfLade();
@@ -4375,82 +4300,6 @@ async function scEmpfSpeichern(){
 /* ── Mailtexte ── */
 let TF_MAILTEXT_STANDARD=null, TF_MAIL_VERSION="", TF_MAIL_LINK="https://terminfindung.feuerwehrmeilen.ch";
 
-async function tfMailtextLaden(){
-  const st=$("tfMailtextStatus");
-  st.style.display="none";
-  try{
-    const r=await ftCallAdmin({type:"admin_tf_mail_get",password:PASS});
-    if(!r.ok){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler beim Laden."; return; }
-    $("tfEinlBetreff").value=r.einlBetreff; $("tfEinlText").value=r.einlText;
-    $("tfErinnBetreff").value=r.erinnBetreff; $("tfErinnText").value=r.erinnText;
-    $("tfGenugBetreff").value=r.genugBetreff||""; $("tfGenugText").value=r.genugText||"";
-    $("tfInfoBetreffV").value=r.infoBetreff||""; $("tfInfoTextV").value=r.infoText||"";
-    TF_MAILTEXT_STANDARD=r.standard; TF_MAIL_VERSION=r.version||""; if(r.link) TF_MAIL_LINK=r.link;
-    tfMailtextVorschau();
-  }catch(e){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+e.message; }
-}
-
-function tfMailtextVorschau(){
-  const d={vorname:"Max",name:"Muster",kuerzel:"MUS",ausbildung:"ULF Ausbildung 2026",
-    beschreibung:"Grundausbildung ULF",rolle:"Teilnehmer",anzahlTermine:"8",
-    ersterTermin:"22.09.2026",letzterTermin:"20.10.2026",link:TF_MAIL_LINK,version:TF_MAIL_VERSION};
-  const f=v=>String(v).replace(/\{(\w+)\}/g,(m,k)=>d[k]!==undefined?d[k]:m);
-  $("tfPvEinlBetreff").textContent=f($("tfEinlBetreff").value);
-  $("tfPvEinlText").innerHTML=escHtml(f($("tfEinlText").value)).replace(/\n/g,"<br>");
-  $("tfPvErinnBetreff").textContent=f($("tfErinnBetreff").value);
-  $("tfPvErinnText").innerHTML=escHtml(f($("tfErinnText").value)).replace(/\n/g,"<br>");
-  Object.assign(d,{gefunden:"4",benoetigt:"4",adminLink:"https://mwd.feuerwehrmeilen.ch",
-    termine:"Di 22.09.2026, 19:00–21:00 (Teilnehmer)\nDi 06.10.2026, 19:00–21:00 (Teilnehmer)",
-    anzahl:"2",fahrzeug:"ULF"});
-  $("tfPvGenugBetreff").textContent=f($("tfGenugBetreff").value);
-  $("tfPvGenugText").innerHTML=escHtml(f($("tfGenugText").value)).replace(/\n/g,"<br>");
-  $("tfPvInfoBetreff").textContent=f($("tfInfoBetreffV").value);
-  $("tfPvInfoText").innerHTML=escHtml(f($("tfInfoTextV").value)).replace(/\n/g,"<br>");
-}
-
-async function tfMailtextSpeichern(){
-  const st=$("tfMailtextStatus");
-  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
-  try{
-    const r=await ftCallAdmin({type:"admin_tf_mail_set",password:PASS,
-      einlBetreff:$("tfEinlBetreff").value, einlText:$("tfEinlText").value,
-      erinnBetreff:$("tfErinnBetreff").value, erinnText:$("tfErinnText").value,
-      genugBetreff:$("tfGenugBetreff").value, genugText:$("tfGenugText").value,
-      infoBetreff:$("tfInfoBetreffV").value, infoText:$("tfInfoTextV").value});
-    if(r.ok){ st.className="status-msg ok-msg"; st.textContent="Gespeichert."; }
-    else { st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
-  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
-}
-
-async function tfMailtextAlsStandard(){
-  if(!confirm("Die aktuellen Texte als neuen Standard speichern?\n\n«Auf Standard» setzt danach auf diese Fassung zurück.")) return;
-  const st=$("tfMailtextStatus");
-  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
-  const werte={einlBetreff:$("tfEinlBetreff").value, einlText:$("tfEinlText").value,
-    erinnBetreff:$("tfErinnBetreff").value, erinnText:$("tfErinnText").value,
-    genugBetreff:$("tfGenugBetreff").value, genugText:$("tfGenugText").value,
-    infoBetreff:$("tfInfoBetreffV").value, infoText:$("tfInfoTextV").value};
-  try{
-    const r=await ftCallAdmin(Object.assign({type:"admin_tf_mail_set_standard",password:PASS},werte));
-    if(r.ok){
-      TF_MAILTEXT_STANDARD=werte;
-      st.className="status-msg ok-msg"; st.textContent="Als Standard gespeichert und übernommen.";
-    } else { st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
-  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
-}
-
-function tfMailtextReset(){
-  if(!TF_MAILTEXT_STANDARD) return;
-  $("tfEinlBetreff").value=TF_MAILTEXT_STANDARD.einlBetreff; $("tfEinlText").value=TF_MAILTEXT_STANDARD.einlText;
-  $("tfErinnBetreff").value=TF_MAILTEXT_STANDARD.erinnBetreff; $("tfErinnText").value=TF_MAILTEXT_STANDARD.erinnText;
-  $("tfGenugBetreff").value=TF_MAILTEXT_STANDARD.genugBetreff||""; $("tfGenugText").value=TF_MAILTEXT_STANDARD.genugText||"";
-  $("tfInfoBetreffV").value=TF_MAILTEXT_STANDARD.infoBetreff||""; $("tfInfoTextV").value=TF_MAILTEXT_STANDARD.infoText||"";
-  tfMailtextVorschau();
-  const st=$("tfMailtextStatus");
-  st.className="status-msg"; st.style.display="block";
-  st.textContent='Standard eingesetzt – zum Übernehmen "Speichern" klicken.';
-}
-
 /* ── Einladung und Erinnerung ── */
 let TF_MAIL_ART=null;
 
@@ -4646,41 +4495,6 @@ async function tfLodurSenden(){
     }
   }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; btn.disabled=false; }
 }
-async function tfLodurVorlageLaden(){
-  const st=$("tfLodurVStatus");
-  try{
-    await tfMitgliederSicherstellen();
-    const r=await ftCallAdmin({type:"admin_tf_lodur_get",password:PASS});
-    if(!r.ok){
-      st.className="status-msg err-msg"; st.style.display="block";
-      st.textContent=r.error==="UNBEKANNTER_AUFRUF"?"Erst nach dem Deployen der neuen Code.gs verfügbar.":"Laden fehlgeschlagen.";
-      return;
-    }
-    TF_LODUR_STANDARD=r.standard||null;
-    $("tfLodurEmpfV").value=r.empfaenger||""; $("tfLodurBetreffV").value=r.betreff||""; $("tfLodurTextV").value=r.text||"";
-    tfListePruefen("tfLodurEmpfV","tfLodurEmpfV-info");
-    st.style.display="none";
-  }catch(e){ st.className="status-msg err-msg"; st.style.display="block"; st.textContent="Fehler: "+e.message; }
-}
-async function tfLodurVorlageSpeichern(){
-  const st=$("tfLodurVStatus");
-  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
-  try{
-    const r=await ftCallAdmin({type:"admin_tf_lodur_set",password:PASS,empfaenger:$("tfLodurEmpfV").value,
-      betreff:$("tfLodurBetreffV").value,text:$("tfLodurTextV").value});
-    if(r.ok){
-      $("tfLodurEmpfV").value=r.empfaenger||""; tfListePruefen("tfLodurEmpfV","tfLodurEmpfV-info");
-      st.className="status-msg ok-msg"; st.textContent="Gespeichert.";
-    } else { st.className="status-msg err-msg"; st.textContent="Speichern fehlgeschlagen."; }
-  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
-}
-function tfLodurVorlageReset(){
-  const d=TF_LODUR_STANDARD; if(!d) return;
-  $("tfLodurEmpfV").value=d.empfaenger; $("tfLodurBetreffV").value=d.betreff; $("tfLodurTextV").value=d.text;
-  tfListePruefen("tfLodurEmpfV","tfLodurEmpfV-info");
-  const st=$("tfLodurVStatus"); st.className="status-msg"; st.style.display="block"; st.textContent="Standard eingesetzt – zum Übernehmen «Speichern».";
-}
-
 /* ── Beteiligte informieren ── */
 let TF_INFO_BEISPIEL=null;
 
@@ -5347,7 +5161,7 @@ function initRes(){
       $("resTabKalender").style.display=tab==="kalender"?"block":"none";
       $("resTabExport").style.display=tab==="export"?"block":"none";
       $("resTabEinstellungen").style.display=tab==="einstellungen"?"block":"none";
-      if(tab==="einstellungen"){ ftLadeResTypen(); ftLadeResMail(); ftLadeUebung(); ftBlockLaden(); }
+      if(tab==="einstellungen"){ ftLadeResTypen(); ftLadeUebung(); ftBlockLaden(); }
     });
   });
   $("btnFtResSpeichern").addEventListener("click", ftSpeichereResTypen);
@@ -5356,13 +5170,6 @@ function initRes(){
   $("btnFtUebungSpeichern").addEventListener("click", ftSpeichereUebung);
   $("btnFtBlockSpeichern").addEventListener("click", ftBlockSpeichern);
   $("btnFtUebungSync").addEventListener("click", ftUebungSync);
-  if($("btnFtResMailSpeichern")){
-    $("btnFtResMailSpeichern").addEventListener("click", ftSpeichereResMail);
-    $("btnFtResMailReset").addEventListener("click", ftResMailReset);
-  }
-  ["ftResMailBetreff","ftResMailText"].forEach(id=>{
-    const el=$(id); if(el) el.addEventListener("input", ftResMailVorschau);
-  });
   $("btnResLaden").addEventListener("click", resLadeEvents);
   $("btnResAboKopieren").addEventListener("click", resAboKopieren);
   $("btnResExportAlle").addEventListener("click", resExportAuswahl);
@@ -5565,67 +5372,6 @@ async function ftUebungSync(){
 
 /* ── Reservations-Bestätigungsmail ── */
 let FT_RES_MAIL_DEFAULTS=null, FT_RES_MAIL_VERSION="CLv1.75";
-
-function ftResMailVorschau(){
-  if(!$("ftResMailBetreff")) return;   // in den Reiter «Mailvorlagen» verschoben
-  const heute=new Date();
-  const d={typ:"Fahrtraining",fahrzeug:"TLF",datum:heute.toLocaleDateString("de-CH"),
-    vonZeit:"18:30",bisZeit:"20:30",personen:"MUS / BSP",
-    vorname:"Max",name:"Muster",kuerzel:"MUS",
-    bemerkungZeile:"",version:FT_RES_MAIL_VERSION};
-  const fuelle=v=>String(v)
-    .replace(/\{typ\}/g,d.typ).replace(/\{fahrzeug\}/g,d.fahrzeug).replace(/\{datum\}/g,d.datum)
-    .replace(/\{vonZeit\}/g,d.vonZeit).replace(/\{bisZeit\}/g,d.bisZeit)
-    .replace(/\{personen\}/g,d.personen).replace(/\{bemerkungZeile\}/g,d.bemerkungZeile)
-    .replace(/\{vorname\}/g,d.vorname).replace(/\{name\}/g,d.name).replace(/\{kuerzel\}/g,d.kuerzel)
-    .replace(/\{version\}/g,d.version);
-  const b=$("ftResMailBetreff"), t=$("ftResMailText");
-  if(!b||!t) return;
-  const betreff=b.value.trim()||(FT_RES_MAIL_DEFAULTS?FT_RES_MAIL_DEFAULTS.betreff:"");
-  const text=t.value.trim()!==""?t.value:(FT_RES_MAIL_DEFAULTS?FT_RES_MAIL_DEFAULTS.text:"");
-  $("ftPvResBetreff").textContent=fuelle(betreff);
-  $("ftPvResBody").innerHTML=escHtml(fuelle(text)).replace(/\n/g,"<br>");
-}
-
-async function ftLadeResMail(){
-  if(!$("ftResMailBetreff")) return;   // in den Reiter «Mailvorlagen» verschoben
-  const st=$("ftResMailStatus");
-  st.className="status-msg"; st.style.display="none";
-  try{
-    const res=await ftCallAdmin({type:"admin_get_res_mail",password:PASS});
-    if(res.error){ st.className="status-msg err-msg"; st.textContent=fehlerText(res); return; }
-    $("ftResMailBetreff").value=res.betreff||"";
-    $("ftResMailText").value=res.text||"";
-    FT_RES_MAIL_DEFAULTS=res.defaults||null;
-    if(res.version) FT_RES_MAIL_VERSION=res.version;
-    ftResMailVorschau();
-  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler beim Laden: "+e.message; }
-}
-
-async function ftSpeichereResMail(){
-  if(!$("ftResMailBetreff")) return;   // in den Reiter «Mailvorlagen» verschoben
-  const st=$("ftResMailStatus"), btn=$("btnFtResMailSpeichern");
-  btn.disabled=true;
-  st.className="status-msg"; st.style.display="block"; st.textContent="Wird gespeichert…";
-  try{
-    const res=await ftCallAdmin({type:"admin_set_res_mail",password:PASS,
-      betreff:$("ftResMailBetreff").value,text:$("ftResMailText").value});
-    if(res.ok){ st.className="status-msg ok-msg"; st.textContent="Gespeichert."; }
-    else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."; }
-  }catch(e){ st.className="status-msg err-msg"; st.textContent="Fehler: "+e.message; }
-  finally{ btn.disabled=false; }
-}
-
-function ftResMailReset(){
-  if(!$("ftResMailBetreff")) return;   // in den Reiter «Mailvorlagen» verschoben
-  if(!FT_RES_MAIL_DEFAULTS) return;
-  $("ftResMailBetreff").value=FT_RES_MAIL_DEFAULTS.betreff||"";
-  $("ftResMailText").value=FT_RES_MAIL_DEFAULTS.text||"";
-  ftResMailVorschau();
-  const st=$("ftResMailStatus");
-  st.className="status-msg"; st.style.display="block";
-  st.textContent='Standard eingesetzt – zum Übernehmen "Speichern" klicken.';
-}
 
 /* ── Reservationstypen ── */
 let FT_RES_STANDARD="Übung,Reservation";
@@ -6709,7 +6455,7 @@ let SO_MAIL_VERSION="CLv1.75";
 async function soApi(payload){
   try{
     const r=await fwAufruf(SO_EXEC_URL, payload, {seite:"Admin SoSi"});
-    if(r && r.error==="AUTH" && String(PASS||"").indexOf("SITZUNG:")===0) sitzungAbgelaufen();
+    if(r && (r.error==="AUTH"||r.error==="auth") && String(PASS||"").indexOf("SITZUNG:")===0) sitzungAbgelaufen();
     return r;
   }
   catch(e){ return {ok:false,error:"NETZWERK",detail:String(e&&e.message||e)}; }
@@ -6743,9 +6489,6 @@ function initSo(){
   $("btnSoAddFrage").addEventListener("click", soNeueFrageForm);
   $("btnSvStatus").addEventListener("click", svLadeStatus);
   $("btnSvSpeichern").addEventListener("click", svSpeichern);
-  if($("btnSvReset")) $("btnSvReset").addEventListener("click", svReset);
-  ["svBereitBetreff","svBereitText","svErinnBetreff","svErinnText","svMonateMin","svMonateErinn","svFahrten"]
-    .forEach(id=>{ const el=$(id); if(el) el.addEventListener("input", svVorschau); });
   $("soListeSuche").addEventListener("input", soRenderListe);
   $("soListeSort").addEventListener("change", soRenderListe);
   $("btnSoListePdf").addEventListener("click", soListeAlsPdf);
@@ -7120,7 +6863,7 @@ async function soSpeichereGueltig(){
     st.textContent=`Gespeichert – Gültigkeitsdauer beträgt neu ${r.gueltigJahre} Jahr${Number(r.gueltigJahre)===1?"":"e"}.`;
   }
   else if(r.error==="JAHRE_UNGUELTIG"){ st.className="status-msg err-msg"; st.textContent="Gültigkeitsdauer muss zwischen 1 und 10 Jahren liegen."; }
-  else if(r.error==="AUTH"){ st.className="status-msg err-msg"; st.textContent="Nicht angemeldet."; }
+  else if(r.error==="AUTH"||r.error==="auth"){ st.className="status-msg err-msg"; st.textContent="Nicht angemeldet."; }
   else{ st.className="status-msg err-msg"; st.textContent="Fehler beim Speichern."+(r.detail?" ("+r.detail+")":""); }
 }
 
