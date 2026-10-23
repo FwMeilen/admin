@@ -407,7 +407,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
                 Zeigt, wie viele Fragen und Tätigkeiten je Fahrzeug hinterlegt sind.
                 Fahrzeuge ohne Fragen überspringen die Abfrage im Fahrtraining.
               </p>
-              <div id="ftBestandInhalt" class="loading">Lade …</div>
+              <div id="ftBestandInhalt"><div class="loading">Lade …</div></div>
             </div>
           </details>
         </div>
@@ -791,7 +791,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           </div>
         </div>
 
-        <div id="gabListe" class="loading">Lade …</div>
+        <div id="gabListe"><div class="loading">Lade …</div></div>
 
         <div class="card">
           <h2>Nachtragen</h2>
@@ -1063,7 +1063,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 
 
       </div>
-      <div id="tfListe" class="loading">Lade …</div>
+      <div id="tfListe"><div class="loading">Lade …</div></div>
 
       <div id="tfDetail" style="display:none">
         <div class="tf-aktionen" style="margin-bottom:1rem">
@@ -1092,7 +1092,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
 
           <div class="status-msg" id="tfTerminStatus"></div>
         </div>
-        <div id="tfTermine" class="loading">Lade …</div>
+        <div id="tfTermine"><div class="loading">Lade …</div></div>
       </div>
       </div>
     </div>
@@ -1150,7 +1150,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
               </div>
             </div>
             <div class="status-msg" id="grAusloeserHinweis"></div>
-            <div id="grInhalt" class="loading">Lade …</div>
+            <div id="grInhalt"><div class="loading">Lade …</div></div>
           </div>
         </details>
       </div>
@@ -1176,7 +1176,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
               <b>M</b> gemischt (Server 2–5 s) ·
               <b>C</b> keine Serverantwort.
             </p>
-            <div id="axInhalt" class="loading">Lade …</div>
+            <div id="axInhalt"><div class="loading">Lade …</div></div>
           </div>
         </details>
       </div>
@@ -1364,7 +1364,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           </div>
           <div class="status-msg" id="svStatusMsg"></div>
         </div>
-        <div id="svListe" class="loading">Lade …</div>
+        <div id="svListe"><div class="loading">Lade …</div></div>
         <div class="card">
           <h2>Automatische Mails</h2>
           <details>
@@ -1414,7 +1414,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
           <button class="btn btn-green btn-klein" id="btnSoAddFrage">+ Frage hinzufügen</button>
         </div>
         <div id="soAddFrageBox"></div>
-        <div id="soFragenInhalt" class="loading">Lade …</div>
+        <div id="soFragenInhalt"><div class="loading">Lade …</div></div>
       </div>
 
       <div id="soTabPdf" style="display:none">
@@ -1438,7 +1438,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
             <button class="btn btn-green btn-klein" id="btnSoListePdf">Liste als PDF</button>
           </div>
         </div>
-        <div id="soListeInhalt" class="loading">Lade …</div>
+        <div id="soListeInhalt"><div class="loading">Lade …</div></div>
       </div>
 
       <div id="soTabMail" style="display:none">
@@ -1659,7 +1659,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.96</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.97</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -2436,11 +2436,14 @@ async function svLadeStatus(){
     el.innerHTML=`<div class="card" style="padding:0"><div class="tblwrap"><table class="l5">
       <thead><tr><th>Kürzel</th><th>Name</th><th>B-Test</th><th>Monate</th><th>Fahrten</th><th>Stand</th></tr></thead>
       <tbody>`+liste.map(p=>{
+        // Plakette aus den Zahlen ableiten, nicht aus dem Text des Servers – sonst
+        // laufen die beiden bei der nächsten Umbenennung wieder auseinander.
+        const fristOk=p.monate>=r.monateMin, fahrtenOk=p.fahrten>=r.noetigeFahrten;
         let badge;
-        if(p.stand==="SoSi bestanden") badge='<span class="badge" style="background:#888">SoSi bestanden</span>';
-        else if(p.stand==="Bereit-Mail gesendet") badge='<span class="badge" style="background:#2d6a1f">Gemeldet</span>';
-        else if(p.stand==="Bereit") badge='<span class="badge" style="background:#2d6a1f">Bereit</span>';
-        else if(p.stand==="Wartefrist") badge='<span class="badge" style="background:#888">Wartefrist</span>';
+        if(p.stand==="Bereit gemeldet") badge='<span class="badge" style="background:#2d6a1f">Gemeldet</span>';
+        else if(p.stand==="Erinnert") badge='<span class="badge" style="background:#1f5a8a">Erinnert</span>';
+        else if(fristOk&&fahrtenOk) badge='<span class="badge" style="background:#2d6a1f">Bereit</span>';
+        else if(!fristOk) badge='<span class="badge" style="background:#888">Wartefrist</span>';
         else badge='<span class="badge" style="background:#cc7700">Fahrten fehlen</span>';
         const warn=p.hatEmail?"":' <span class="hinw">(keine E-Mail)</span>';
         return `<tr>
