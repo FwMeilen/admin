@@ -157,6 +157,7 @@ select{appearance:none;-webkit-appearance:none;padding-right:28px;background-ima
 .toprow:last-child{border-bottom:0;}
 .topnum{flex:0 0 62px;color:var(--text3);font-variant-numeric:tabular-nums;font-size:12px;}
 .topnum b{color:var(--red);}
+.topid{color:var(--text3);font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap;}
 .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 table.l5{border-collapse:collapse;width:100%;font-size:13px;min-width:480px;}
 table.l5 th,table.l5 td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--gray-mid);white-space:nowrap;}
@@ -6612,7 +6613,7 @@ async function soLadeStatistik(){
     html+='<div class="card"><h2>Verteilung</h2><div class="statgrid">'+soPieSVG(seg)+'<div class="legende">'+soLegende(seg)+'</div></div></div>';
     html+='<div class="card"><h2>Häufigste Fehler</h2>';
     if(!r.top5||!r.top5.length) html+='<div class="empty">Noch keine Fehlerdaten.</div>';
-    else r.top5.forEach((it,i)=>{ html+=`<div class="toprow"><span class="topnum"><b>${it.falsch}✗</b> / ${it.richtig}✓</span><span>${i+1}. ${escHtml(it.frage)}</span></div>`; });
+    else r.top5.forEach((it,i)=>{ html+=`<div class="toprow"><span class="topnum"><b>${it.falsch}✗</b> / ${it.richtig}✓</span><span>${i+1}. ${escHtml(it.frage)}${it.id?` <span class="topid">(ID ${escHtml(String(it.id))})</span>`:""}</span></div>`; });
     html+='</div>';
     html+='<div class="card"><h2>Letzte Prüfungen</h2>';
     if(!r.letzte5||!r.letzte5.length) html+='<div class="empty">Noch keine Prüfungen.</div>';
