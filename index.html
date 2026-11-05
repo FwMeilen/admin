@@ -1659,7 +1659,7 @@ table.l5 th{font-size:10px;color:var(--gray);font-weight:700;text-transform:uppe
   </div>
 </div>
 
-<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.97</div>
+<div class="site-footer">© Stützpunktfeuerwehr Meilen / LOL &nbsp;·&nbsp; CLv1.98</div>
 
 <script>
 /* ── Netzwerk-Baustein für alle MWD-Seiten (Stand W1.00) ──
@@ -4054,7 +4054,9 @@ async function mgUebernehmen(){
       entfernen:wegK.map(k=>({kuerzel:k})),
       anfrageId:Date.now()+"-"+Math.random()});
     if(!r.ok){ mgStatus(fehlerText(r),"err-msg"); return; }
-    mgStatus(`Übernommen: ${r.angelegt} neu, ${r.geaendert} geändert, ${r.entfernt} entfernt.`,"ok-msg");
+    const bericht=`Übernommen: ${r.angelegt} neu, ${r.geaendert} geändert, ${r.entfernt} entfernt.`;
+    if(r.warnung) mgStatus(bericht+` ${r.nichtEntfernt} konnte(n) nicht entfernt werden: ${r.warnung}`,"err-msg");
+    else mgStatus(bericht,"ok-msg");
     $("mgVorschau").innerHTML=""; MG_DATEN=null;
   }catch(e){ mgStatus("Fehler: "+e.message,"err-msg"); }
 }
